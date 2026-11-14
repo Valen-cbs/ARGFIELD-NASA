@@ -1,0 +1,6 @@
+{
+  "name": "Argfield",
+  "description": "Sistema de monitoreo agroclimático y soporte de decisiones basado en observaciones satelitales de NASA, CONAE y agencias regionales para el agro argentino.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
