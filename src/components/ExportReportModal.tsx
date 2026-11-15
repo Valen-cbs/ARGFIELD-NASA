@@ -1,4 +1,6 @@
 import React from 'react';
+import { buildExportReport } from '../services/exportReport';
+import type { RotationEngineState } from '../services/rotationEngineAdapter';
 import { GoogleIcon } from './GoogleIcon';
 import { FarmProfile, Alert, CropRotationPlan } from '../types';
 import { SatelliteReading } from '../types/satellite';
@@ -8,6 +10,7 @@ interface ExportReportModalProps {
   alerts: Alert[];
   readings: SatelliteReading[];
   plans: CropRotationPlan[];
+  engineState?: RotationEngineState;
   onClose: () => void;
   lang: 'es' | 'en';
 }
@@ -16,7 +19,7 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
   farmProfile,
   alerts,
   readings,
-  plans,
+  plans, engineState,
   onClose,
   lang
 }) => {
@@ -25,17 +28,7 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
   };
 
   const handleDownloadJSON = () => {
-    const reportData = {
-      exportTimestamp: new Date().toISOString(),
-      platform: 'Argfield (NASA Space Apps)',
-      dataNotice: 'Satellite readings are provider data at a point, with individual date/coverage/quality states. Weather and rotation estimates remain illustrative demo data.',
-      rotationStrategiesMode: 'demo',
-      satelliteReadings: readings,
-      farmProfile,
-      activeAlertsCount: alerts.length,
-      alerts,
-      rotationStrategies: plans
-    };
+    const reportData = buildExportReport(farmProfile, alerts, readings, plans, engineState);
 
     const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(reportData, null, 2));
     const downloadAnchor = document.createElement('a');
@@ -77,7 +70,7 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
         {/* Modal Preview Body */}
         <div className="p-5 overflow-y-auto space-y-4 text-xs text-slate-700 dark:text-slate-300">
           <div id="printable-report" className="space-y-4">
-            <p className="p-2 border border-amber-300 bg-amber-50 text-amber-950">{lang === 'es' ? 'Las lecturas satelitales conservan su fuente, fecha y estado. Los planes de rotación y sus beneficios son ejemplos de la demo.' : 'Satellite readings retain their source, date and status. Rotation plans and benefits are demo examples.'}</p>
+            <p className="p-2 border border-amber-300 bg-amber-50 text-amber-950">{lang === 'es' ? 'Las lecturas satelitales conservan su fuente, fecha y estado. Los puntajes de rotación son indicadores del modelo, no predicciones de rendimiento o beneficios físicos.' : 'Satellite readings retain their source, date and status. Rotation scores are model indicators, not yield or physical benefit predictions.'}</p>
             <div className="space-y-1">
               {readings.map(r => <p key={r.productId} className="text-[11px] break-words"><strong>{r.productId}</strong>: {r.value ?? '—'} {r.unit} · {r.observedAt ?? 'sin fecha'} · {r.status}{r.cached ? ' · guardado' : ''} · {r.source}</p>)}
             </div>
@@ -94,11 +87,12 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
               </p>
             </div>
 
+            <p>{lang === 'es' ? 'Estado del motor: ' : 'Engine status: '}{engineState?.status ?? 'fallback'}. {engineState?.error}</p>
             {/* Summary metrics */}
             <div className="grid grid-cols-3 gap-3 text-center">
               <div className="bg-slate-50 dark:bg-[#111c2e] p-3 border border-slate-300 dark:border-slate-800">
                 <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold tracking-wider">
-                  {lang === 'es' ? 'Alertas Satelitales' : 'Satellite Alerts'}
+                  {lang === 'es' ? 'Avisos activos' : 'Active notices'}
                 </span>
                 <span className="text-lg font-bold font-mono text-slate-900 dark:text-slate-100">{alerts.length}</span>
               </div>

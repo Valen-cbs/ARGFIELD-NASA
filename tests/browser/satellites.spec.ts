@@ -203,7 +203,7 @@ test('changing farms cannot reuse the previous farm response', async ({ page }) 
   await expect(page.getByTestId('reading-saocom_humedad')).not.toContainText('24,5');
 });
 
-test('JSON export preserves dates, coverage states and the demo status of rotation estimates', async ({ page }) => {
+test('JSON export preserves dates, coverage states and the model status of rotation estimates', async ({ page }) => {
   await mockProviders(page, { missingSoil: true });
   await page.goto('/');
   await expect(page.getByTestId('reading-smap')).toContainText('Dato antiguo');
@@ -212,7 +212,7 @@ test('JSON export preserves dates, coverage states and the demo status of rotati
   await page.locator('#export-json-btn').click();
   const download = await downloaded;
   const report = JSON.parse(await readFile((await download.path())!, 'utf8'));
-  expect(report.rotationStrategiesMode).toBe('demo');
+  expect(['model', 'qualitative']).toContain(report.rotationStrategiesMode);
   expect(report.satelliteReadings.find((r: any) => r.productId === 'smap').observedAt).toBe('2023-11-21');
   expect(report.satelliteReadings.find((r: any) => r.productId === 'saocom_humedad').status).toBe('no_data');
   expect(report.satelliteReadings.find((r: any) => r.productId === 'saocom_humedad').value).toBeNull();

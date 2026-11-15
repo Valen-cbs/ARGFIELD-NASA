@@ -324,6 +324,8 @@ export default function App() {
               onManageFarms={() => setShowRegistryModal(true)}
               onSelectFarm={handleSelectFarm}
               weatherSummary={weatherData.summary}
+              forecast={weatherData.forecast}
+              rotationEngine={rotationEngine}
               onOpenExport={() => setShowExportModal(true)}
               onNavigateToOptimizer={() => setActiveTab('optimizador')}
               onNavigateToAlerts={() => setActiveTab('alertas')}
@@ -439,6 +441,7 @@ export default function App() {
           alerts={alerts}
           readings={satelliteData.readings}
           plans={rotationPlans}
+          engineState={rotationEngine}
           onClose={() => setShowExportModal(false)}
           lang={lang}
         />

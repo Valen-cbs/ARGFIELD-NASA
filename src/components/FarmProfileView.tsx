@@ -1,7 +1,10 @@
+import { WeekOutlook } from './home/WeekOutlook';
+import type { FieldForecast } from '../services/fieldForecast';
+import type { RotationEngineState } from '../services/rotationEngineAdapter';
 import { DemoBadge } from './DemoBadge';
 import { SatelliteReadings } from './SatelliteReadings';
 import { SatelliteReading } from '../types/satellite';
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { FarmProfile, MainCrop, SoilType, FarmerPriority, Alert } from '../types';
 import { CROPS_DATABASE, SOIL_DATABASE } from '../data/crops';
 import { EditFarmModal } from './EditFarmModal';
@@ -44,6 +47,8 @@ interface FarmProfileViewProps {
   onManageFarms: () => void;
   onSelectFarm: (farm: RegisteredFarm) => void;
   weatherSummary: WeatherBrief | null;
+  forecast: FieldForecast | null;
+  rotationEngine: RotationEngineState;
 }
 
 export const FarmProfileView: React.FC<FarmProfileViewProps> = ({
@@ -63,7 +68,7 @@ export const FarmProfileView: React.FC<FarmProfileViewProps> = ({
   activeFarmId,
   onManageFarms,
   onSelectFarm,
-  weatherSummary
+  weatherSummary, forecast, rotationEngine
 }) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
@@ -84,57 +89,14 @@ export const FarmProfileView: React.FC<FarmProfileViewProps> = ({
     : null;
   const criticalCount = alerts ? alerts.filter(a => a.severity === 'critical' || a.severity === 'high').length : 0;
 
-  // Strategy recommendation tailored to farmer priority
-  const strategy = useMemo(() => {
-    switch (farmProfile.priority) {
-      case 'conserve_moisture':
-        return {
-          title: lang === 'es' ? 'Vicia villosa → Maíz Tardío → Trigo' : 'Hairy Vetch → Late Maize → Wheat',
-          benefitWater: lang === 'es' ? 'No estimado' : 'Not estimated',
-          benefitSoil: lang === 'es' ? 'Sin medición local' : 'No local measurement',
-          desc: lang === 'es' 
-            ? 'La cobertura de vicia frena la evaporación directa, acumula agua en el perfil y aporta nitrógeno biológico al maíz.' 
-            : 'Vetch cover halts surface evaporation, preserves root moisture, and supplies biological nitrogen.'
-        };
-      case 'build_soil_organic':
-        return {
-          title: lang === 'es' ? 'Centeno de Cobertura → Soja de 1ra → Trigo / Soja 2da' : 'Cereal Rye Cover → 1st Soybean → Wheat/Soybean',
-          benefitWater: lang === 'es' ? 'No estimado' : 'Not estimated',
-          benefitSoil: lang === 'es' ? 'Sin medición local' : 'No local measurement',
-          desc: lang === 'es' 
-            ? 'Aporte constante de raíces fasciculadas que incrementan carbono activo y descompactan el perfil de suelo.' 
-            : 'Dense fibrous root system building active carbon and loosening topsoil structure.'
-        };
-      case 'drought_resilience':
-        return {
-          title: lang === 'es' ? 'Sorgo Granífero → Vicia → Girasol' : 'Grain Sorghum → Vetch → Sunflower',
-          benefitWater: lang === 'es' ? 'No estimado' : 'Not estimated',
-          benefitSoil: lang === 'es' ? 'Sin medición local' : 'No local measurement',
-          desc: lang === 'es' 
-            ? 'Especies con enraizamiento profundo (>2 metros) y alta rusticidad ante golpes de calor y sequías prolongadas.' 
-            : 'Deep-rooted resilient species capable of tapping subsoil moisture during heat shocks.'
-        };
-      case 'erosion_control':
-        return {
-          title: lang === 'es' ? 'Avena y Vicia Asociadas → Maíz con Rastrojo Permanente' : 'Oats & Vetch Mix → Maize under No-Till',
-          benefitWater: lang === 'es' ? 'No estimado' : 'Not estimated',
-          benefitSoil: lang === 'es' ? 'Sin medición local' : 'No local measurement',
-          desc: lang === 'es' 
-            ? 'Suelo protegido los 365 días del año para frenar el viento en suelos arenosos y escorrentías en pendientes.' 
-            : 'Continuous soil cover year-round stopping wind erosion on lighter soils and runoff on slopes.'
-        };
-      case 'maximize_margin':
-      default:
-        return {
-          title: lang === 'es' ? 'Cebada Cervecera → Soja de 2da → Maíz Temprano' : 'Malting Barley → 2nd Soybean → Early Maize',
-          benefitWater: lang === 'es' ? 'No estimado' : 'Not estimated',
-          benefitSoil: lang === 'es' ? 'Sin medición local' : 'No local measurement',
-          desc: lang === 'es' 
-            ? 'Intensificación sustentable con cosecha anticipada de cebada que deja margen hídrico para la soja estival.' 
-            : 'Sustainable intensification leveraging early barley harvest to capture summer rain.'
-        };
-    }
-  }, [farmProfile.priority, lang]);
+  // Home and optimizer use the same evaluated alternatives and provenance.
+  const topPlan = rotationEngine.plans[0];
+  const strategy = {
+    title: topPlan?.title ?? (rotationEngine.status === 'loading' ? (lang === 'es' ? 'Evaluando alternativas…' : 'Evaluating alternatives…') : (lang === 'es' ? 'Sin alternativa evaluable' : 'No evaluated alternative')),
+    desc: topPlan?.summary ?? rotationEngine.error ?? (lang === 'es' ? 'Revisá los datos y la comparación en el Optimizador.' : 'Review inputs and comparison in the optimizer.'),
+    benefitWater: lang === 'es' ? 'No estimado' : 'Not estimated',
+    benefitSoil: lang === 'es' ? 'Sin medición local' : 'No local measurement'
+  };
 
   const prioritiesList: Array<{ id: FarmerPriority; label: string; icon: React.ReactNode }> = [
     { 
@@ -208,6 +170,7 @@ export const FarmProfileView: React.FC<FarmProfileViewProps> = ({
 
       {farms.length > 1 && <label className="flex items-center gap-2 border border-slate-300 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-[#1c1c1e]">{lang === 'es' ? 'Estancia activa' : 'Active farm'}<select value={activeFarmId ?? ''} onChange={event => { const farm = farms.find(item => item.id === event.target.value); if (farm) onSelectFarm(farm); }} className="border border-slate-300 bg-white px-2 py-1 dark:border-zinc-700 dark:bg-zinc-900">{farms.map(farm => <option key={farm.id} value={farm.id}>{farm.profile.location.name}</option>)}</select><button type="button" onClick={onManageFarms} className="ml-auto font-bold text-[#0f3260] dark:text-sky-300">{lang === 'es' ? 'Gestionar' : 'Manage'}</button></label>}
       {farms.length === 1 && <button type="button" onClick={onManageFarms} className="border border-slate-300 bg-white px-3 py-2 text-left text-xs font-bold text-[#0f3260] dark:border-zinc-700 dark:bg-[#1c1c1e] dark:text-sky-300">{lang === 'es' ? 'Gestionar estancias' : 'Manage farms'}</button>}
+      <WeekOutlook forecast={forecast} lang={lang} isOffline={isOffline} />
       {farmProfile.cropAllocations && farmProfile.cropAllocations.length > 0 && <section className="border border-slate-300 bg-white p-4 dark:border-zinc-700 dark:bg-[#1c1c1e]"><h2 className="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-zinc-300">{lang === 'es' ? 'Cultivos registrados' : 'Registered crops'}</h2><div className="mt-2 flex flex-wrap gap-2">{farmProfile.cropAllocations.map(item => <span key={item.crop} className="border border-slate-200 px-2.5 py-1 text-xs dark:border-zinc-700">{item.crop} · {item.hectares.toLocaleString(lang === 'es' ? 'es-AR' : 'en-US')} ha</span>)}</div></section>}
 
       <SatelliteReadings readings={readings} lang={lang} onRefresh={onRefreshData} offline={isOffline} onLocateField={() => onOpenEditLocation ? onOpenEditLocation() : setShowEditModal(true)} />

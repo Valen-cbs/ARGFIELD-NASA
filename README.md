@@ -42,7 +42,7 @@ El perfil es un punto: no representa el promedio de las hectáreas del estableci
 
 Los avisos actuales son reglas de seguimiento para percentiles secos de SAOCOM y para incidencia modelada de fusariosis cuando el cultivo declarado es trigo. Solo usan productos vigentes, fechados y no recuperados de la caché offline. Las capas de fuego e inundación no generan avisos automáticos de proximidad.
 
-Clima y beneficios estimados de rotación siguen siendo demostrativos y están identificados como Demo. El informe JSON y su vista imprimible incluyen esta distinción y la procedencia de las lecturas. Las misiones que aún requieren acceso o procesamiento aparecen en Fuentes como pendientes.
+El clima utiliza pronósticos Open-Meteo. Los puntajes de rotación son indicadores orientativos del motor; los beneficios físicos en agua, carbono y rendimiento no se estiman. El informe JSON y su vista imprimible incluyen esta distinción y la procedencia de las lecturas. Las misiones que aún requieren acceso o procesamiento aparecen en Fuentes como pendientes.
 
 ## Verificar
 
@@ -64,3 +64,5 @@ Las pruebas de navegador usan Chrome instalado, respuestas controladas y bloquea
 `npm run build` genera `dist`. Vercel y Netlify incluyen las rutas `/proxy/conae1`, `/proxy/conae2`, `/proxy/conae3`, `/proxy/planetary` y `/proxy/power`; Vercel además redirige las rutas del frontend, como `/landing`, a la aplicación. Vite aplica las mismas rutas en desarrollo y preview. Otro alojamiento estático necesita configurar estos proxies; copiar solo `dist` no alcanza para consultar proveedores que restringen CORS. Los destinos son fijos; no hay un proxy de URLs arbitrarias ni credenciales embebidas.
 
 El análisis del proyecto, las fuentes consultadas y los límites de la integración están en [docs/INTEGRACION_SATELITAL.md](docs/INTEGRACION_SATELITAL.md).
+
+La revisión del paquete `argfield-para-mariano.zip`, sus conflictos con el motor integrado y la adaptación aplicada están documentadas en [docs/REVISION_PAQUETE_MARIANO.md](docs/REVISION_PAQUETE_MARIANO.md). Inicio comparte alternativas con el Optimizador y agrega un resumen meteorológico semanal; la exportación JSON conserva la evaluación completa.
