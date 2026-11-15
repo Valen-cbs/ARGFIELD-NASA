@@ -89,6 +89,8 @@ export interface FarmProfile {
   cropAllocations?: Array<{ crop: string; hectares: number }>;
   previousCrop?: string;
   previousCrops?: string[];
+  currentRotation?: Array<{ primary: import('../engine/agronomy').CropId; secondary?: 'soja2' }>;
+  maxMonthlyIrrigationMm?: number;
   irrigationAvailable?: boolean;
   soilType: SoilType;
   irrigation: IrrigationType;

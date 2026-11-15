@@ -1,3 +1,4 @@
+import { CROP_AGRONOMY, CropId } from '../engine/agronomy';
 import React, { useEffect, useMemo, useState } from 'react';
 import { FarmProfile } from '../types';
 import { MAGYP_CROPS, canAddMagypCrop, removeConflictingMagypCrops } from '../data/magypCrops';
@@ -44,6 +45,9 @@ export const FarmRegistryModal: React.FC<Props> = ({ open, lang, farms, activeFa
   const [allocations, setAllocations] = useState<Record<string, string>>({});
   const [previousCrops, setPreviousCrops] = useState<string[]>([]);
   const [irrigated, setIrrigated] = useState(false);
+  const [rotation, setRotation] = useState<string[]>(['', '', '']);
+  const [irrigationMm, setIrrigationMm] = useState('');
+  const [soilType, setSoilType] = useState<FarmProfile['soilType']>(template.soilType);
   const [cropQuery, setCropQuery] = useState('');
   const [previousCropQuery, setPreviousCropQuery] = useState('');
   const [error, setError] = useState('');
@@ -56,6 +60,9 @@ export const FarmRegistryModal: React.FC<Props> = ({ open, lang, farms, activeFa
     if (!open) return;
     const p = selectedFarm?.profile;
     const location = p?.location;
+    setRotation([0, 1, 2].map(i => p?.currentRotation?.[i] ? p.currentRotation[i].primary + (p.currentRotation[i].secondary ? '+soja2' : '') : ''));
+    setIrrigationMm(p?.maxMonthlyIrrigationMm === undefined ? '' : String(p.maxMonthlyIrrigationMm));
+    setSoilType(p?.soilType ?? template.soilType);
     setProducer(p?.producerName ?? ''); setName(p?.location.name ?? '');
     setArea(p ? String(p.fieldSizeHectares) : ''); setAreaUnit('ha');
     setPlace(location ? { name: location.name, province: location.province, lat: location.lat, lng: location.lng } : null);
@@ -88,7 +95,7 @@ export const FarmRegistryModal: React.FC<Props> = ({ open, lang, farms, activeFa
   }, [query, place]);
 
   if (!open) return null;
-  const reset = () => { setEditingId(undefined); setQuery(''); setPlace(null); setManualLat(''); setManualLng(''); setName(''); setProducer(''); setArea(''); setSelectedCrops([]); setAllocations({}); setPreviousCrops([]); setPreviousCropQuery(''); setIrrigated(false); setError(''); };
+  const reset = () => { setRotation(['', '', '']); setIrrigationMm(''); setSoilType(template.soilType); setEditingId(undefined); setQuery(''); setPlace(null); setManualLat(''); setManualLng(''); setName(''); setProducer(''); setArea(''); setSelectedCrops([]); setAllocations({}); setPreviousCrops([]); setPreviousCropQuery(''); setIrrigated(false); setError(''); };
   const validateManualCoordinates = () => {
     const lat = Number(manualLat);
     const lng = Number(manualLng);
@@ -133,8 +140,11 @@ export const FarmRegistryModal: React.FC<Props> = ({ open, lang, farms, activeFa
     if (!assigned.length) return setError(es ? 'Seleccioná al menos un cultivo actual.' : 'Select at least one current crop.');
     if (assigned.some(item => !Number.isFinite(item.hectares) || item.hectares <= 0)) return setError(es ? 'Completá la superficie asignada de cada cultivo.' : 'Enter each crop area.');
     if (assigned.reduce((sum, item) => sum + item.hectares, 0) > totalHa + 1e-8) return setError(es ? 'La superficie asignada supera la superficie total de la estancia.' : 'Allocated crop area exceeds farm area.');
+    if (rotation.some(Boolean) && (!rotation[0] || !rotation[1])) return setError('Completá las primeras dos campañas o dejá toda la rotación sin declarar.');
+    if (irrigationMm !== '' && (!Number.isFinite(Number(irrigationMm)) || Number(irrigationMm) < 0)) return setError('El volumen de riego debe ser finito y no negativo.');
+    const currentRotation = rotation.filter(Boolean).map(value => ({ primary: value.split('+')[0] as CropId, ...(value.includes('+') ? { secondary: 'soja2' as const } : {}) }));
     const region = determineRegion(place.lat, place.lng); const basin = determineBasin(place.lat, place.lng);
-    onSave({ ...template, producerName: producer.trim() || undefined, location: { ...template.location, name: farmName, province: place.province, region, lat: place.lat, lng: place.lng, basinId: basin.id, basinName: basin.name, mainRiver: basin.mainRiver, aquifer: basin.aquifer }, fieldSizeHectares: totalHa, cropAllocations: assigned, currentCrop: cropToMain(selectedCrops[0] ?? ''), previousCrop: previousCrops[0] || undefined, previousCrops: previousCrops.length ? previousCrops : undefined, irrigationAvailable: irrigated, irrigation: irrigated ? template.irrigation : 'dryland' }, editingId);
+    onSave({ ...template, ...selectedFarm?.profile, soilType, currentRotation: currentRotation.length ? currentRotation : undefined, maxMonthlyIrrigationMm: irrigationMm === '' ? undefined : Number(irrigationMm), producerName: producer.trim() || undefined, location: { ...template.location, name: farmName, province: place.province, region, lat: place.lat, lng: place.lng, basinId: basin.id, basinName: basin.name, mainRiver: basin.mainRiver, aquifer: basin.aquifer }, fieldSizeHectares: totalHa, cropAllocations: assigned, currentCrop: cropToMain(selectedCrops[0] ?? ''), previousCrop: previousCrops[0] || undefined, previousCrops: previousCrops.length ? previousCrops : undefined, irrigationAvailable: irrigated, irrigation: irrigated ? template.irrigation : 'dryland' }, editingId);
     reset();
   };
 
@@ -167,6 +177,14 @@ export const FarmRegistryModal: React.FC<Props> = ({ open, lang, farms, activeFa
             <section className="space-y-2"><label className="block text-[11px] font-bold uppercase tracking-wider text-[#17385f] dark:text-zinc-200">{es ? 'Cultivos actuales' : 'Current crops'}<input value={cropQuery} onChange={e => setCropQuery(e.target.value)} placeholder={es ? 'Filtrar cultivos actuales' : 'Filter current crops'} className={inputClass} /></label><div className="max-h-44 overflow-y-auto border border-slate-200 p-2 dark:border-zinc-700"><div className="grid grid-cols-1 gap-x-3 gap-y-1.5 sm:grid-cols-2">{visibleCrops.map(crop => <div key={crop} className="flex min-w-0 items-center gap-2 text-xs"><label className="flex min-w-0 flex-1 items-center gap-2"><input type="checkbox" checked={selectedCrops.includes(crop)} onChange={() => toggleCrop(crop)} /><span className="min-w-0 truncate">{crop}</span></label>{selectedCrops.includes(crop) && <input aria-label={`${es ? 'Superficie' : 'Area'} ${crop}`} type="number" min="0.01" step="any" value={allocations[crop] ?? ''} onChange={e => setAllocations({ ...allocations, [crop]: e.target.value })} className="w-20 border border-slate-300 px-1.5 py-1 text-[10px] dark:border-zinc-700 dark:bg-zinc-900" />}</div>)}</div></div><p className="text-[10px] text-slate-500">{es ? 'Los cultivos “total” agrupan sus variantes.' : '“Total” crops include their variants.'}</p></section>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-3"><span className={`text-xs ${selectedCrops.reduce((sum, crop) => sum + Number(allocations[crop] || 0) * (areaUnit === 'm2' ? 0.0001 : 1), 0) > totalHa ? 'text-rose-600' : 'text-slate-500'}`}>{es ? 'Asignado' : 'Allocated'}: {selectedCrops.reduce((sum, crop) => sum + Number(allocations[crop] || 0) * (areaUnit === 'm2' ? 0.0001 : 1), 0).toFixed(2)} / {Number.isFinite(totalHa) ? totalHa.toFixed(2) : '0'} ha</span></div>
+          <section className="space-y-2 border-t border-slate-200 pt-3 text-xs">
+            <strong>{es ? 'Rotación actual o habitual (opcional, en orden de campañas)' : 'Current or usual rotation (optional, campaign order)'}</strong>
+            <p>{es ? 'Declaración de una secuencia a comparar en este lote; no se infiere de las hectáreas de cultivos actuales. Se evalúa con el mismo calendario nominal que las alternativas.' : 'Declared sequence for this field; not inferred from current crop areas. Evaluated on the same nominal calendar as alternatives.'}</p>
+            <div className="grid gap-2 sm:grid-cols-3">{rotation.map((value, i) => <label key={i}>{es ? 'Campaña' : 'Campaign'} {i + 1}<select aria-label={'Rotación campaña ' + (i + 1)} value={value} onChange={e => setRotation(rotation.map((r, j) => i === j ? e.target.value : r))} className={inputClass}><option value="">{es ? 'Sin declarar' : 'Not declared'}</option>{(['soja1', 'maiz', 'trigo', 'girasol', 'sorgo'] as CropId[]).map(c => <option key={c} value={c}>{CROP_AGRONOMY[c].nameEs}</option>)}<option value="trigo+soja2">Trigo + soja de segunda</option></select></label>)}</div>
+            <label className="block">{es ? 'Tipo de suelo' : 'Soil type'}<select aria-label="Tipo de suelo" value={soilType} onChange={e => setSoilType(e.target.value as FarmProfile['soilType'])} className={inputClass}><option value="mollisol_deep">Molisol profundo</option><option value="sandy_loam">Franco arenoso</option><option value="clay_vertisol">Vertisol arcilloso</option><option value="aridisol_calcareous">Aridisol calcáreo</option></select></label>
+            <label className="block"><input type="checkbox" checked={irrigated} onChange={e => setIrrigated(e.target.checked)} /> {es ? 'Riego disponible' : 'Irrigation available'}</label>
+            {irrigated && <label className="block">{es ? 'Tope de riego declarado (mm/mes, opcional)' : 'Declared irrigation limit (mm/month, optional)'}<input aria-label="Tope de riego mm/mes" type="number" min="0" step="any" value={irrigationMm} onChange={e => setIrrigationMm(e.target.value)} className={inputClass} /></label>}
+          </section>
           {error && <p role="alert" className="text-xs text-rose-600">{error}</p>}
           <div className="flex justify-end gap-2 border-t border-slate-200 pt-3 dark:border-zinc-700"><button type="button" onClick={onClose} className="border border-slate-300 px-3 py-2 text-xs dark:border-zinc-700">{es ? 'Cerrar' : 'Close'}</button><button type="submit" className="bg-[#0f3260] px-4 py-2 text-xs font-bold text-white">{es ? 'Guardar estancia' : 'Save farm'}</button></div>
         </form>

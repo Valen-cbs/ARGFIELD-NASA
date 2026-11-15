@@ -151,6 +151,7 @@ async function loadWms(product: SatelliteProduct & { kind: 'wms' }, point: LatLn
   const parsed = parseFeatureInfo(parseJSON(text), product.wms);
   return {
     ...emptyReading(product), value: parsed.value, entries: parsed.entries,
+    sourceUrl: buildFeatureInfoUrl(product.wms, slot, point.lat, point.lng),
     status: parsed.hasData ? readingStatus(metadata.observedAt, product.maxAgeDays) : 'no_data',
     observedAt: metadata.observedAt, fetchedAt: new Date().toISOString(),
     ...(!parsed.hasData ? { missingReason: 'provider_nodata' as const } : {}),
@@ -229,7 +230,7 @@ function stacTileUrl(product: SatelliteProduct & { kind: 'stac' }, item: StacIte
   return `/proxy/planetary/api/data/v1/item/tiles/WebMercatorQuad/{z}/{x}/{y}@1x.png?${params}`;
 }
 
-async function loadStac(product: SatelliteProduct & { kind: 'stac' }, point: LatLng, signal?: AbortSignal): Promise<SatelliteReading> {
+async function loadStac(product: SatelliteProduct & { kind: 'stac' }, point: LatLng, signal?: AbortSignal, collectSeries = false): Promise<SatelliteReading> {
   const params = new URLSearchParams({ collections: product.collection,
     intersects: JSON.stringify({ type: 'Point', coordinates: [point.lng, point.lat] }), limit: '24', sortby: '-datetime',
     datetime: `${new Date(Date.now() - 90 * DAY_MS).toISOString()}/${new Date().toISOString()}` });
@@ -241,6 +242,8 @@ async function loadStac(product: SatelliteProduct & { kind: 'stac' }, point: Lat
   let previewItem: StacItem | undefined;
   let consecutiveFailures = 0;
   let scenesChecked = 0;
+  let latestReading: SatelliteReading | undefined;
+  const samples: NonNullable<SatelliteReading['samples']> = [];
   for (const item of selectStacCandidates(items)) {
     signal?.throwIfAborted();
     scenesChecked++;
@@ -254,7 +257,7 @@ async function loadStac(product: SatelliteProduct & { kind: 'stac' }, point: Lat
       previewItem ??= item;
       if (value === null) continue;
       const observedAt = item.properties.end_datetime ?? item.properties.datetime ?? item.properties.start_datetime ?? null;
-      return {
+      const reading: SatelliteReading = {
         ...emptyReading(product), value: Math.round(value * 1000) / 1000,
         status: readingStatus(observedAt, product.maxAgeDays), observedAt,
         fetchedAt: new Date().toISOString(), sceneId: item.id, tileUrl: stacTileUrl(product, item),
@@ -263,6 +266,9 @@ async function loadStac(product: SatelliteProduct & { kind: 'stac' }, point: Lat
         sourceUrl: `https://planetarycomputer.microsoft.com/api/stac/v1/collections/${product.collection}/items/${encodeURIComponent(item.id)}`,
         detail: product.id === 'sentinel2_ndvi' ? 'NDVI del píxel validado con SCL. El mapa muestra la escena en color natural.' : product.description.es
       };
+      if (!collectSeries || product.id !== 'sentinel2_ndvi') return reading;
+      latestReading ??= reading;
+      if (observedAt) samples.push({ value: reading.value!, observedAt, sourceUrl: reading.sourceUrl });
     } catch (error) {
       if (signal?.aborted) throw error;
       lastError = error;
@@ -270,6 +276,7 @@ async function loadStac(product: SatelliteProduct & { kind: 'stac' }, point: Lat
       if (consecutiveFailures >= 2 && error instanceof SatelliteServiceError && (['network', 'timeout'].includes(error.code) || /HTTP (429|5\d\d)/.test(error.message))) break;
     }
   }
+  if (latestReading) return { ...latestReading, samples, scenesChecked };
   if (!successfulPoints && lastError) throw lastError;
   return {
     ...emptyReading(product, 'no_data'), fetchedAt: new Date().toISOString(),
@@ -283,10 +290,11 @@ async function loadStac(product: SatelliteProduct & { kind: 'stac' }, point: Lat
   };
 }
 
-export async function loadSatelliteProduct(product: SatelliteProduct, point: LatLng, slot = 1, signal?: AbortSignal): Promise<SatelliteReading> {
+export async function loadSatelliteProduct(product: SatelliteProduct, point: LatLng, slot = 1, signal?: AbortSignal, collectSeries = false): Promise<SatelliteReading> {
   try {
     if (!Number.isFinite(point.lat) || !Number.isFinite(point.lng) || Math.abs(point.lat) > 90 || Math.abs(point.lng) > 180) throw new SatelliteServiceError('format', 'Coordenadas inválidas.');
-    return product.kind === 'wms' ? await loadWms(product, point, slot, signal) : await loadStac(product, point, signal);
+    const reading = product.kind === 'wms' ? await loadWms(product, point, slot, signal) : await loadStac(product, point, signal, collectSeries);
+    return { ...reading, location: { ...point } };
   } catch (error) {
     if (signal?.aborted) throw error;
     return { ...emptyReading(product, 'error'), fetchedAt: new Date().toISOString(),

@@ -19,6 +19,7 @@ import { Alert, FarmLocation, FarmProfile, LatLng } from './types';
 import { useSatelliteData } from './services/dataLoader';
 import { deriveSatelliteAlerts } from './services/satelliteAlerts';
 import { generateRotationStrategies } from './services/rotationOptimizer';
+import { useRotationEngine } from './services/rotationEngineAdapter';
 import { determineBasin, determineRegion, isWithinArgentina } from './services/geo';
 import { useOpenMeteoDashboard } from './services/weatherAlerts';
 
@@ -194,10 +195,13 @@ export default function App() {
     return alerts.filter(a => a.severity === 'critical' || a.severity === 'high').length;
   }, [alerts]);
 
-  // Generate tailored crop rotation strategies based on NASA alerts & farmer profile
-  const rotationPlans = useMemo(() => {
+  // Motor cuantitativo de rotaciones: datos NASA POWER + MAGyP + lecturas satelitales
+  // ya validadas; si no puede ejecutarse, cae al generador cualitativo previo.
+  const rotationEngine = useRotationEngine(farmProfile, satelliteData.readings, Boolean(activeFarmId) && !showLanding);
+  const fallbackPlans = useMemo(() => {
     return generateRotationStrategies(farmProfile, alerts);
   }, [farmProfile, alerts]);
+  const rotationPlans = rotationEngine.engine ? rotationEngine.plans : fallbackPlans;
 
   // Handle map click location change
   const handleMapClick = (coords: LatLng) => {
@@ -383,6 +387,10 @@ export default function App() {
               plans={rotationPlans}
               farmProfile={farmProfile}
               lang={lang}
+              quantitative={rotationEngine.status === 'ready' && rotationEngine.plans.length > 0}
+              engineResult={rotationEngine.engine}
+              engineError={rotationEngine.error}
+              engineWarnings={rotationEngine.engine?.warnings ?? []}
               onNavigateToHome={() => setActiveTab('home')}
               onOpenExport={() => setShowExportModal(true)}
             />

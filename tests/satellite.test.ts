@@ -219,3 +219,39 @@ test('MODIS checks the alternate Terra/Aqua composite before accepting an older 
   assert.equal(reading.observedAt, '2026-10-31T23:59:59Z');
   assert.equal(reading.value, 26.85);
 });
+
+
+test('Sentinel series uses actual scene dates and preserves latest reading while excluding clouds', async () => {
+  const dates = ['2026-11-13', '2026-11-01', '2026-10-15', '2026-10-01'];
+  const scenes = dates.map((date, i) => ({ ...item(), id: 'series-' + i, properties: { ...item().properties, datetime: date + 'T00:00:00Z' } }));
+  globalThis.fetch = async url => String(url).includes('/search?') ? Response.json({ features: scenes }) : Response.json(pixel(['B04', 'B08', 'SCL'], [2000, 5000, String(url).includes('series-1') ? 9 : 4]));
+  const result = await loadSatelliteProduct(product('sentinel2_ndvi'), { lat: -34, lng: -60 }, 1, undefined, true);
+  assert.equal(result.samples!.length, 3);
+  assert.equal(result.observedAt, '2026-11-13T00:00:00Z');
+  assert.equal(result.samples!.at(-1)!.observedAt, '2026-10-01T00:00:00Z');
+  assert.ok(result.samples!.every(s => s.sourceUrl.includes('/items/series-')));
+  assert.deepEqual(result.location, { lat: -34, lng: -60 });
+});
+
+
+test('daily IMERG loader retains historical valid days for variability beyond current freshness window', async () => {
+  const { loadSensorObservations } = await import('../src/services/dataLoader');
+  const { evidenceFromReadings, observationIndicators } = await import('../src/engine/observations');
+  const layers = CONAE_LAYERS.flatMap(l => Array.from({ length: l.days ? l.seriesLength ?? 7 : 1 }, (_, i) => {
+    const date = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
+    return '<Layer queryable="1"><Name>' + resolveLayerName(l, i + 1) + '</Name><Title>Fixture ' + date + '</Title></Layer>';
+  })).join('');
+  globalThis.fetch = async input => {
+    const url = new URL(String(input), 'https://example.test');
+    if (url.searchParams.get('REQUEST') === 'GetCapabilities') return new Response('<WMS_Capabilities><Capability><Layer>' + layers + '</Layer></Capability></WMS_Capabilities>');
+    if (url.searchParams.get('REQUEST') === 'GetFeatureInfo') return Response.json(feature(Number((url.searchParams.get('QUERY_LAYERS') ?? '').slice(-1)) || 1));
+    return Response.json({ features: [] });
+  };
+  const readings = await loadSensorObservations({ lat: -34, lng: -60 });
+  const rain = readings.find(r => r.productId === 'lluvia_imerg')!;
+  assert.equal(rain.samples!.length, 7);
+  const diagnostic = observationIndicators(evidenceFromReadings([rain], new Date()), new Date());
+  assert.equal(diagnostic[0].id, 'rain_variability');
+  assert.equal(diagnostic[0].value, 2);
+  assert.equal(diagnostic[0].samples!.length, 7);
+});

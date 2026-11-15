@@ -1,3 +1,4 @@
+import { regionalSourcePolicy } from '../data/regionalSources';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { DASHBOARD_PRODUCT_IDS, SATELLITE_PRODUCTS } from '../data/satelliteProducts';
 import { LatLng } from '../types';
@@ -9,8 +10,17 @@ const cache = new Map<string, SatelliteReading[]>();
 const cacheKey = (point: LatLng) => `${point.lat},${point.lng}`;
 
 export async function loadSensorObservations(point: LatLng, signal?: AbortSignal, onReading?: (reading: SatelliteReading) => void): Promise<SatelliteReading[]> {
-  return Promise.all(PRODUCTS.map(async product => {
-    const reading = await loadSatelliteProduct(product, point, 1, signal);
+  const policy = regionalSourcePolicy(point);
+  const priority = (source: string) => /NASA|CONAE/.test(source) ? 0 : policy.preferred.some(a => source.includes(a)) ? 1 : 2;
+  const ordered = [...PRODUCTS].sort((a, b) => priority(a.source) - priority(b.source));
+  return Promise.all(ordered.map(async product => {
+    let reading = await loadSatelliteProduct(product, point, 1, signal, true);
+    if (product.id === 'lluvia_imerg' && reading.status === 'available') {
+      const previous = await Promise.all([2, 3, 4, 5, 6, 7].map(slot => loadSatelliteProduct(product, point, slot, signal)));
+      // Older valid daily measurements belong to the historical seven-day series,
+      // even when outside the three-day window for describing current rainfall.
+      reading = { ...reading, samples: [reading, ...previous].filter(r => ['available', 'stale'].includes(r.status) && r.value !== null && r.observedAt).map(r => ({ value: r.value!, observedAt: r.observedAt!, sourceUrl: r.sourceUrl })) };
+    }
     if (!signal?.aborted) onReading?.(reading);
     return reading;
   }));

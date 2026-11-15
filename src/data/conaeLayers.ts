@@ -47,8 +47,8 @@ export const CONAE_LAYERS: ConaeLayer[] = [
     group: 'agua',
     name: { es: 'Estatus hídrico', en: 'Water status' },
     description: {
-      es: 'Percentil del índice de precipitación antecedente: qué tan húmedo está el suelo comparado con 25 años de lluvia.',
-      en: 'Antecedent precipitation index percentile: how wet the soil is compared with 25 years of rainfall.'
+      es: 'Percentil del índice de precipitación antecedente derivado de IMERG respecto de su referencia histórica. No es una medición de humedad del suelo.',
+      en: 'IMERG-derived antecedent precipitation index percentile against its historical reference. It is not a soil moisture measurement.'
     },
     url: 'https://geoservicios2.conae.gov.ar/geoserver/EstatusHidrico/wms',
     layer: 'EstatusHidrico:MHS_GPMIMERG_PCNTLAPI_',

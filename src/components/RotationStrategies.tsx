@@ -1,3 +1,5 @@
+import { EngineComparison } from './EngineComparison';
+import type { EngineResult } from '../engine/engineTypes';
 import { DemoBadge } from './DemoBadge';
 import React, { useState, useEffect } from 'react';
 import { CropRotationPlan, FarmProfile } from '../types';
@@ -18,6 +20,10 @@ interface RotationStrategiesProps {
   plans: CropRotationPlan[];
   farmProfile: FarmProfile;
   lang: 'es' | 'en';
+  quantitative?: boolean;
+  engineError?: string | null;
+  engineWarnings?: string[];
+  engineResult?: EngineResult | null;
   onNavigateToHome?: () => void;
   onOpenExport?: () => void;
 }
@@ -25,7 +31,11 @@ interface RotationStrategiesProps {
 export const RotationStrategies: React.FC<RotationStrategiesProps> = ({
   plans,
   farmProfile,
-  lang
+  lang,
+  quantitative = false,
+  engineError = null,
+  engineResult,
+  engineWarnings = []
 }) => {
   const [selectedPlanId, setSelectedPlanId] = useState<string>(plans[0]?.id || '');
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
@@ -43,6 +53,7 @@ export const RotationStrategies: React.FC<RotationStrategiesProps> = ({
   if (!currentPlan) {
     return (
       <div className="bg-white dark:bg-[#1c1c1e] border border-slate-300 dark:border-[#2e2e33] p-8 text-center text-xs text-slate-500 dark:text-zinc-400">
+        <EngineComparison result={engineResult} />
         {lang === 'es' ? 'No se pudieron generar planes de rotación.' : 'Could not generate rotation plans.'}
       </div>
     );
@@ -50,6 +61,14 @@ export const RotationStrategies: React.FC<RotationStrategiesProps> = ({
 
   return (
     <div className="space-y-4 pb-12 font-sans select-none max-w-5xl mx-auto">
+      {(engineError || engineWarnings.length > 0) && (
+        <div role="status" className="border border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-800 p-3 text-xs text-amber-950 dark:text-amber-100">
+          <strong>{lang === 'es' ? 'Estado de datos del motor' : 'Engine data status'}</strong>
+          {engineError && <p className="mt-1">{engineError}</p>}
+          {engineWarnings.length > 0 && <ul className="mt-1 list-disc pl-5">{engineWarnings.map((warning, index) => <li key={`${index}-${warning}`}>{warning}</li>)}</ul>}
+        </div>
+      )}
+      <EngineComparison result={engineResult} />
       {/* Unified Block: Field Context & 3 Strategy Selectors */}
       <div className="bg-white dark:bg-[#1c1c1e] border border-slate-300 dark:border-[#2e2e33] shadow-xs divide-y divide-slate-200 dark:divide-[#2e2e33]">
         {/* Subdivision 1: Establishment Title & Agronomic Specs */}
@@ -100,7 +119,7 @@ export const RotationStrategies: React.FC<RotationStrategiesProps> = ({
                         ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-400/40'
                         : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
                     }`}>
-                      {lang === 'es' ? 'Orientativo' : 'Qualitative'}
+                      {quantitative ? (lang === 'es' ? 'Motor cuantitativo' : 'Quantitative engine') : (lang === 'es' ? 'Orientativo' : 'Qualitative')}
                     </span>
                   </div>
 
@@ -119,7 +138,7 @@ export const RotationStrategies: React.FC<RotationStrategiesProps> = ({
                   isSelected ? 'border-white/20 text-sky-200' : 'border-slate-200 dark:border-[#2e2e33] text-slate-600 dark:text-zinc-400'
                 }`}>
                   <span>{lang === 'es' ? 'Resultado cuantitativo:' : 'Quantitative result:'}</span>
-                  <span className="font-mono font-bold">{lang === 'es' ? 'No estimado' : 'Not estimated'}</span>
+                  <span className="font-mono font-bold">{quantitative ? `${plan.resilienceScore}/100` : (lang === 'es' ? 'No estimado' : 'Not estimated')}</span>
                 </div>
               </button>
             );
@@ -154,9 +173,9 @@ export const RotationStrategies: React.FC<RotationStrategiesProps> = ({
               <div className="flex items-center gap-2">
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
                   <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                  {lang === 'es' ? 'Alternativa orientativa' : 'Qualitative alternative'}
+                  {quantitative ? (lang === 'es' ? 'Evaluada por el motor' : 'Engine evaluated') : (lang === 'es' ? 'Alternativa orientativa' : 'Qualitative alternative')}
                 </span>
-                <DemoBadge lang={lang} />
+                {!quantitative && <DemoBadge lang={lang} />}
               </div>
             </div>
 
@@ -165,11 +184,11 @@ export const RotationStrategies: React.FC<RotationStrategiesProps> = ({
               {/* Metric 1: Water Savings */}
               <div className="bg-slate-50 dark:bg-[#232326] p-3 border border-slate-200 dark:border-[#2e2e33]">
                 <div className="flex items-center justify-between text-slate-500 dark:text-zinc-400 text-xs font-semibold">
-                  <span>{lang === 'es' ? 'Ahorro Hídrico' : 'Water Savings'}</span>
+                  <span>{lang === 'es' ? (quantitative ? 'Puntaje del motor' : 'Ahorro Hídrico') : (quantitative ? 'Engine score' : 'Water Savings')}</span>
                   <Droplets className="w-3.5 h-3.5 text-blue-500" />
                 </div>
                 <div className="mt-1 text-2xl font-black font-mono text-slate-900 dark:text-white">
-                  {lang === 'es' ? 'No estimado' : 'Not estimated'}
+                  {quantitative ? `${currentPlan.resilienceScore}/100` : (lang === 'es' ? 'No estimado' : 'Not estimated')}
                 </div>
                 <div className="w-full bg-slate-200 dark:bg-[#2d2d32] h-1.5 mt-2 overflow-hidden">
                   <div className="bg-slate-400 h-full w-0" />

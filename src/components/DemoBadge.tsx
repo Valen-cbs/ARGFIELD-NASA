@@ -6,8 +6,7 @@ interface DemoBadgeProps {
 }
 
 /**
- * Marca un valor como simulado. Mientras la app no consulte los servicios
- * reales, todo número que no venga del mapa de CONAE debe llevar esta etiqueta.
+ * Marca únicamente contenido cualitativo del fallback como ilustrativo.
  */
 export const DemoBadge: React.FC<DemoBadgeProps> = ({ lang, className = '' }) => {
   const title =
@@ -37,11 +36,10 @@ export const DemoBanner: React.FC<DemoBannerProps> = ({ lang, onGoToMap, onDismi
       role="status"
       className="mb-3 sm:mb-4 flex flex-wrap items-center gap-x-3 gap-y-1.5 px-3 py-2 bg-amber-50 border border-amber-300 text-amber-950 dark:bg-amber-950/40 dark:border-amber-800 dark:text-amber-100 text-xs"
     >
-      <DemoBadge lang={lang} />
       <span className="flex-1 min-w-[220px]">
         {es
-          ? 'Las lecturas satelitales muestran su fuente y fecha real. Los beneficios estimados de las rotaciones siguen en modo demo; el clima usa el pronóstico de Open-Meteo para la ubicación seleccionada.'
-          : 'Satellite readings show their actual source and date. Estimated rotation benefits remain in demo mode; weather uses the Open-Meteo forecast for the selected location.'}
+          ? 'Las estrategias cuantitativas se calculan con el motor de rotaciones y muestran sus fuentes y advertencias. El ahorro de agua y el carbono del suelo no se estiman; si faltan insumos, el optimizador lo indica.'
+          : 'Quantitative strategies are calculated by the rotation engine and show their sources and warnings. Water savings and soil carbon are not estimated; missing inputs are reported by the optimizer.'}
       </span>
       <button
         type="button"

@@ -35,7 +35,7 @@ export const SATELLITE_MISSIONS: SatelliteMission[] = [
     id: 'gpm', name: 'GPM IMERG', filterAgencies: ['NASA'], agency: 'NASA / JAXA', countries: ['US', 'JP'], countryLabel: { es: 'Estados Unidos · Japón', en: 'United States · Japan' },
     sensor: 'GMI microwave radiometer + DPR dual-frequency precipitation radar; IMERG merges a satellite constellation', resolution: 'IMERG: 0.1° (~10 km), 30 min native cadence; app displays CONAE daily/monthly products', orbit: 'GPM Core: non-sun-synchronous, 435 km, 65° inclination',
     operationalState: 'active', operationalNote: { es: 'Misión de observación y productos IMERG activos.', en: 'Mission observations and IMERG products are active.' },
-    integration: 'dashboard_map', integrationNote: { es: 'Lluvia GPM diaria/mensual y percentil API vía CONAE; lecturas reales en dashboard y mapa.', en: 'Daily/monthly GPM rainfall and API percentile via CONAE; real readings in dashboard and map.' },
+    integration: 'dashboard_map', integrationNote: { es: 'Lluvia diaria/mensual y percentil API vía CONAE; diagnóstico API y variabilidad de series diarias suficientes, sin sumar lluvia a POWER.', en: 'Daily/monthly GPM rainfall and API percentile via CONAE; real readings in dashboard and map.' },
     productIds: ['lluvia_imerg', 'lluvia_imerg_mensual', 'estatus_hidrico'], sourceUrl: 'https://gpm.nasa.gov/data/imerg'
   },
   {
@@ -63,7 +63,7 @@ export const SATELLITE_MISSIONS: SatelliteMission[] = [
     id: 'saocom', name: 'SAOCOM 1A / 1B', filterAgencies: ['CONAE'], agency: 'CONAE', countries: ['AR'], countryLabel: { es: 'Argentina', en: 'Argentina' },
     sensor: 'Polarimetric SAR, banda L (1.275 GHz)', resolution: 'Instrumento: ~10–100 m según modo; producto de humedad ArgField: zonas homogéneas, perfil 0–50 cm', orbit: '~620 km; cuasi-polar, heliosincrónica; repetición 16 días por satélite / 8 días constelación',
     operationalState: 'active', operationalNote: { es: 'Catálogo y plan público de adquisiciones SAOCOM; dato del producto depende de cobertura y fecha publicada.', en: 'Public SAOCOM catalogue and acquisition plan; product readings depend on coverage and published date.' },
-    integration: 'dashboard_map_alerts', integrationNote: { es: 'Humedad y percentil reales vía CONAE; el percentil puede disparar la regla de sequedad vigente.', en: 'Real moisture and percentile via CONAE; the percentile can trigger the existing dryness rule.' },
+    integration: 'dashboard_map_alerts', integrationNote: { es: 'Humedad y percentil vía CONAE: humedad válida inicializa la capa 0–50 cm de la primera campaña compatible; el percentil aporta la regla de sequedad.', en: 'Real moisture and percentile via CONAE; the percentile can trigger the existing dryness rule.' },
     productIds: ['saocom_humedad', 'saocom_percentil'], sourceUrl: 'https://catalogos.conae.gov.ar/catalogo/catalogoSaocom.html'
   },
   {
@@ -77,14 +77,14 @@ export const SATELLITE_MISSIONS: SatelliteMission[] = [
     id: 'sentinel2', name: 'Sentinel-2', filterAgencies: ['ESA'], agency: 'ESA / Copernicus', countries: ['EU'], countryLabel: { es: 'Unión Europea', en: 'European Union' },
     sensor: 'MSI multispectral imager, 13 bands', resolution: '10 / 20 / 60 m; ArgField NDVI uses 10 m B04/B08, cloud control uses SCL', orbit: '786 km; polar, sun-synchronous; 5-day equatorial revisit (constellation)',
     operationalState: 'active', operationalNote: { es: 'Constelación Sentinel-2A/B/C operativa.', en: 'Sentinel-2A/B/C constellation operational.' },
-    integration: 'dashboard_map', integrationNote: { es: 'NDVI real con corrección radiométrica y control de nubes en dashboard y mapa; no hay alerta de tendencia sin serie comparable.', en: 'Real NDVI with radiometric correction and cloud checks in dashboard and map; no trend alert without a comparable time series.' },
+    integration: 'dashboard_map', integrationNote: { es: 'NDVI con corrección y control de nubes; cambio de vigor con al menos 4 fechas en 30 días. Cobertura y suelo descubierto no estimados sin calibración.', en: 'Real NDVI with radiometric correction and cloud checks in dashboard and map; no trend alert without a comparable time series.' },
     productIds: ['sentinel2_ndvi'], sourceUrl: 'https://www.esa.int/Applications/Observing_the_Earth/Copernicus/Sentinel-2/Facts_and_figures'
   },
   {
     id: 'amazonia1', name: 'Amazonia-1', filterAgencies: ['AEB'], agency: 'AEB / INPE', countries: ['BR'], countryLabel: { es: 'Brasil', en: 'Brazil' },
     sensor: 'AWFI optical imager (VIS + NIR)', resolution: '64 m; swath ~850 km; revisit designed at 5 days', orbit: '~752 km; polar, sun-synchronous',
     operationalState: 'active', operationalNote: { es: 'Catálogo INPE contiene adquisiciones hasta 2026.', en: 'INPE catalogue contains acquisitions through 2026.' },
-    integration: 'catalog_only', integrationNote: { es: 'Catálogo público INPE/STAC disponible; no conectado a la app.', en: 'Public INPE/STAC catalogue exists; not connected to the app.' },
+    integration: 'catalog_only', integrationNote: { es: 'INPE/STAC AMZ1-WFI-L2-DN-1 público, 64 m; no hay extracción radiométrica y control de calidad agrícola conectados para el lote.', en: 'Public INPE/STAC catalogue exists; not connected to the app.' },
     productIds: [], sourceUrl: 'https://www.inpe.br/amazonia1/en/about_satellite/'
   },
   {
@@ -112,7 +112,7 @@ export const SATELLITE_MISSIONS: SatelliteMission[] = [
     id: 'radarsat_rcm', name: 'RADARSAT', filterAgencies: ['CSA'], agency: 'CSA', countries: ['CA'], countryLabel: { es: 'Canadá', en: 'Canada' },
     sensor: 'C-band SAR + AIS', resolution: '1 × 3 m spotlight to 100 m wide-swath, mode-dependent', orbit: '586–615 km; dawn-dusk sun-synchronous; 3 satellites',
     operationalState: 'active', operationalNote: { es: 'CSA indica estado activo y monitoreo operacional de la constelación.', en: 'CSA lists the mission as active and monitors constellation health.' },
-    integration: 'catalog_only', integrationNote: { es: 'Requiere acceso/licencia y procesamiento SAR; no conectado.', en: 'Requires access/licensing and SAR processing; not connected.' },
+    integration: 'catalog_only', integrationNote: { es: 'Algunos productos son gratuitos con cuenta EODMS y licencia; procesamiento SAR agrícola no conectado.', en: 'Requires access/licensing and SAR processing; not connected.' },
     productIds: [], sourceUrl: 'https://www.asc-csa.gc.ca/eng/satellites/radarsat/what-is-rcm.asp'
   },
   {

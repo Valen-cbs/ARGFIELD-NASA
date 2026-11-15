@@ -1,5 +1,15 @@
 # ARGFIELD
 
+
+## Motor de rotaciones (nuevo)
+
+`src/engine/` implementa el motor matemático de decisiones agronómicas: estadística regional MAGyP (con anti-doble-conteo), series NASA POWER agregadas a climatología mensual, ETo FAO-56 Penman-Monteith, balance hídrico mensual con estrés hídrico, aptitud térmica tipo EcoCrop, generación de secuencias con restricciones excluyentes y evaluación multicriterio documentada con pesos por prioridad y escenarios climáticos hipotéticos.
+
+- Documentación científica completa: [`docs/motor-rotaciones.md`](docs/motor-rotaciones.md).
+- Preprocesamiento de estadísticas MAGyP: `npm run build:magyp` (genera `public/data/magyp-*.json`).
+- Ejemplo reproducible con datos reales (Chaco): `npm run smoke:engine`.
+- Pruebas: `npm test` (55 pruebas: satelitales + motor).
+
 Aplicación para productores argentinos: perfil del establecimiento, lecturas satelitales por punto, mapas, avisos de seguimiento y ejemplos de rotación. React, TypeScript, Vite y Leaflet.
 
 ## Ejecutar

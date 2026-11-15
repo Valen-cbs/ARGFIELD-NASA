@@ -1,25 +1,26 @@
 # Auditoría regional de datos satelitales
 
-Consulta real registrada: 2026-11-15T03:01:50.634Z (UTC). Nueve centros urbanos públicos, diez productos por punto: 90 lecturas. No son promedios de ciudades ni de establecimientos.
+Consulta real registrada: 2026-11-15T20:38:15.586Z (UTC). Nueve centros urbanos públicos, diez productos por punto: 90 lecturas. No son promedios de ciudades ni de establecimientos.
 
 ## Resultados
 
 | Punto público | SAOCOM (% vol.) | GPM diario (mm) | NDVI | MODIS (°C superficie) | Productos vigentes / 10 |
 | --- | ---: | ---: | ---: | --- | ---: |
-| Pergamino | 36 | 4.2 | -0.049 | 23.17 | 8 |
-| Rosario | Sin dato | 12.1 | 0.085 | 20.65 | 5 |
-| Córdoba | Sin dato | 51.7 | 0.034 | 26.51 | 5 |
-| Resistencia | Sin dato | 0 | 0.25 | 28.81 | 5 |
-| Salta | Sin dato | 0 | 0.194 | 24.35 (antiguo, 2026-10-07) | 4 |
-| Mendoza | Sin dato | 0 | 0.192 | 26.59 (antiguo, 2026-09-29) | 4 |
-| Neuquén | Sin dato | 0 | 0.243 | 22.83 | 6 |
-| Trelew | Sin dato | 16.5 | 0.712 | 16.35 (antiguo, 2026-10-15) | 4 |
-| Río Gallegos | Sin dato | 0 | 0.174 | 12.85 | 5 |
+| Pergamino | 36 | 0.1 | -0.049 | 23.17 | 9 |
+| Rosario | Sin dato | 0.1 | 0.085 | 20.65 | 6 |
+| Córdoba | Sin dato | 21.6 | 0.034 | 26.51 | 6 |
+| Resistencia | Sin dato | 24.4 | 0.25 | 28.81 | 6 |
+| Salta | Sin dato | 5.4 | 0.194 | 24.35 (antiguo, 2026-10-07) | 5 |
+| Mendoza | Sin dato | 0.2 | 0.192 | 26.59 (antiguo, 2026-09-29) | 5 |
+| Neuquén | Sin dato | 0 | 0.2 | 22.83 | 7 |
+| Trelew | Sin dato | 0 | 0.712 | 16.35 (antiguo, 2026-10-15) | 5 |
+| Río Gallegos | Sin dato | 0 | 0.174 | 12.85 | 6 |
 
 ## Disponibilidad por producto
 
 | Producto | Vigentes | Antiguos | Sin dato | Errores |
 | --- | ---: | ---: | ---: | ---: |
+| estatus_hidrico | 9 | 0 | 0 | 0 |
 | saocom_humedad | 1 | 0 | 8 | 0 |
 | saocom_percentil | 1 | 0 | 8 | 0 |
 | smap | 0 | 4 | 5 | 0 |

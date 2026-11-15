@@ -12,10 +12,13 @@
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
-    "test": "tsx --test tests/satellite.test.ts",
+    "test": "tsx --test tests/satellite.test.ts tests/engine.test.ts tests/observations.test.ts",
     "test:e2e": "playwright test",
     "check:conae": "tsx scripts/check-conae.ts",
-    "audit:satellites": "tsx scripts/audit-satellites.ts"
+    "audit:satellites": "tsx scripts/audit-satellites.ts",
+    "test:engine": "tsx --test tests/engine.test.ts",
+    "build:magyp": "node scripts/buildMagypStats.mjs",
+    "smoke:engine": "tsx scripts/smoke-engine.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

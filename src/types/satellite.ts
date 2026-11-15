@@ -19,4 +19,6 @@ export interface SatelliteReading {
   cached?: boolean;
   missingReason?: 'outside_coverage' | 'provider_nodata' | 'quality' | 'no_scenes' | 'partial_failure';
   scenesChecked?: number;
+  samples?: Array<{ value: number; observedAt: string; sourceUrl: string }>;
+  location?: { lat: number; lng: number };
 }

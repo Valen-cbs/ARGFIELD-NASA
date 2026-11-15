@@ -126,7 +126,7 @@ test('sources show country flags, agency logos and retain Amazonia-1 without CBE
   await expect(page.getByText('CBERS-4A', { exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'NASA' }).locator('img')).toBeVisible();
   await expect(page.getByRole('columnheader', { name: 'País' })).toBeVisible();
-  await expect(page.getByRole('columnheader', { name: 'Agencia/s' })).toBeVisible();
+  await expect(page.getByRole('columnheader', { name: 'Agencia' })).toBeVisible();
 });
 
 test('farm registration saves location and crop allocations across reloads', async ({ page }) => {
@@ -227,4 +227,35 @@ test('coverage and quality failures are explained and the field point can be edi
   await expect(page.getByTestId('reading-sentinel2_ndvi')).toContainText('Escenas revisadas en este punto: 1');
   await page.getByRole('button', { name: 'Ubicar el punto de mi lote', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Guardar Cambios', exact: true })).toBeVisible();
+});
+
+
+test('declared rotation persists and compares with two alternatives using the same criteria', async ({ page }) => {
+  await mockProviders(page);
+  const power = await readFile('tests/fixtures/power-chaco-2016-2025.json', 'utf8');
+  await page.route('**/proxy/power/**', route => route.fulfill({ contentType: 'application/json', body: power }));
+  await page.addInitScript(() => {
+    const profile = JSON.parse(localStorage.getItem('field_shift_farm_profile')!);
+    profile.cropAllocations = [{ crop: 'Soja 1ra', hectares: 120 }];
+    localStorage.setItem('field_shift_farm_profile', JSON.stringify(profile));
+  });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Gestionar estancias', exact: true }).click();
+  await page.getByTitle('Editar', { exact: true }).click();
+  await page.getByLabel('Rotación campaña 1', { exact: true }).selectOption('soja1');
+  await page.getByLabel('Rotación campaña 2', { exact: true }).selectOption('soja1');
+  await page.getByLabel('Tipo de suelo', { exact: true }).selectOption('sandy_loam');
+  await page.getByLabel('Riego disponible', { exact: true }).check();
+  await page.getByLabel('Tope de riego mm/mes', { exact: true }).fill('40');
+  await page.getByRole('button', { name: 'Guardar estancia', exact: true }).click();
+  await page.getByRole('button', { name: 'Optimizador', exact: true }).click();
+  await expect(page.getByText('Comparación con la rotación declarada', { exact: true })).toBeVisible();
+  await expect(page.getByRole('columnheader', { name: /^Actual declarada:/ })).toBeVisible();
+  await expect(page.getByRole('columnheader', { name: /^Alternativa:/ })).toHaveCount(2);
+  await expect(page.getByRole('cell', { name: 'Excluida / sin puntaje', exact: true })).toBeVisible();
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('argfield_registered_farms')!)[0].profile);
+  expect(saved.currentRotation).toEqual([{ primary: 'soja1' }, { primary: 'soja1' }]);
+  expect(saved.maxMonthlyIrrigationMm).toBe(40);
+  expect(saved.soilType).toBe('sandy_loam');
+  await page.screenshot({ path: 'test-results/rotation-comparison.png', fullPage: true });
 });
