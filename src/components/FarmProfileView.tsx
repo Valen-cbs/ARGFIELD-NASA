@@ -5,6 +5,8 @@ import React, { useState, useMemo } from 'react';
 import { FarmProfile, MainCrop, SoilType, FarmerPriority, Alert } from '../types';
 import { CROPS_DATABASE, SOIL_DATABASE } from '../data/crops';
 import { EditFarmModal } from './EditFarmModal';
+import { RegisteredFarm } from './FarmRegistryModal';
+import { WeatherBrief } from '../services/weatherAlerts';
 import { 
   Droplets, 
   Sprout, 
@@ -37,6 +39,11 @@ interface FarmProfileViewProps {
   onNavigateToWeather?: () => void;
   onOpenEditLocation?: () => void;
   lang: 'es' | 'en';
+  farms: RegisteredFarm[];
+  activeFarmId: string | null;
+  onManageFarms: () => void;
+  onSelectFarm: (farm: RegisteredFarm) => void;
+  weatherSummary: WeatherBrief | null;
 }
 
 export const FarmProfileView: React.FC<FarmProfileViewProps> = ({
@@ -51,7 +58,12 @@ export const FarmProfileView: React.FC<FarmProfileViewProps> = ({
   onNavigateToAlerts,
   onNavigateToWeather,
   onOpenEditLocation,
-  lang
+  lang,
+  farms,
+  activeFarmId,
+  onManageFarms,
+  onSelectFarm,
+  weatherSummary
 }) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
@@ -78,8 +90,8 @@ export const FarmProfileView: React.FC<FarmProfileViewProps> = ({
       case 'conserve_moisture':
         return {
           title: lang === 'es' ? 'Vicia villosa → Maíz Tardío → Trigo' : 'Hairy Vetch → Late Maize → Wheat',
-          benefitWater: '+28%',
-          benefitSoil: '+45 kg N/ha',
+          benefitWater: lang === 'es' ? 'No estimado' : 'Not estimated',
+          benefitSoil: lang === 'es' ? 'Sin medición local' : 'No local measurement',
           desc: lang === 'es' 
             ? 'La cobertura de vicia frena la evaporación directa, acumula agua en el perfil y aporta nitrógeno biológico al maíz.' 
             : 'Vetch cover halts surface evaporation, preserves root moisture, and supplies biological nitrogen.'
@@ -87,8 +99,8 @@ export const FarmProfileView: React.FC<FarmProfileViewProps> = ({
       case 'build_soil_organic':
         return {
           title: lang === 'es' ? 'Centeno de Cobertura → Soja de 1ra → Trigo / Soja 2da' : 'Cereal Rye Cover → 1st Soybean → Wheat/Soybean',
-          benefitWater: '+22%',
-          benefitSoil: '+3.2 t/ha Biomasa',
+          benefitWater: lang === 'es' ? 'No estimado' : 'Not estimated',
+          benefitSoil: lang === 'es' ? 'Sin medición local' : 'No local measurement',
           desc: lang === 'es' 
             ? 'Aporte constante de raíces fasciculadas que incrementan carbono activo y descompactan el perfil de suelo.' 
             : 'Dense fibrous root system building active carbon and loosening topsoil structure.'
@@ -96,8 +108,8 @@ export const FarmProfileView: React.FC<FarmProfileViewProps> = ({
       case 'drought_resilience':
         return {
           title: lang === 'es' ? 'Sorgo Granífero → Vicia → Girasol' : 'Grain Sorghum → Vetch → Sunflower',
-          benefitWater: '+35%',
-          benefitSoil: '+40 kg N/ha',
+          benefitWater: lang === 'es' ? 'No estimado' : 'Not estimated',
+          benefitSoil: lang === 'es' ? 'Sin medición local' : 'No local measurement',
           desc: lang === 'es' 
             ? 'Especies con enraizamiento profundo (>2 metros) y alta rusticidad ante golpes de calor y sequías prolongadas.' 
             : 'Deep-rooted resilient species capable of tapping subsoil moisture during heat shocks.'
@@ -105,8 +117,8 @@ export const FarmProfileView: React.FC<FarmProfileViewProps> = ({
       case 'erosion_control':
         return {
           title: lang === 'es' ? 'Avena y Vicia Asociadas → Maíz con Rastrojo Permanente' : 'Oats & Vetch Mix → Maize under No-Till',
-          benefitWater: '+25%',
-          benefitSoil: '100% Cobertura',
+          benefitWater: lang === 'es' ? 'No estimado' : 'Not estimated',
+          benefitSoil: lang === 'es' ? 'Sin medición local' : 'No local measurement',
           desc: lang === 'es' 
             ? 'Suelo protegido los 365 días del año para frenar el viento en suelos arenosos y escorrentías en pendientes.' 
             : 'Continuous soil cover year-round stopping wind erosion on lighter soils and runoff on slopes.'
@@ -115,8 +127,8 @@ export const FarmProfileView: React.FC<FarmProfileViewProps> = ({
       default:
         return {
           title: lang === 'es' ? 'Cebada Cervecera → Soja de 2da → Maíz Temprano' : 'Malting Barley → 2nd Soybean → Early Maize',
-          benefitWater: '+18%',
-          benefitSoil: 'Doble Renta/Año',
+          benefitWater: lang === 'es' ? 'No estimado' : 'Not estimated',
+          benefitSoil: lang === 'es' ? 'Sin medición local' : 'No local measurement',
           desc: lang === 'es' 
             ? 'Intensificación sustentable con cosecha anticipada de cebada que deja margen hídrico para la soja estival.' 
             : 'Sustainable intensification leveraging early barley harvest to capture summer rain.'
@@ -146,6 +158,13 @@ export const FarmProfileView: React.FC<FarmProfileViewProps> = ({
       icon: <TrendingUp className="w-4 h-4" />
     }
   ];
+
+  if (farms.length === 0) return <div className="mx-auto max-w-2xl border border-slate-300 bg-white p-6 text-center dark:border-zinc-700 dark:bg-[#1c1c1e] sm:p-10">
+    <Compass className="mx-auto h-10 w-10 text-[#0f3260] dark:text-sky-300" />
+    <h1 className="mt-4 text-2xl font-bold text-slate-900 dark:text-white">{lang === 'es' ? 'Empezá por registrar tu estancia' : 'Start by registering your farm'}</h1>
+    <p className="mx-auto mt-2 max-w-lg text-sm text-slate-600 dark:text-zinc-400">{lang === 'es' ? 'Guardá su ubicación, superficie y cultivos. ArgField usará esos datos para consultar el clima y las fuentes ambientales disponibles para el punto.' : 'Save its location, area and crops. ArgField will use them to query weather and environmental sources available for the point.'}</p>
+    <button type="button" onClick={onManageFarms} className="mt-5 bg-[#0f3260] px-5 py-3 text-sm font-bold text-white">{lang === 'es' ? 'Registrar estancia' : 'Register farm'}</button>
+  </div>;
 
   return (
     <div className="space-y-4 pb-12 font-sans select-none">
@@ -194,7 +213,17 @@ export const FarmProfileView: React.FC<FarmProfileViewProps> = ({
         </div>
       </div>
 
+      {farms.length > 1 && <label className="flex items-center gap-2 border border-slate-300 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-[#1c1c1e]">{lang === 'es' ? 'Estancia activa' : 'Active farm'}<select value={activeFarmId ?? ''} onChange={event => { const farm = farms.find(item => item.id === event.target.value); if (farm) onSelectFarm(farm); }} className="border border-slate-300 bg-white px-2 py-1 dark:border-zinc-700 dark:bg-zinc-900">{farms.map(farm => <option key={farm.id} value={farm.id}>{farm.profile.location.name}</option>)}</select><button type="button" onClick={onManageFarms} className="ml-auto font-bold text-[#0f3260] dark:text-sky-300">{lang === 'es' ? 'Gestionar' : 'Manage'}</button></label>}
+      {farms.length === 1 && <button type="button" onClick={onManageFarms} className="border border-slate-300 bg-white px-3 py-2 text-left text-xs font-bold text-[#0f3260] dark:border-zinc-700 dark:bg-[#1c1c1e] dark:text-sky-300">{lang === 'es' ? 'Gestionar estancias' : 'Manage farms'}</button>}
+      {farmProfile.cropAllocations && farmProfile.cropAllocations.length > 0 && <section className="border border-slate-300 bg-white p-4 dark:border-zinc-700 dark:bg-[#1c1c1e]"><h2 className="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-zinc-300">{lang === 'es' ? 'Cultivos registrados' : 'Registered crops'}</h2><div className="mt-2 flex flex-wrap gap-2">{farmProfile.cropAllocations.map(item => <span key={item.crop} className="border border-slate-200 px-2.5 py-1 text-xs dark:border-zinc-700">{item.crop} · {item.hectares.toLocaleString(lang === 'es' ? 'es-AR' : 'en-US')} ha</span>)}</div></section>}
+
       <SatelliteReadings readings={readings} lang={lang} onRefresh={onRefreshData} offline={isOffline} onLocateField={() => onOpenEditLocation ? onOpenEditLocation() : setShowEditModal(true)} />
+
+      <section className="grid gap-px border border-slate-300 bg-slate-200 dark:border-zinc-700 dark:bg-zinc-700 sm:grid-cols-3">
+        <div className="bg-white p-4 dark:bg-[#1c1c1e]"><div className="text-[11px] font-bold uppercase text-slate-500 dark:text-zinc-400">{lang === 'es' ? 'Clima actual · Open-Meteo' : 'Current weather · Open-Meteo'}</div>{weatherSummary ? <><div className="mt-1 text-2xl font-bold">{weatherSummary.temperature.toLocaleString(lang === 'es' ? 'es-AR' : 'en-US', { maximumFractionDigits: 1 })} °C</div><div className="text-xs text-slate-600 dark:text-zinc-400">{lang === 'es' ? 'Humedad' : 'Humidity'}: {weatherSummary.humidity ?? '—'}%</div></> : <div className="mt-2 text-xs text-slate-500">{lang === 'es' ? 'Pronóstico no disponible para este punto.' : 'Forecast unavailable for this point.'}</div>}</div>
+        <div className="bg-white p-4 dark:bg-[#1c1c1e]"><div className="text-[11px] font-bold uppercase text-slate-500 dark:text-zinc-400">{lang === 'es' ? 'Temperatura de hoy' : 'Today’s temperature'}</div><div className="mt-1 text-lg font-bold">{weatherSummary?.todayMin ?? '—'}° / {weatherSummary?.todayMax ?? '—'}°C</div><div className="text-xs text-slate-600 dark:text-zinc-400">{lang === 'es' ? 'Mínima / máxima pronosticada' : 'Forecast minimum / maximum'}</div></div>
+        <div className="bg-white p-4 dark:bg-[#1c1c1e]"><div className="text-[11px] font-bold uppercase text-slate-500 dark:text-zinc-400">{lang === 'es' ? 'Lluvia · próximos 3 días' : 'Rain · next 3 days'}</div><div className="mt-1 text-lg font-bold">{weatherSummary?.nextThreeDayRain?.toLocaleString(lang === 'es' ? 'es-AR' : 'en-US', { maximumFractionDigits: 1 }) ?? '—'} mm</div><div className="text-xs text-slate-600 dark:text-zinc-400">{weatherSummary?.updatedAt ? `${lang === 'es' ? 'Actualizado' : 'Updated'} ${new Date(weatherSummary.updatedAt).toLocaleString(lang === 'es' ? 'es-AR' : 'en-US')}` : lang === 'es' ? 'Fecha no disponible' : 'Date unavailable'}</div></div>
+      </section>
 
       <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-white dark:bg-[#1c1c1e] border border-slate-300 dark:border-[#2e2e33]">
         <div className="text-xs text-slate-700 dark:text-zinc-300">
@@ -202,7 +231,7 @@ export const FarmProfileView: React.FC<FarmProfileViewProps> = ({
           <p className="mt-1">{topAlert?.title ?? (lang === 'es' ? 'Sin avisos generados. Revisá la cobertura y la fecha de cada fuente.' : 'No notices generated. Check coverage and dates for each source.')}</p>
         </div>
         <button type="button" onClick={onNavigateToAlerts} className="text-xs font-bold text-[#0f3260] dark:text-sky-300 cursor-pointer">{lang === 'es' ? 'Ver avisos' : 'View notices'}</button>
-        <button type="button" onClick={onNavigateToWeather} className="flex items-center gap-2 text-xs font-bold text-[#0f3260] dark:text-sky-300 cursor-pointer">{lang === 'es' ? 'Ver clima' : 'View weather'} <DemoBadge lang={lang} /></button>
+        <button type="button" onClick={onNavigateToWeather} className="flex items-center gap-2 text-xs font-bold text-[#0f3260] dark:text-sky-300 cursor-pointer">{lang === 'es' ? 'Ver clima' : 'View weather'}</button>
       </div>
 
       {/* 3. Combined Block (Image 1 Request): Farmer Priority + Resulting Recommended Strategy in One Subdivided Container */}
@@ -265,7 +294,7 @@ export const FarmProfileView: React.FC<FarmProfileViewProps> = ({
             <div className="space-y-2 max-w-2xl">
               <div className="flex items-center gap-2">
                 <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-[#0f3260] text-white dark:bg-[#252528] dark:text-sky-300">
-{lang === 'es' ? 'Ejemplo de rotación' : 'Example rotation'}
+{lang === 'es' ? 'Orientación de manejo' : 'Management guidance'}
                 </span>
                 <DemoBadge lang={lang} />
               </div>

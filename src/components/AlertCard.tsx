@@ -9,8 +9,7 @@ import {
   Compass, 
   Radio, 
   Clock, 
-  MapPin, 
-  ShieldAlert 
+  MapPin
 } from 'lucide-react';
 
 interface AlertCardProps {
@@ -20,9 +19,6 @@ interface AlertCardProps {
 }
 
 export const AlertCard: React.FC<AlertCardProps> = ({ alert, onSelect, lang }) => {
-  const isCritical = alert.severity === 'critical';
-  const isHigh = alert.severity === 'high';
-
   // Hydrological relation label
   const connectivityLabel = (() => {
     switch (alert.hydrologicalRelation) {
@@ -45,7 +41,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({ alert, onSelect, lang }) =
       onClick={() => onSelect(alert)}
       className="bg-white dark:bg-[#1c1c1e] border border-slate-300 dark:border-[#2e2e33] p-4 transition-all hover:border-[#0f3260] dark:hover:border-sky-500 cursor-pointer shadow-xs space-y-2.5"
     >
-      {/* 1. Header: Source, Mission, Hydrological Relation & Severity Score */}
+      {/* 1. Header: Source, Mission and Hydrological Relation */}
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 dark:border-[#2e2e33] pb-2">
         <div className="flex items-center gap-2 flex-wrap">
           <AgencyLogo agency={alert.source} size="xs" />
@@ -63,18 +59,6 @@ export const AlertCard: React.FC<AlertCardProps> = ({ alert, onSelect, lang }) =
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className={`text-[11px] font-mono px-2 py-0.5 font-bold flex items-center gap-1 ${
-            isCritical 
-              ? 'bg-red-100 dark:bg-red-950/70 text-red-800 dark:text-red-300 border border-red-300 dark:border-red-800' 
-              : isHigh 
-              ? 'bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800' 
-              : 'bg-slate-100 dark:bg-[#27272a] text-slate-700 dark:text-zinc-300 border border-slate-300 dark:border-[#3f3f46]'
-          }`}>
-            <ShieldAlert className="w-3 h-3" />
-            {alert.score}/100
-          </span>
-        </div>
       </div>
 
       {/* 2. Title & Immediate Location */}

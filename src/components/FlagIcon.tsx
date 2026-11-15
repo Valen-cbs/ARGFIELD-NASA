@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export type CountryCode = 'AR' | 'US' | 'BR' | 'PY' | 'EU' | 'GB' | 'CA' | 'IT' | 'ES';
+export type CountryCode = 'AR' | 'US' | 'BR' | 'PY' | 'EU' | 'GB' | 'CA' | 'IT' | 'ES' | 'JP';
 
 export const WIKIMEDIA_FLAGS: Record<CountryCode, { url: string; name: string }> = {
   AR: {
@@ -38,11 +38,16 @@ export const WIKIMEDIA_FLAGS: Record<CountryCode, { url: string; name: string }>
   ES: {
     url: 'https://upload.wikimedia.org/wikipedia/commons/9/9a/Flag_of_Spain.svg',
     name: 'Spain'
-  }
+  },
+  JP: {
+    url: 'https://upload.wikimedia.org/wikipedia/en/9/9e/Flag_of_Japan.svg',
+    name: 'Japan'
+  },
 };
 
 export const AGENCY_TO_COUNTRY: Record<string, CountryCode> = {
   NASA: 'US',
+  NOAA: 'US',
   CONAE: 'AR',
   AEB: 'BR',
   AEP: 'PY',

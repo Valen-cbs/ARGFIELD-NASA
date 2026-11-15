@@ -347,10 +347,6 @@ export const LandingView: React.FC<LandingViewProps> = ({
               NASA Space Apps Challenge
             </span>
           </div>
-          <div className="flex items-center gap-2 text-xs">
-            <FlagIcon country="AR" size="xs" />
-            <span className="font-mono text-slate-200 dark:text-zinc-300">AR-GRID</span>
-          </div>
         </div>
       </header>
 

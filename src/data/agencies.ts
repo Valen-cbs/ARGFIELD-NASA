@@ -109,10 +109,10 @@ export const SPACE_AGENCIES: Record<AgencySource, AgencyMetadata> = {
     headquarters: 'Brasília & São José dos Campos, Brasil',
     missions: [
       {
-        name: 'CBERS-4A & Amazonia-1',
+        name: 'Amazonia-1',
         sensor: 'WFI & MUX Cámaras Ópticas',
         type: 'Escurrimiento & Cuencas Altas',
-        resolution: '16 m - 64 m',
+        resolution: '64 m',
         description: 'Seguimiento del Pantanal y la cuenca alta del Río Paraná. Alerta sobre alteraciones en el régimen de crecidas que llegarán 200 km aguas abajo.',
         orbitType: 'Heliosincrónica 752 km',
         altitudeKm: 752,
@@ -255,6 +255,38 @@ export const SPACE_AGENCIES: Record<AgencySource, AgencyMetadata> = {
         altitudeKm: 514,
         revisitDays: '11 días',
         dataAccess: 'Hisdesat Open Data Portal'
+      }
+    ]
+  },
+  NOAA: {
+    id: 'NOAA',
+    fullName: 'National Oceanic and Atmospheric Administration',
+    country: 'United States',
+    flag: '🇺🇸',
+    color: '#174a7e',
+    headquarters: 'Washington, D.C., USA',
+    missions: [
+      {
+        name: 'GOES-19 · ABI',
+        sensor: 'Advanced Baseline Imager (ABI)',
+        type: 'Geostationary weather and fire monitoring',
+        resolution: '0.5–2 km depending on band',
+        description: 'NOAA instruments contribute to regional CONAE layers. ArgField does not query NOAA telemetry directly.',
+        orbitType: 'Geostationary orbit',
+        altitudeKm: 35_786,
+        revisitDays: 'Regional refresh depends on product',
+        dataAccess: 'CONAE WMS layers; no direct NOAA feed in ArgField'
+      },
+      {
+        name: 'NOAA-20 / NOAA-21 · VIIRS',
+        sensor: 'Visible Infrared Imaging Radiometer Suite (VIIRS)',
+        type: 'Multispectral land, ocean, atmosphere and fire observations',
+        resolution: '375 m imagery bands; 750 m moderate bands',
+        description: 'VIIRS is separate from MODIS on Terra/Aqua. Regional fire/flood products are published through CONAE.',
+        orbitType: 'Polar sun-synchronous orbit',
+        altitudeKm: 824,
+        revisitDays: 'Global coverage daily',
+        dataAccess: 'NASA/NOAA archives; CONAE WMS layers in ArgField'
       }
     ]
   }

@@ -556,7 +556,7 @@ export const MapComponent: React.FC<MapProps> = ({
       const alertIconHtml = `
         <div style="cursor: pointer; position: relative;">
           <div style="background-color: ${badgeColor}; width: 24px; height: 24px; border: 2px solid white; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: bold; box-shadow: 0 1px 3px rgba(0,0,0,0.3);">
-            ${alert.score}
+            !
           </div>
           <div style="position: absolute; top: -5px; right: -5px; width: 14px; height: 10px; border: 1px solid white; overflow: hidden;">
             <img src="${flagUrl}" style="width: 100%; height: 100%; object-fit: cover;" referrerpolicy="no-referrer" />
@@ -589,7 +589,7 @@ export const MapComponent: React.FC<MapProps> = ({
       marker.bindTooltip(
         `
         <div style="background-color: ${tooltipBg}; color: ${tooltipText}; border: 1px solid ${tooltipBorder}; padding: 6px;" class="text-xs">
-          <div style="font-weight: bold; color: ${badgeColor};">${alert.score}/100 • ${alert.source} ${alert.mission}</div>
+          <div style="font-weight: bold; color: ${badgeColor};">${alert.source} ${alert.mission} · ${alert.severity}</div>
           <div style="color: ${tooltipText}; font-weight: 500;">${alert.title}</div>
           <div style="color: ${tooltipSubtext}; font-size: 10px;">${alert.distanceKm} km • ${alert.observationLocationName}</div>
           <div style="color: #0284c7; font-size: 9px; margin-top: 2px;">${lang === 'es' ? 'Click para ver detalle oficial' : 'Click to view official detail'}</div>

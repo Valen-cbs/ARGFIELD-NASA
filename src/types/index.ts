@@ -7,7 +7,8 @@ export type AgencySource =
   | 'ESA'
   | 'CSA'
   | 'ASI'
-  | 'AEE';
+  | 'AEE'
+  | 'NOAA';
 
 export type AlertType = 
   | 'soil_moisture_deficit'
@@ -17,6 +18,7 @@ export type AlertType =
   | 'deforestation_runoff'
   | 'frost_risk'
   | 'atmospheric_river'
+  | 'excess_precipitation'
   | 'groundwater_depletion'
   | 'vegetation_vigor_drop'
   | 'crop_disease_risk';
@@ -80,9 +82,13 @@ export type FarmerPriority =
   | 'maximize_margin';
 
 export interface FarmProfile {
+  producerName?: string;
   location: FarmLocation;
   fieldSizeHectares: number;
   currentCrop: MainCrop;
+  cropAllocations?: Array<{ crop: string; hectares: number }>;
+  previousCrop?: string;
+  irrigationAvailable?: boolean;
   soilType: SoilType;
   irrigation: IrrigationType;
   priority: FarmerPriority;
@@ -113,7 +119,7 @@ export interface RawSensorObservation {
 export interface Alert {
   id: string;
   type: AlertType;
-  source: AgencySource;
+  source: AgencySource | 'Open-Meteo';
   mission: string;
   instrument: string;
   severity: Severity;

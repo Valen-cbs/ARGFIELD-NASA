@@ -40,8 +40,8 @@ export const DemoBanner: React.FC<DemoBannerProps> = ({ lang, onGoToMap, onDismi
       <DemoBadge lang={lang} />
       <span className="flex-1 min-w-[220px]">
         {es
-          ? 'Las lecturas satelitales muestran su fuente y fecha real. El clima y los beneficios estimados de las rotaciones siguen en modo demo.'
-          : 'Satellite readings show their actual source and date. Weather and estimated rotation benefits remain in demo mode.'}
+          ? 'Las lecturas satelitales muestran su fuente y fecha real. Los beneficios estimados de las rotaciones siguen en modo demo; el clima usa el pronóstico de Open-Meteo para la ubicación seleccionada.'
+          : 'Satellite readings show their actual source and date. Estimated rotation benefits remain in demo mode; weather uses the Open-Meteo forecast for the selected location.'}
       </span>
       <button
         type="button"

@@ -100,7 +100,7 @@ export const RotationStrategies: React.FC<RotationStrategiesProps> = ({
                         ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-400/40'
                         : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
                     }`}>
-                      {plan.resilienceScore}/100
+                      {lang === 'es' ? 'Orientativo' : 'Qualitative'}
                     </span>
                   </div>
 
@@ -118,8 +118,8 @@ export const RotationStrategies: React.FC<RotationStrategiesProps> = ({
                 <div className={`mt-3 pt-2 border-t flex items-center justify-between text-[11px] font-medium ${
                   isSelected ? 'border-white/20 text-sky-200' : 'border-slate-200 dark:border-[#2e2e33] text-slate-600 dark:text-zinc-400'
                 }`}>
-                  <span>{lang === 'es' ? 'Ahorro hídrico:' : 'Water saving:'}</span>
-                  <span className="font-mono font-bold">+{plan.waterSavingsPct}%</span>
+                  <span>{lang === 'es' ? 'Resultado cuantitativo:' : 'Quantitative result:'}</span>
+                  <span className="font-mono font-bold">{lang === 'es' ? 'No estimado' : 'Not estimated'}</span>
                 </div>
               </button>
             );
@@ -154,7 +154,7 @@ export const RotationStrategies: React.FC<RotationStrategiesProps> = ({
               <div className="flex items-center gap-2">
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
                   <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                  {lang === 'es' ? 'Índice de Resiliencia:' : 'Resilience Index:'} {currentPlan.resilienceScore}/100
+                  {lang === 'es' ? 'Alternativa orientativa' : 'Qualitative alternative'}
                 </span>
                 <DemoBadge lang={lang} />
               </div>
@@ -169,10 +169,10 @@ export const RotationStrategies: React.FC<RotationStrategiesProps> = ({
                   <Droplets className="w-3.5 h-3.5 text-blue-500" />
                 </div>
                 <div className="mt-1 text-2xl font-black font-mono text-slate-900 dark:text-white">
-                  +{currentPlan.waterSavingsPct}%
+                  {lang === 'es' ? 'No estimado' : 'Not estimated'}
                 </div>
                 <div className="w-full bg-slate-200 dark:bg-[#2d2d32] h-1.5 mt-2 overflow-hidden">
-                  <div className="bg-blue-600 h-full" style={{ width: `${Math.min(100, currentPlan.waterSavingsPct * 2.5)}%` }} />
+                  <div className="bg-slate-400 h-full w-0" />
                 </div>
               </div>
 
@@ -183,10 +183,10 @@ export const RotationStrategies: React.FC<RotationStrategiesProps> = ({
                   <Sprout className="w-3.5 h-3.5 text-emerald-500" />
                 </div>
                 <div className="mt-1 text-sm font-bold text-slate-900 dark:text-white line-clamp-2">
-                  {currentPlan.soilCarbonPotential}
+                  {lang === 'es' ? 'No estimado para este lote' : 'Not estimated for this farm'}
                 </div>
                 <div className="text-[10px] text-slate-500 dark:text-zinc-400 mt-1">
-                  INTA biomasa y MO
+                  {lang === 'es' ? 'Sin medición de suelo local' : 'No local soil measurement'}
                 </div>
               </div>
 
@@ -230,7 +230,7 @@ export const RotationStrategies: React.FC<RotationStrategiesProps> = ({
                     {lang === 'es' ? 'Secuencia y Cronograma de Siembra' : 'Crop Succession Schedule'}
                   </h3>
                   <p className="text-[11px] text-slate-500 dark:text-zinc-400">
-                    {lang === 'es' ? 'Evolución estacional propuesta a 3 campañas' : 'Proposed 3-season transition trajectory'}
+                    {lang === 'es' ? 'Alternativas para revisar según el lote' : 'Options to review for this farm'}
                   </p>
                 </div>
               </div>
@@ -295,11 +295,11 @@ export const RotationStrategies: React.FC<RotationStrategiesProps> = ({
                               ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800'
                               : 'bg-red-50 dark:bg-red-950/40 text-red-800 dark:text-red-300 border-red-200 dark:border-red-800'
                           }`}>
-                            {lang === 'es' ? 'Demanda' : 'Demand'}: {step.waterDemand}
+                            {lang === 'es' ? 'Demanda' : 'Demand'}: {lang === 'es' ? 'A evaluar' : 'To assess'}
                           </span>
 
                           <span className="text-[10px] font-mono text-slate-600 dark:text-zinc-400 bg-white dark:bg-[#1c1c1e] px-2 py-0.5 border border-slate-200 dark:border-[#333336]">
-                            {lang === 'es' ? 'Raíz:' : 'Root:'} {step.rootDepthMeters}m
+                            {lang === 'es' ? 'Raíz:' : 'Root:'} {lang === 'es' ? 'depende de la especie' : 'species dependent'}
                           </span>
                         </div>
                       </div>
@@ -373,7 +373,7 @@ export const RotationStrategies: React.FC<RotationStrategiesProps> = ({
                           {step.soilHealthBenefit}
                         </td>
                         <td className="px-3 py-2.5 font-mono text-slate-800 dark:text-zinc-200 border-r border-slate-200 dark:border-[#2e2e33] uppercase text-[11px]">
-                          {step.waterDemand} (Raíz: {step.rootDepthMeters}m)
+                          {lang === 'es' ? 'A evaluar con asesoramiento local' : 'Assess with local advice'}
                         </td>
                         <td className="px-3 py-2.5 text-emerald-700 dark:text-emerald-400 font-mono text-[11px] font-semibold">
                           {step.expectedSoilMoistureConservation}

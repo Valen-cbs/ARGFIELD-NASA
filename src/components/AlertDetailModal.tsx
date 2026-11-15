@@ -29,8 +29,6 @@ export const AlertDetailModal: React.FC<AlertDetailModalProps> = ({
 }) => {
   if (!alert) return null;
 
-  const isCritical = alert.severity === 'critical';
-  const isHigh = alert.severity === 'high';
 
   return (
     <div 
@@ -48,11 +46,6 @@ export const AlertDetailModal: React.FC<AlertDetailModalProps> = ({
             <span className="font-bold text-xs font-mono">{alert.source}</span>
             <span className="text-slate-300 dark:text-zinc-500 text-xs">|</span>
             <span className="text-xs text-slate-200 dark:text-zinc-300">{alert.mission}</span>
-            <span className={`text-[10px] font-mono px-1.5 py-0.2 font-bold ml-1 ${
-              isCritical ? 'bg-red-500 text-white' : isHigh ? 'bg-amber-500 text-black' : 'bg-slate-600 text-white'
-            }`}>
-              {alert.score}/100
-            </span>
           </div>
 
           <button

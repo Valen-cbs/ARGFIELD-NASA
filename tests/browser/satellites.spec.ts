@@ -118,13 +118,52 @@ test('offline shows saved readings explicitly and stops provider requests', asyn
   await expect(page.getByText(/Los productos sin cobertura, antiguos o sin fecha/)).toBeVisible();
 });
 
-test('sources distinguish connected products from missions pending access', async ({ page }) => {
+test('sources show country flags, agency logos and retain Amazonia-1 without CBERS-4A', async ({ page }) => {
   await mockProviders(page, { tab: 'fuentes' });
   await page.goto('/');
-  await expect(page.getByText('Misiones pendientes de conexión')).toBeVisible();
-  await expect(page.getByText('CSA · RADARSAT')).toBeVisible();
-  await expect(page.getByText('100% Constelación Activa')).toHaveCount(0);
-  await expect(page.getByTestId('reading-smap')).toContainText('Dato antiguo');
+  await expect(page.getByRole('heading', { name: 'Fuentes satelitales' })).toBeVisible();
+  await expect(page.getByText('Amazonia-1', { exact: true })).toBeVisible();
+  await expect(page.getByText('CBERS-4A', { exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'NASA' }).locator('img')).toBeVisible();
+  await expect(page.getByRole('columnheader', { name: 'País' })).toBeVisible();
+  await expect(page.getByRole('columnheader', { name: 'Agencia/s' })).toBeVisible();
+});
+
+test('farm registration saves location and crop allocations across reloads', async ({ page }) => {
+  await page.addInitScript(() => {
+    if (!sessionStorage.getItem('argfield-registry-test-started')) {
+      localStorage.clear();
+      localStorage.setItem('field_shift_landing_seen', 'true');
+      localStorage.setItem('field_shift_active_tab', 'home');
+      localStorage.setItem('field_shift_is_offline', 'true');
+      localStorage.setItem('field_shift_farm_profile', JSON.stringify({
+        location: { name: 'Estancia anterior', lat: -35, lng: -60, province: 'Buenos Aires', region: 'centro', basinId: 'salado_bonaerense', basinName: 'Cuenca de prueba', mainRiver: 'Río de prueba' },
+        fieldSizeHectares: 100, currentCrop: 'soybean', soilType: 'mollisol_deep', irrigation: 'dryland', priority: 'conserve_moisture'
+      }));
+      sessionStorage.setItem('argfield-registry-test-started', 'true');
+    }
+  });
+  await page.route('**/*', async route => {
+    const url = new URL(route.request().url());
+    if (url.hostname === '127.0.0.1' || url.hostname === 'localhost') return route.continue();
+    if (url.hostname === 'nominatim.openstreetmap.org') return route.fulfill({ json: [{ name: 'Pergamino', lat: '-33.8940', lon: '-60.5730', display_name: 'Pergamino, Buenos Aires, Argentina', address: { state: 'Buenos Aires' } }] });
+    return route.abort();
+  });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Gestionar estancias' }).click();
+  await page.getByRole('button', { name: /Nueva estancia/ }).click();
+  await page.getByLabel('Productor (opcional)').fill('Carlitos');
+  await page.getByLabel('Nombre de la estancia').fill('La Esperanza');
+  await page.getByLabel('Ubicación · OpenStreetMap').fill('Pergamino');
+  await page.getByRole('button', { name: 'Pergamino · Buenos Aires' }).click();
+  await page.getByLabel('Superficie total').fill('100');
+  await page.getByRole('checkbox', { name: /Soja 1ra/ }).check();
+  await page.getByLabel('Superficie Soja 1ra').fill('70');
+  await page.getByRole('button', { name: 'Guardar estancia' }).click();
+  await expect(page.getByRole('heading', { name: 'La Esperanza', exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'La Esperanza', exact: true })).toBeVisible();
+  await expect(page.getByText('Soja 1ra · 70 ha')).toBeVisible();
 });
 
 test('offline retains completed readings while another provider is still pending', async ({ page }) => {

@@ -45,11 +45,7 @@ export const AgencyLogo: React.FC<AgencyLogoProps> = ({
   }[size];
 
   if (!logoUrl || hasError) {
-    return (
-      <span className={`inline-flex items-center justify-center font-mono font-bold text-[10px] text-slate-700 dark:text-zinc-300 select-none ${className}`}>
-        {agency}
-      </span>
-    );
+    return <span className={`inline-block ${className}`} aria-hidden="true" />;
   }
 
   return (

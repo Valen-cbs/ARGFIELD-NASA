@@ -8,6 +8,7 @@ import { FarmProfileView } from './components/FarmProfileView';
 import { AgenciesView } from './components/AgenciesView';
 import { AlertDetailModal } from './components/AlertDetailModal';
 import { EditFarmModal } from './components/EditFarmModal';
+import { FarmRegistryModal, RegisteredFarm } from './components/FarmRegistryModal';
 import { AboutModal } from './components/AboutModal';
 import { ExportReportModal } from './components/ExportReportModal';
 import { LandingView } from './components/LandingView';
@@ -19,12 +20,30 @@ import { useSatelliteData } from './services/dataLoader';
 import { deriveSatelliteAlerts } from './services/satelliteAlerts';
 import { generateRotationStrategies } from './services/rotationOptimizer';
 import { determineBasin, determineRegion, isWithinArgentina } from './services/geo';
+import { useOpenMeteoDashboard } from './services/weatherAlerts';
 
 const STORAGE_PROFILE_KEY = 'field_shift_farm_profile';
 const STORAGE_OFFLINE_KEY = 'field_shift_is_offline';
 const STORAGE_TAB_KEY = 'field_shift_active_tab';
 const STORAGE_LANDING_SEEN = 'field_shift_landing_seen';
 const STORAGE_THEME_KEY = 'field_shift_theme';
+const STORAGE_FARMS_KEY = 'argfield_registered_farms';
+const STORAGE_ACTIVE_FARM_KEY = 'argfield_active_farm';
+
+function readRegisteredFarms(): RegisteredFarm[] {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_FARMS_KEY) ?? '[]');
+    if (Array.isArray(saved)) {
+      const valid = saved.filter(item => typeof item?.id === 'string' && item?.profile?.location && typeof item.profile.fieldSizeHectares === 'number');
+      if (valid.length) return valid;
+    }
+    const legacy = JSON.parse(localStorage.getItem(STORAGE_PROFILE_KEY) ?? 'null') as FarmProfile | null;
+    if (legacy?.location?.name && !['Mi establecimiento', 'My Farm'].includes(legacy.location.name) && Number(legacy.fieldSizeHectares) > 0) {
+      return [{ id: 'legacy-farm', profile: legacy }];
+    }
+  } catch { /* malformed saved data starts with an empty registry */ }
+  return [];
+}
 
 export default function App() {
   const [lang, setLang] = useState<'es' | 'en'>('es');
@@ -49,7 +68,7 @@ export default function App() {
     if (window.location.hash === '#landing' || window.location.pathname.includes('/landing')) {
       return true;
     }
-    return !localStorage.getItem(STORAGE_LANDING_SEEN);
+    return readRegisteredFarms().length > 0 && !localStorage.getItem(STORAGE_LANDING_SEEN);
   });
 
   const [activeTab, setActiveTab] = useState<AppTab>(() => {
@@ -64,8 +83,21 @@ export default function App() {
     return localStorage.getItem(STORAGE_OFFLINE_KEY) === 'true';
   });
 
-  // Farm Profile based on chosen location
-  const [farmProfile, setFarmProfile] = useState<FarmProfile>(() => {
+  const [farms, setFarms] = useState<RegisteredFarm[]>(readRegisteredFarms);
+  const [activeFarmId, setActiveFarmId] = useState<string | null>(() => {
+    const savedId = localStorage.getItem(STORAGE_ACTIVE_FARM_KEY);
+    const records = readRegisteredFarms();
+    return records.some(farm => farm.id === savedId) ? savedId : records[0]?.id ?? null;
+  });
+
+  // Farm Profile based on the selected registered farm, with legacy profile migration.
+  const [farmProfile, setFarmProfileState] = useState<FarmProfile>(() => {
+    try {
+      const savedFarms = JSON.parse(localStorage.getItem(STORAGE_FARMS_KEY) ?? '[]');
+      const activeId = localStorage.getItem(STORAGE_ACTIVE_FARM_KEY);
+      const active = Array.isArray(savedFarms) ? savedFarms.find((farm: RegisteredFarm) => farm.id === activeId) : null;
+      if (active?.profile) return active.profile;
+    } catch { /* fall through to the saved single-farm profile */ }
     const saved = localStorage.getItem(STORAGE_PROFILE_KEY);
     if (saved) {
       try {
@@ -87,8 +119,15 @@ export default function App() {
     };
   });
 
+  const setFarmProfile = (value: FarmProfile | ((previous: FarmProfile) => FarmProfile)) => {
+    const updated = typeof value === 'function' ? value(farmProfile) : value;
+    setFarmProfileState(updated);
+    if (activeFarmId) setFarms(previous => previous.map(farm => farm.id === activeFarmId ? { ...farm, profile: updated } : farm));
+  };
+
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
   const [showFarmModal, setShowFarmModal] = useState<boolean>(false);
+  const [showRegistryModal, setShowRegistryModal] = useState(false);
   const [showAboutModal, setShowAboutModal] = useState<boolean>(false);
   const [showExportModal, setShowExportModal] = useState<boolean>(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
@@ -107,8 +146,11 @@ export default function App() {
 
   // Persist state to localStorage
   useEffect(() => {
-    localStorage.setItem(STORAGE_PROFILE_KEY, JSON.stringify(farmProfile));
-  }, [farmProfile]);
+    if (activeFarmId) localStorage.setItem(STORAGE_PROFILE_KEY, JSON.stringify(farmProfile));
+  }, [farmProfile, activeFarmId]);
+
+  useEffect(() => { localStorage.setItem(STORAGE_FARMS_KEY, JSON.stringify(farms)); }, [farms]);
+  useEffect(() => { if (activeFarmId) localStorage.setItem(STORAGE_ACTIVE_FARM_KEY, activeFarmId); else localStorage.removeItem(STORAGE_ACTIVE_FARM_KEY); }, [activeFarmId]);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_OFFLINE_KEY, String(isOffline));
@@ -118,12 +160,33 @@ export default function App() {
     localStorage.setItem(STORAGE_TAB_KEY, activeTab);
   }, [activeTab]);
 
-  const satelliteData = useSatelliteData(farmProfile.location, isOffline || showLanding);
+  const satelliteData = useSatelliteData(farmProfile.location, isOffline || showLanding || !activeFarmId);
+
+  const handleSaveFarm = (profile: FarmProfile, id?: string) => {
+    const farmId = id ?? `farm-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const record = { id: farmId, profile };
+    setFarms(previous => id ? previous.map(farm => farm.id === id ? record : farm) : [...previous, record]);
+    setActiveFarmId(farmId);
+    setFarmProfileState(profile);
+    setShowRegistryModal(false);
+  };
+  const handleSelectFarm = (farm: RegisteredFarm) => { setActiveFarmId(farm.id); setFarmProfileState(farm.profile); };
+  const handleDeleteFarm = (farm: RegisteredFarm) => {
+    const remaining = farms.filter(item => item.id !== farm.id);
+    setFarms(remaining);
+    if (farm.id === activeFarmId) {
+      const next = remaining[0];
+      setActiveFarmId(next?.id ?? null);
+      if (next) setFarmProfileState(next.profile);
+    }
+  };
 
   // Only dated, current provider readings can generate follow-up alerts.
+  const weatherData = useOpenMeteoDashboard(farmProfile, Boolean(activeFarmId) && !isOffline && !showLanding);
+  const weatherAlerts = weatherData.alerts;
   const alerts: Alert[] = useMemo(() => {
-    return deriveSatelliteAlerts(satelliteData.readings, farmProfile);
-  }, [farmProfile, satelliteData.readings]);
+    return [...deriveSatelliteAlerts(satelliteData.readings, farmProfile), ...weatherAlerts].sort((a, b) => b.score - a.score);
+  }, [farmProfile, satelliteData.readings, weatherAlerts]);
 
   const criticalCount = useMemo(() => {
     return alerts.filter(a => a.severity === 'critical' || a.severity === 'high').length;
@@ -222,7 +285,8 @@ export default function App() {
 
         {/* Viewport Content Area */}
         <main className="flex-1 overflow-y-auto p-3 sm:p-5 md:p-6">
-          {showDemoBanner && activeTab !== 'mapa' && activeTab !== 'fuentes' && (
+          {!activeFarmId && activeTab !== 'home' && activeTab !== 'fuentes' && <section className="mx-auto max-w-xl border border-slate-300 bg-white p-6 text-center dark:border-zinc-700 dark:bg-[#1c1c1e]"><h1 className="text-lg font-bold">{lang === 'es' ? 'Registrá una estancia para empezar' : 'Register a farm to get started'}</h1><p className="mt-2 text-sm text-slate-600 dark:text-zinc-400">{lang === 'es' ? 'Clima, mapa, alertas y optimizador se vinculan a la ubicación y los cultivos de una estancia.' : 'Weather, maps, alerts and optimization use a farm’s location and crops.'}</p><button type="button" onClick={() => setShowRegistryModal(true)} className="mt-4 bg-[#0f3260] px-4 py-2 text-sm font-bold text-white">{lang === 'es' ? 'Registrar estancia' : 'Register farm'}</button></section>}
+          {showDemoBanner && activeTab !== 'mapa' && activeTab !== 'fuentes' && activeTab !== 'clima' && (
             <DemoBanner
               lang={lang}
               onGoToMap={() => setActiveTab('mapa')}
@@ -239,6 +303,11 @@ export default function App() {
               onRefreshData={satelliteData.refresh}
               isOffline={isOffline}
               onChangeProfile={setFarmProfile}
+              farms={farms}
+              activeFarmId={activeFarmId}
+              onManageFarms={() => setShowRegistryModal(true)}
+              onSelectFarm={handleSelectFarm}
+              weatherSummary={weatherData.summary}
               onOpenExport={() => setShowExportModal(true)}
               onNavigateToOptimizer={() => setActiveTab('optimizador')}
               onNavigateToAlerts={() => setActiveTab('alertas')}
@@ -249,17 +318,18 @@ export default function App() {
           )}
 
           {/* Tab Clima (directamente abajo de Inicio) */}
-          {activeTab === 'clima' && (
+          {activeTab === 'clima' && activeFarmId && (
             <WeatherView
               farmProfile={farmProfile}
               onChangeFarmLocation={handleSelectPreset}
               onOpenEditLocation={() => setShowFarmModal(true)}
+              isOffline={isOffline || !activeFarmId}
               lang={lang}
             />
           )}
 
           {/* Tab 2: Alertas */}
-          {activeTab === 'alertas' && (
+          {activeTab === 'alertas' && activeFarmId && (
             <AlertsView
               alerts={alerts}
               readings={satelliteData.readings}
@@ -270,7 +340,7 @@ export default function App() {
           )}
 
           {/* Tab 3: Mapa */}
-          {activeTab === 'mapa' && (
+          {activeTab === 'mapa' && activeFarmId && (
             <div className="h-full flex flex-col space-y-3">
               <div className="flex-1 min-h-[460px] sm:min-h-[520px]">
                 <MapComponent
@@ -292,11 +362,11 @@ export default function App() {
 
           {/* Tab 4: Fuentes */}
           {activeTab === 'fuentes' && (
-            <AgenciesView lang={lang} readings={satelliteData.readings} onRefresh={satelliteData.refresh} isOffline={isOffline} />
+            <AgenciesView lang={lang} />
           )}
 
           {/* Tab 5: Optimizador */}
-          {activeTab === 'optimizador' && (
+          {activeTab === 'optimizador' && activeFarmId && (
             <RotationStrategies
               plans={rotationPlans}
               farmProfile={farmProfile}
@@ -332,6 +402,8 @@ export default function App() {
         }}
         lang={lang}
       />
+
+      <FarmRegistryModal open={showRegistryModal} lang={lang} farms={farms} activeFarmId={activeFarmId} template={farmProfile} onClose={() => setShowRegistryModal(false)} onSelect={handleSelectFarm} onSave={handleSaveFarm} onDelete={handleDeleteFarm} />
 
       {/* About Modal */}
       <AboutModal

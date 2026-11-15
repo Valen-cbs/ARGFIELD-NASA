@@ -240,7 +240,7 @@ function generateActionAndContext(
       return {
         title: 'Impacto Hidrológico por Pérdida de Cobertura Forestal Upstream',
         suggestedAction: `Introducir cultivos perennes o pasturas polifíticas en las rotaciones para actuar como amortiguadores de humedad locales e incrementar la infiltración propia del suelo.`,
-        scientificContext: `Sensores ópticos (CBERS-4A / Amazonia-1 / Sentinel-2) captan pérdida de dosel arbóreo en la cuenca alta. La deforestación reduce la evapotranspiración regional y altera los ríos voladores de vapor de agua.`,
+        scientificContext: `Sensores ópticos (Amazonia-1 / Sentinel-2) captan pérdida de dosel arbóreo en la cuenca alta. La deforestación reduce la evapotranspiración regional y altera los ríos voladores de vapor de agua.`,
         localImpact: `Ubicado a ${distanceKm} km en cuenca compartida. La degradación de cabeceras de cuenca provoca que las temporadas secas se extiendan 2 a 3 semanas más en ${farm.location.province}.`
       };
 

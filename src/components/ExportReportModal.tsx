@@ -104,15 +104,15 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
               </div>
               <div className="bg-slate-50 dark:bg-[#111c2e] p-3 border border-slate-300 dark:border-slate-800">
                 <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold tracking-wider">
-                  {lang === 'es' ? 'Resiliencia Plan' : 'Plan Resilience'}
+                  {lang === 'es' ? 'Alternativa' : 'Alternative'}
                 </span>
-                <span className="text-lg font-bold font-mono text-emerald-700 dark:text-emerald-400">{plans[0]?.resilienceScore || 85}/100</span>
+                <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400">{lang === 'es' ? 'Orientativa' : 'Qualitative'}</span>
               </div>
               <div className="bg-slate-50 dark:bg-[#111c2e] p-3 border border-slate-300 dark:border-slate-800">
                 <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold tracking-wider">
                   {lang === 'es' ? 'Ahorro Hídrico' : 'Water Savings'}
                 </span>
-                <span className="text-lg font-bold font-mono text-[#0f3260] dark:text-sky-400">-{plans[0]?.waterSavingsPct || 28}%</span>
+                <span className="text-sm font-bold text-[#0f3260] dark:text-sky-400">{lang === 'es' ? 'No estimado' : 'Not estimated'}</span>
               </div>
             </div>
 

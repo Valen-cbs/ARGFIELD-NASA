@@ -127,7 +127,7 @@ export const REGION_DETAILS: Record<RegionKey, {
     tagline: 'Sensible al Río Paraná, deforestación en Brasil/Paraguay y variabilidad subtropical',
     climate: 'Subtropical húmedo a semiárido chaqueño con balance hídrico variable',
     keyRisks: ['Bajante hidrométrica del Paraná', 'Deforestación 50km cuenca arriba', 'Olas de calor extremas'],
-    keySatellites: ['CONAE SAOCOM 1B', 'NASA SMAP', 'AEB CBERS-4A', 'AEP Telemetry'],
+    keySatellites: ['CONAE SAOCOM 1B', 'NASA SMAP', 'AEP Telemetry'],
     soilCharacteristics: 'Ultisoles rojos ferralíticos en Misiones y Mollisoles/Vertisoles arcillosos en el Chaco'
   },
   centro: {

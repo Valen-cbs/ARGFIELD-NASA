@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { Alert } from '../types';
 import { AlertCard } from './AlertCard';
 import { SkeletonLoader } from './SkeletonLoader';
+import { getSatelliteProduct } from '../data/satelliteProducts';
+import { formatReadingDate, readingLabel } from './SatelliteReadings';
 import { 
   Layers, 
   ShieldAlert, 
@@ -45,6 +47,8 @@ export const AlertsView: React.FC<AlertsViewProps> = ({
     if (filter === 'upstream') return a.hydrologicalRelation === 'upstream';
     return true;
   });
+  const contextIds = ['saocom_percentil', 'lluvia_imerg', 'estatus_hidrico', 'smap', 'modis_lst', 'sentinel2_ndvi'];
+  const contextReadings = contextIds.map(id => readings.find(reading => reading.productId === id)).filter(Boolean);
 
   return (
     <div className="space-y-4 pb-12 font-sans select-none max-w-5xl mx-auto">
@@ -57,8 +61,8 @@ export const AlertsView: React.FC<AlertsViewProps> = ({
           </h1>
           <p className="text-xs text-slate-600 dark:text-zinc-400 mt-1">
             {lang === 'es' 
-              ? 'Avisos de seguimiento basados en productos vigentes de CONAE. Revisá cada lectura con tu agrónomo.'
-              : 'Follow-up notices based on current CONAE products. Review each reading with your agronomist.'}
+              ? 'Avisos automáticos solo cuando se cumple una regla respaldada por el producto. Las observaciones agregan contexto; revisá cada lectura con tu agrónomo.'
+              : 'Automatic notices are created only when a product-supported rule is met. Satellite observations add context; review readings with your agronomist.'}
           </p>
         </div>
 
@@ -180,6 +184,28 @@ export const AlertsView: React.FC<AlertsViewProps> = ({
           </div>
         </div>
       </div>
+
+      <section className="border border-slate-300 bg-white dark:border-[#2e2e33] dark:bg-[#1c1c1e]">
+        <div className="border-b border-slate-200 px-4 py-3 dark:border-[#2e2e33]">
+          <h2 className="text-sm font-bold text-slate-900 dark:text-white">{lang === 'es' ? 'Observaciones que aportan contexto' : 'Observations informing follow-up'}</h2>
+          <p className="mt-1 text-[11px] text-slate-600 dark:text-zinc-400">{lang === 'es' ? 'GPM, SMAP, MODIS y Sentinel-2 se muestran con el dato y la fecha reales del punto. No son una alerta sin una regla validada.' : 'GPM, SMAP, MODIS and Sentinel-2 are shown with the real point value and date. They are not alerts without a validated rule.'}</p>
+        </div>
+        <div className="grid grid-cols-1 divide-y divide-slate-200 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-6 dark:divide-[#2e2e33]">
+          {contextReadings.map(reading => {
+            if (!reading) return null;
+            const product = getSatelliteProduct(reading.productId);
+            const fresh = reading.status === 'available' && !reading.cached;
+            const value = reading.value === null ? '—' : `${reading.value.toLocaleString(lang === 'es' ? 'es-AR' : 'en-US', { maximumFractionDigits: reading.unit === 'NDVI' ? 3 : 2 })}${reading.unit ? ` ${reading.unit}` : ''}`;
+            return <article key={reading.productId} className="p-3">
+              <h3 className="min-h-8 text-[11px] font-bold text-slate-800 dark:text-zinc-200">{product?.name[lang] ?? reading.productId}</h3>
+              <div className="mt-1 font-mono text-base font-bold text-slate-900 dark:text-white">{value}</div>
+              <div className="mt-1 text-[10px] text-slate-600 dark:text-zinc-400">{formatReadingDate(reading.observedAt, lang)}</div>
+              <div className={`mt-1 text-[10px] font-semibold ${fresh ? 'text-emerald-700 dark:text-emerald-300' : 'text-amber-700 dark:text-amber-300'}`}>{readingLabel(reading, lang)}</div>
+            </article>;
+          })}
+        </div>
+        <p className="border-t border-slate-200 px-4 py-2 text-[10px] text-slate-500 dark:border-[#2e2e33] dark:text-zinc-400">{lang === 'es' ? 'El percentil SAOCOM y el modelo de fusariosis tienen reglas de seguimiento implementadas. Los otros productos no se convierten en alertas sin comparación o umbral validado.' : 'SAOCOM percentile and the Fusarium model have implemented follow-up rules. Other products are not turned into alerts without a validated comparison or threshold.'}</p>
+      </section>
 
       {/* 4. Alerts List or Skeleton Loader */}
       {isLoading || loadingData ? (
