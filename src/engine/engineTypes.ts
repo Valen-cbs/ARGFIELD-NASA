@@ -46,7 +46,7 @@ export interface FarmerConstraints {
   excludedCrops?: CropId[];
   /** Cultivos piloto que el productor quiere forzar en alguna campaña (si son compatibles). */
   preferredCrops?: CropId[];
-  /** Horizonte en campañas (2-3). */
+  /** Horizonte prospectivo en campañas (2-3), independiente de la rotación declarada. */
   horizonCampaigns?: number;
   /** Ajuste de pesos por criterio (se renormaliza). */
   weightOverrides?: Partial<Record<CriterionId, number>>;
@@ -90,9 +90,27 @@ export interface EngineProvenance {
   osm: { source: string; note: string } | null;
 }
 
+/** Counts refer to prospective sequences in the reference scenario, never to the baseline. */
+export interface OptimizationDiagnostics {
+  outcome: 'viable' | 'no_candidates' | 'incompatible_constraints' | 'insufficient_data' | 'calculation_error' | 'integration_error' | 'unsupported_perennial';
+  generated: number;
+  evaluated: number;
+  viable: number;
+  returned: number;
+  horizonCampaigns: number;
+  region: RegionKeyLike | undefined;
+  rejections: Array<{ rule: string; count: number; example: string }>;
+  generationBlocks: string[];
+  missingInputs: string[];
+  errors: Array<{ candidateId: string; scenarioId: string; message: string }>;
+  scenarios: Array<{ id: string; evaluated: number; viable: number }>;
+  comparison: 'no_history' | 'unavailable_history' | 'different_horizon' | 'single_alternative' | 'available';
+}
+
 export interface EngineResult {
   /** Alternativas ordenadas por S(r) desc (excluyentes fuera; null score al final). */
   alternatives: EngineAlternative[];
+  diagnostics: OptimizationDiagnostics;
   baseline?: EngineAlternative | null;
   observationIndicators?: Array<{ id: string; label: string; value: number; unit: string; detail: string; productId: string; samples?: SatelliteEvidence['samples'] }>;
   /** Rotaciones excluidas por reglas, con el motivo. */

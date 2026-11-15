@@ -11,7 +11,7 @@
  * Reglas estructurales aplicadas AQUÍ (excluyentes, antes de puntuar):
  *  - No repetir el mismo cultivo primario en campañas consecutivas.
  *  - Soja de segunda solo existe como segunda ocupación tras trigo (misma campaña).
- *  - Solo se proponen cultivos con parámetros completos y estadística regional
+ *  - Solo se proponen cultivos con parámetros completos y ventana regional
  *    disponible (los cultivos sin parámetros no obtienen resultados inventados).
  *  - Estancias con cultivos perennes no reciben rotaciones anuales (el motor
  *    lo informa; no genera alternativas falsas).

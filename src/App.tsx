@@ -196,12 +196,12 @@ export default function App() {
   }, [alerts]);
 
   // Motor cuantitativo de rotaciones: datos NASA POWER + MAGyP + lecturas satelitales
-  // ya validadas; si no puede ejecutarse, cae al generador cualitativo previo.
+  // ya validadas; los fallos se explican sin sustituir resultados por planes cualitativos.
   const rotationEngine = useRotationEngine(farmProfile, satelliteData.readings, Boolean(activeFarmId) && !showLanding);
   const fallbackPlans = useMemo(() => {
     return generateRotationStrategies(farmProfile, alerts);
   }, [farmProfile, alerts]);
-  const rotationPlans = rotationEngine.engine ? rotationEngine.plans : fallbackPlans;
+  const rotationPlans = rotationEngine.status === 'perennial' ? fallbackPlans : rotationEngine.plans;
 
   // Handle map click location change
   const handleMapClick = (coords: LatLng) => {
@@ -389,8 +389,9 @@ export default function App() {
               plans={rotationPlans}
               farmProfile={farmProfile}
               lang={lang}
-              quantitative={rotationEngine.status === 'ready' && rotationEngine.plans.length > 0}
+              quantitative={Boolean(rotationEngine.engine && rotationEngine.plans.length > 0)}
               engineResult={rotationEngine.engine}
+              engineLoading={rotationEngine.status === 'loading'}
               engineError={rotationEngine.error}
               engineWarnings={rotationEngine.engine?.warnings ?? []}
               onNavigateToHome={() => setActiveTab('home')}

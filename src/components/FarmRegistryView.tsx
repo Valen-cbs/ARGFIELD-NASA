@@ -43,6 +43,7 @@ export const FarmRegistryModal: React.FC<Props> = ({ open, lang, farms, activeFa
   const [areaUnit, setAreaUnit] = useState<'ha' | 'm2'>('ha');
   const [selectedCrops, setSelectedCrops] = useState<string[]>([]);
   const [allocations, setAllocations] = useState<Record<string, string>>({});
+  const [horizon, setHorizon] = useState(3);
   const [previousCrops, setPreviousCrops] = useState<string[]>([]);
   const [irrigated, setIrrigated] = useState(false);
   const [rotation, setRotation] = useState<string[]>(['', '', '']);
@@ -60,6 +61,7 @@ export const FarmRegistryModal: React.FC<Props> = ({ open, lang, farms, activeFa
     if (!open) return;
     const p = selectedFarm?.profile;
     const location = p?.location;
+    setHorizon(p?.rotationConstraints?.horizonCampaigns ?? 3);
     setRotation([0, 1, 2].map(i => p?.currentRotation?.[i] ? p.currentRotation[i].primary + (p.currentRotation[i].secondary ? '+soja2' : '') : ''));
     setIrrigationMm(p?.maxMonthlyIrrigationMm === undefined ? '' : String(p.maxMonthlyIrrigationMm));
     setSoilType(p?.soilType ?? template.soilType);
@@ -144,7 +146,7 @@ export const FarmRegistryModal: React.FC<Props> = ({ open, lang, farms, activeFa
     if (irrigationMm !== '' && (!Number.isFinite(Number(irrigationMm)) || Number(irrigationMm) < 0)) return setError('El volumen de riego debe ser finito y no negativo.');
     const currentRotation = rotation.filter(Boolean).map(value => ({ primary: value.split('+')[0] as CropId, ...(value.includes('+') ? { secondary: 'soja2' as const } : {}) }));
     const region = determineRegion(place.lat, place.lng); const basin = determineBasin(place.lat, place.lng);
-    onSave({ ...template, ...selectedFarm?.profile, soilType, currentRotation: currentRotation.length ? currentRotation : undefined, maxMonthlyIrrigationMm: irrigationMm === '' ? undefined : Number(irrigationMm), producerName: producer.trim() || undefined, location: { ...template.location, name: farmName, province: place.province, region, lat: place.lat, lng: place.lng, basinId: basin.id, basinName: basin.name, mainRiver: basin.mainRiver, aquifer: basin.aquifer }, fieldSizeHectares: totalHa, cropAllocations: assigned, currentCrop: cropToMain(selectedCrops[0] ?? ''), previousCrop: previousCrops[0] || undefined, previousCrops: previousCrops.length ? previousCrops : undefined, irrigationAvailable: irrigated, irrigation: irrigated ? template.irrigation : 'dryland' }, editingId);
+    onSave({ ...template, ...selectedFarm?.profile, soilType, rotationConstraints: { ...selectedFarm?.profile.rotationConstraints, horizonCampaigns: horizon }, currentRotation: currentRotation.length ? currentRotation : undefined, maxMonthlyIrrigationMm: irrigationMm === '' ? undefined : Number(irrigationMm), producerName: producer.trim() || undefined, location: { ...template.location, name: farmName, province: place.province, region, lat: place.lat, lng: place.lng, basinId: basin.id, basinName: basin.name, mainRiver: basin.mainRiver, aquifer: basin.aquifer }, fieldSizeHectares: totalHa, cropAllocations: assigned, currentCrop: cropToMain(selectedCrops[0] ?? ''), previousCrop: previousCrops[0] || undefined, previousCrops: previousCrops.length ? previousCrops : undefined, irrigationAvailable: irrigated, irrigation: irrigated ? template.irrigation : 'dryland' }, editingId);
     reset();
   };
 
@@ -178,6 +180,7 @@ export const FarmRegistryModal: React.FC<Props> = ({ open, lang, farms, activeFa
           </div>
           <div className="flex flex-wrap items-center justify-end gap-3"><span className={`text-xs ${selectedCrops.reduce((sum, crop) => sum + Number(allocations[crop] || 0) * (areaUnit === 'm2' ? 0.0001 : 1), 0) > totalHa ? 'text-rose-600' : 'text-slate-500'}`}>{es ? 'Asignado' : 'Allocated'}: {selectedCrops.reduce((sum, crop) => sum + Number(allocations[crop] || 0) * (areaUnit === 'm2' ? 0.0001 : 1), 0).toFixed(2)} / {Number.isFinite(totalHa) ? totalHa.toFixed(2) : '0'} ha</span></div>
           <section className="space-y-2 border-t border-slate-200 pt-3 text-xs">
+            <label className="block">{es ? 'Horizonte de optimización' : 'Optimization horizon'}<select aria-label="Horizonte de optimización" value={horizon} onChange={e => setHorizon(Number(e.target.value))} className={inputClass}><option value={2}>2 campañas</option><option value={3}>3 campañas</option></select></label>
             <strong>{es ? 'Rotación actual o habitual (opcional, en orden de campañas)' : 'Current or usual rotation (optional, campaign order)'}</strong>
             <p>{es ? 'Declaración de una secuencia a comparar en este lote; no se infiere de las hectáreas de cultivos actuales. Se evalúa con el mismo calendario nominal que las alternativas.' : 'Declared sequence for this field; not inferred from current crop areas. Evaluated on the same nominal calendar as alternatives.'}</p>
             <div className="grid gap-2 sm:grid-cols-3">{rotation.map((value, i) => <label key={i}>{es ? 'Campaña' : 'Campaign'} {i + 1}<select aria-label={'Rotación campaña ' + (i + 1)} value={value} onChange={e => setRotation(rotation.map((r, j) => i === j ? e.target.value : r))} className={inputClass}><option value="">{es ? 'Sin declarar' : 'Not declared'}</option>{(['soja1', 'maiz', 'trigo', 'girasol', 'sorgo'] as CropId[]).map(c => <option key={c} value={c}>{CROP_AGRONOMY[c].nameEs}</option>)}<option value="trigo+soja2">Trigo + soja de segunda</option></select></label>)}</div>

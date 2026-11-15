@@ -685,6 +685,7 @@ const integrationInput = {
   lat: -33.89, lng: -60.57, province: 'Buenos Aires', region: 'centro' as const,
   irrigationAvailable: false, soil: { type: 'mollisol_deep' as const },
   priorities: { priority: 'conserve_moisture' }, nowIso: '2026-10-15T18:00:00Z',
+  constraints: { horizonCampaigns: 2 },
   currentRotation: [{ primary: 'soja1' as const }, { primary: 'maiz' as const }]
 };
 const dryDeps: EngineDeps = { ...realDeps, climateCacheId: 'synthetic-observation-integration',

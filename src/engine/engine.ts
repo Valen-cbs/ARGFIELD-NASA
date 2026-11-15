@@ -19,7 +19,7 @@
  */
 
 import { validObservation, observationIndicators } from './observations';
-import { CropId, CROP_AGRONOMY, PILOT_CROP_IDS, regionOfProvince } from './agronomy';
+import { CropId, CROP_AGRONOMY, PILOT_CROP_IDS, regionOfProvince, nominalSowMonth } from './agronomy';
 import { ClimateDataset, fetchPowerDaily, DEFAULT_POWER_START_YEAR, DEFAULT_POWER_END_YEAR } from './climate';
 import { SoilProfile, buildSoilProfile } from './soil';
 import { loadMagypProvincial, loadMagypDepartamental, selectMagypStats, MagypProvincialFile, MagypDepartamentalFile, MagypSelection } from './magyp';
@@ -27,7 +27,7 @@ import { generateCandidates, declaredRotationCandidate, GenerationOptions, Campa
 import { evaluateCandidate, DEFAULT_WEIGHTS, normalizeWeights, EvaluationContext, CandidateEvaluation, CRITERION_LABELS } from './evaluation';
 import { CLIMATE_SCENARIOS, ClimateScenario, adjustedMonthlyCells, etoSeriesFor } from './scenarios';
 import { meanOf, round3 } from './statistics';
-import { EngineResult, EngineAlternative, RotationEngineInput, SatelliteEvidence, EngineProvenance } from './engineTypes';
+import { EngineResult, EngineAlternative, RotationEngineInput, SatelliteEvidence, EngineProvenance, OptimizationDiagnostics } from './engineTypes';
 
 export interface EngineDeps {
   fetchClimate: typeof fetchPowerDaily;
@@ -62,7 +62,7 @@ export function mapCropToCropId(rawName: string): CropId | null {
     ['soybean', 'soja1'], ['soja', 'soja1'], ['soja de primera', 'soja1'], ['soja1', 'soja1'], ['soja 1ra', 'soja1'],
     ['soja de segunda', 'soja2'], ['soja2', 'soja2'], ['soja 2da', 'soja2'],
     ['maize', 'maiz'], ['corn', 'maiz'], ['maiz', 'maiz'],
-    ['wheat', 'trigo'], ['trigo', 'trigo'],
+    ['wheat', 'trigo'], ['trigo', 'trigo'], ['trigo total', 'trigo'],
     ['sunflower', 'girasol'], ['girasol', 'girasol'],
     ['sorghum', 'sorgo'], ['sorgo', 'sorgo']
   ];
@@ -162,6 +162,13 @@ export async function evaluateRotations(
   const years = deps.climateYears ?? { start: DEFAULT_POWER_START_YEAR, end: DEFAULT_POWER_END_YEAR };
   const warnings: string[] = [];
   const notes: string[] = [];
+  const horizon = input.constraints?.horizonCampaigns ?? 3;
+  const region = input.region ?? regionOfProvince(input.province);
+  const diagnostics: OptimizationDiagnostics = {
+    outcome: 'no_candidates', generated: 0, evaluated: 0, viable: 0, returned: 0,
+    horizonCampaigns: horizon, region, rejections: [], generationBlocks: [], missingInputs: [], errors: [], scenarios: [],
+    comparison: input.currentRotation?.length ? 'unavailable_history' : 'no_history'
+  };
   let climateFailure: string | null = null;
 
   // ---- clima (caché por punto y ventana) ----
@@ -170,11 +177,13 @@ export async function evaluateRotations(
   if (!climatePromise) {
     climatePromise = deps.fetchClimate(input.lat, input.lng, { startYear: years.start, endYear: years.end, fetchImpl: overrides?.fetchImpl }).then(d => roundClimateDataset(d)).catch(error => {
       climateFailure = error instanceof Error ? error.message : String(error);
+      climateCache.delete(cacheKey);
       return null;
     });
     climateCache.set(cacheKey, climatePromise);
   }
   const climate = await climatePromise;
+  if (!climate) diagnostics.missingInputs.push('Serie NASA POWER: temperaturas mensuales, precipitación e insumos FAO-56 para ETo.');
   if (!climate) warnings.push(`No se pudo obtener la serie NASA POWER (${years.start}-${years.end})${climateFailure ? `: ${climateFailure}` : ''}. La aptitud térmica y el balance hídrico quedan sin puntuar; el resto de criterios continúa.`);
 
   // ---- MAGyP ----
@@ -191,12 +200,14 @@ export async function evaluateRotations(
   }
   if (departamentalResult.status === 'rejected') warnings.push(`No se pudo cargar el dataset departamental MAGyP (${departamentalResult.reason instanceof Error ? departamentalResult.reason.message : String(departamentalResult.reason)}); se usará escala provincial cuando esté disponible.`);
   if (magyp) notes.push(...magyp.notes);
+  else diagnostics.missingInputs.push('Estadísticas MAGyP regionales: estabilidad sin puntuar; no bloquea la generación.');
 
   // ---- perennes: no corresponde rotación anual ----
   const perennialNote = perennialEvidence(input);
   if (perennialNote) {
     return {
       alternatives: [],
+      diagnostics: { ...diagnostics, outcome: 'unsupported_perennial', generationBlocks: [perennialNote] },
       excluded: [],
       scenarios: [],
       warnings: [perennialNote, ...warnings],
@@ -222,14 +233,14 @@ export async function evaluateRotations(
   // ---- opciones de generación ----
   const excluded = new Set((input.constraints?.excludedCrops ?? []) as CropId[]);
   const availableCrops = PILOT_CROP_IDS.filter(id => !excluded.has(id));
-  const horizon = Math.max(2, Math.min(3, Math.round(input.currentRotation?.length || input.constraints?.horizonCampaigns || 3)));
+
   const startSowYear = startSowYearFromNow(nowIso);
   const currentCropId = (input.currentCropIds ?? []).map(mapCropToCropId).find((id): id is CropId => id !== null) ?? null;
   if ((input.currentCropIds ?? []).length > 0 && currentCropId === null) {
     warnings.push(`El cultivo actual (${(input.currentCropIds ?? []).join(', ')}) no tiene parámetros completos en la base agronómica: no se fabrican resultados para él; solo se comparan cultivos piloto.`);
   }
   const previousCropId = input.previousCropId ? mapCropToCropId(input.previousCropId) : null;
-  const region = input.region ?? regionOfProvince(input.province);
+  if (input.previousCropId && !previousCropId) warnings.push(`Cultivo anterior sin correspondencia en el catálogo (${input.previousCropId}): no se evalúa esa sucesión inicial. Verificá el antecedente; no se lo reemplaza por soja ni por otro cultivo.`);
   const allowDoubleCrop = region === 'norte' || region === 'noa' || region === 'centro';
   const generationOptions: GenerationOptions = {
     horizonCampaigns: horizon,
@@ -239,12 +250,23 @@ export async function evaluateRotations(
     previousCrop: previousCropId,
     allowDoubleCrop
   };
-  const candidates = generateCandidates(generationOptions);
+  const invalidHorizon = !Number.isInteger(horizon) || horizon < 2 || horizon > 3;
+  if (invalidHorizon) diagnostics.generationBlocks.push('Horizonte inválido: configurar 2 o 3 campañas completas.');
+  const primaries = availableCrops.filter(c => c !== 'soja2');
+  if (!primaries.length) diagnostics.generationBlocks.push('Todos los cultivos primarios del catálogo están excluidos. Revisá las exclusiones declaradas.');
+  const windowCrops = primaries.filter(c => nominalSowMonth(CROP_AGRONOMY[c], region).month !== null);
+  if (primaries.length && !windowCrops.length) diagnostics.generationBlocks.push(`Sin ventanas de siembra documentadas para la región "${region ?? 'sin región'}" en el catálogo: ${primaries.join(', ')}. Falta parametrización regional; disponer de imágenes o clima no suple este insumo.`);
+  const structuralCandidates = invalidHorizon ? [] : generateCandidates(generationOptions);
+  const preferred = input.constraints?.preferredCrops ?? [];
+  const candidates = structuralCandidates.filter(c => preferred.every(id => c.steps.some(s => s.primary === id || s.secondary === id)));
+  if (preferred.length && structuralCandidates.length && !candidates.length) diagnostics.generationBlocks.push(`No hay secuencias que incluyan todos los cultivos requeridos (${preferred.join(', ')}) dentro del horizonte y las exclusiones declaradas.`);
+  diagnostics.generated = candidates.length;
+  if (!candidates.length && windowCrops.length && !invalidHorizon && !diagnostics.generationBlocks.length) diagnostics.generationBlocks.push('Los cultivos permitidos y el cultivo anterior no admiten una secuencia completa sin repeticiones consecutivas. Revisá las exclusiones y el antecedente declarado.');
   if (input.currentRotation?.length) {
     const declared = declaredRotationCandidate(generationOptions, input.currentRotation);
     if (declared.candidate) candidates.push(declared.candidate);
     if (declared.exclusion) warnings.push(declared.exclusion);
-  } else warnings.push('Rotación actual no declarada: no se inventa una línea de base a partir de los cultivos actuales. Registrá 2 o 3 campañas en orden para comparar.');
+  } else notes.push('Rotación actual no declarada: no se inventa una línea de base a partir de los cultivos actuales. Registrá 2 o 3 campañas en orden para comparar.');
 
   // ---- pesos ----
   const priorityKey = input.priorities.priority;
@@ -281,9 +303,34 @@ export async function evaluateRotations(
       priorityLabel: input.priorities.label ?? priorityKey,
       seasonalityNote: ''
     };
-    const evaluations = candidates.map(candidate => evaluateCandidate(candidate, context));
+    const evaluations: CandidateEvaluation[] = [];
+    for (const candidate of candidates) {
+      try {
+        const evaluation = evaluateCandidate(candidate, context);
+        evaluations.push(evaluation);
+        if (scenario.id === 'referencia' && !candidate.isBaseline) {
+          diagnostics.evaluated++;
+          const reasons = evaluation.exclusions.length ? evaluation.exclusions : evaluation.score === null
+            ? [{ rule: 'sin_criterios_disponibles', reason: 'Sin criterios con peso positivo y valor disponible.' }] : [];
+          for (const rule of new Set(reasons.map(e => e.rule))) {
+            const group = diagnostics.rejections.find(e => e.rule === rule);
+            if (group) group.count++;
+            else diagnostics.rejections.push({ rule, count: 1, example: reasons.find(e => e.rule === rule)!.reason });
+          }
+          for (const criterion of evaluation.criteria.filter(c => c.value === null)) {
+            const message = `${criterion.label}: ${criterion.unavailableReason ?? 'sin datos'}.`;
+            if (!diagnostics.missingInputs.includes(message)) diagnostics.missingInputs.push(message);
+          }
+        }
+      } catch (error) {
+        diagnostics.errors.push({ candidateId: candidate.id, scenarioId: scenario.id, message: error instanceof Error ? error.message : String(error) });
+      }
+    }
     const viable = evaluations.filter(e => e.exclusions.length === 0 && e.score !== null);
-    const ranking = [...viable].sort((a, b) => (b.score as number) - (a.score as number) || a.candidate.id.localeCompare(b.candidate.id));
+    const prospectiveViable = viable.filter(e => !e.candidate.isBaseline).length;
+    diagnostics.scenarios.push({ id: scenario.id, evaluated: evaluations.filter(e => !e.candidate.isBaseline).length, viable: prospectiveViable });
+    if (scenario.id === 'referencia') diagnostics.viable = prospectiveViable;
+    const ranking = viable.filter(e => !e.candidate.isBaseline).sort((a, b) => (b.score as number) - (a.score as number) || a.candidate.id.localeCompare(b.candidate.id));
     scenarios.push({
       scenario,
       ranking: ranking.slice(0, 8).map(e => ({ id: e.candidate.id, score: e.score, completeness: e.completeness }))
@@ -309,21 +356,29 @@ export async function evaluateRotations(
 
   // Ranking de la referencia: detalle completo solo para las 8 mejores;
   // los escenarios comparan por ranking compacto (id + puntaje).
-  const referenceAlternatives = allAlternatives.filter(a => a.scenarioId === 'referencia' && !a.isBaseline && a.label !== baselineResult?.label);
+  const referenceAlternatives = allAlternatives.filter(a => a.scenarioId === 'referencia' && !a.isBaseline);
   referenceAlternatives.sort((a, b) => (b.score as number) - (a.score as number) || a.id.localeCompare(b.id));
   const alternatives = referenceAlternatives.slice(0, 8);
 
+  diagnostics.returned = alternatives.length;
+  diagnostics.outcome = diagnostics.viable ? 'viable' : diagnostics.generated === 0
+    ? (invalidHorizon ? 'integration_error' : !primaries.length || windowCrops.length ? 'incompatible_constraints' : 'insufficient_data')
+    : diagnostics.errors.some(e => e.scenarioId === 'referencia') ? 'calculation_error'
+    : diagnostics.rejections.some(r => r.rule !== 'sin_criterios_disponibles') ? 'incompatible_constraints' : 'insufficient_data';
+  diagnostics.comparison = !input.currentRotation?.length ? 'no_history' : !baselineResult ? 'unavailable_history'
+    : baselineResult.horizonCampaigns !== horizon ? 'different_horizon' : alternatives.length === 1 ? 'single_alternative' : 'available';
   if (!alternatives.length) {
     warnings.push('No hay rotaciones viables con los datos disponibles; revisá las exclusiones y advertencias.');
   }
   const completeness = referenceAlternatives.length ? round3(meanOf(referenceAlternatives.map(a => a.completeness))) ?? 0 : 0;
   if (input.satellite?.length) {
     for (const s of input.satellite) {
-      if (!s.current) warnings.push(`La observación ${s.productLabel} (${s.observedAt ?? 'sin fecha'}) no está fresca o no es válida: NO se usa para condiciones actuales.`);
+      if (!s.current && s.status !== 'loading') warnings.push(`La observación ${s.productLabel} (${s.observedAt ?? 'sin fecha'}) no está fresca o no es válida: NO se usa para condiciones actuales.`);
     }
   }
   return {
     alternatives,
+    diagnostics,
     baseline: baselineResult,
     observationIndicators: indicators,
     excluded: excludedCandidates,
@@ -365,9 +420,9 @@ function buildProvenance(climate: ClimateDataset | null, magyp: MagypSelection |
         productId: s.productId, productLabel: s.productLabel, observedAt: s.observedAt,
         source: s.source, sourceUrl: s.sourceUrl, resolutionNote: s.resolutionNote,
         samples: diagnostic?.samples,
-        validity: s.current ? 'Vigente y válida' : 'Excluida: fecha, unidad, valor, calidad o vigencia incompatibles (' + (s.status ?? 'validación del motor') + ')',
+        validity: s.status === 'loading' ? 'Consulta en curso; validez pendiente' : s.current ? 'Vigente y válida' : 'Excluida: fecha, unidad, valor, calidad o vigencia incompatibles (' + (s.status ?? 'validación del motor') + ')',
         used: s.current && (balanceUsed || !!diagnostic),
-        reason: !s.current ? 'SIN vigencia o validez: no se utiliza.' : balanceUsed
+        reason: s.status === 'loading' ? 'Pendiente: aún no participa; se reevaluará al completar la consulta.' : !s.current ? 'SIN vigencia o validez: no se utiliza.' : balanceUsed
           ? 'Agua: inicializa solo la capa 0–50 cm en la primera campaña temporalmente compatible; resto del perfil supuesto al 50%.'
           : diagnostic ? diagnostic.detail : 'Solo contexto: profundidad, fecha de siembra o serie insuficientes para el indicador; no altera el puntaje.'
       };

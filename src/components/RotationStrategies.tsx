@@ -24,6 +24,7 @@ interface RotationStrategiesProps {
   engineError?: string | null;
   engineWarnings?: string[];
   engineResult?: EngineResult | null;
+  engineLoading?: boolean;
   onNavigateToHome?: () => void;
   onOpenExport?: () => void;
 }
@@ -35,6 +36,7 @@ export const RotationStrategies: React.FC<RotationStrategiesProps> = ({
   quantitative = false,
   engineError = null,
   engineResult,
+  engineLoading = false,
   engineWarnings = []
 }) => {
   const [selectedPlanId, setSelectedPlanId] = useState<string>(plans[0]?.id || '');
@@ -54,21 +56,21 @@ export const RotationStrategies: React.FC<RotationStrategiesProps> = ({
     return (
       <div className="bg-white dark:bg-[#1c1c1e] border border-slate-300 dark:border-[#2e2e33] p-8 text-center text-xs text-slate-500 dark:text-zinc-400">
         <EngineComparison result={engineResult} />
-        {lang === 'es' ? 'No se pudieron generar planes de rotación.' : 'Could not generate rotation plans.'}
+        <p role="status">{engineLoading ? 'Evaluando secuencias con los datos disponibles…' : engineError ?? (lang === 'es' ? 'Revisá el diagnóstico para identificar qué impide generar planes.' : 'Check the diagnostics for the blockers.')}</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-4 pb-12 font-sans select-none max-w-5xl mx-auto">
-      {(engineError || engineWarnings.length > 0) && (
+      {(engineError || (!engineResult && engineWarnings.length > 0)) && (
         <div role="status" className="border border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-800 p-3 text-xs text-amber-950 dark:text-amber-100">
           <strong>{lang === 'es' ? 'Estado de datos del motor' : 'Engine data status'}</strong>
           {engineError && <p className="mt-1">{engineError}</p>}
           {engineWarnings.length > 0 && <ul className="mt-1 list-disc pl-5">{engineWarnings.map((warning, index) => <li key={`${index}-${warning}`}>{warning}</li>)}</ul>}
         </div>
       )}
-      <EngineComparison result={engineResult} />
+      {engineLoading && <p role="status" className="text-xs">Actualizando la evaluación con las observaciones disponibles…</p>}
       {/* Unified Block: Field Context & 3 Strategy Selectors */}
       <div className="bg-white dark:bg-[#1c1c1e] border border-slate-300 dark:border-[#2e2e33] shadow-xs divide-y divide-slate-200 dark:divide-[#2e2e33]">
         {/* Subdivision 1: Establishment Title & Agronomic Specs */}
@@ -112,7 +114,7 @@ export const RotationStrategies: React.FC<RotationStrategiesProps> = ({
                         ? 'bg-white/20 text-white' 
                         : 'bg-slate-100 dark:bg-[#28282c] text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-[#38383e]'
                     }`}>
-                      {lang === 'es' ? `Estrategia 0${idx + 1}` : `Strategy 0${idx + 1}`}
+                      {lang === 'es' ? (idx === 0 ? 'Recomendada' : `Alternativa ${idx + 1}`) : (idx === 0 ? 'Recommended' : `Alternative ${idx + 1}`)}
                     </span>
                     <span className={`text-xs font-mono font-bold px-1.5 py-0.5 ${
                       isSelected
@@ -406,6 +408,7 @@ export const RotationStrategies: React.FC<RotationStrategiesProps> = ({
           </div>
         </div>
       )}
+      <EngineComparison result={engineResult} />
     </div>
   );
 };

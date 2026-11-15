@@ -1,0 +1,315 @@
+{
+  "input": {
+    "lat": -26.786,
+    "lng": -60.443,
+    "province": "Chaco",
+    "region": "norte",
+    "hectares": 120,
+    "currentCropIds": [
+      "Soja 1ra"
+    ],
+    "previousCropId": "soja1",
+    "irrigationAvailable": false,
+    "soil": {
+      "type": "mollisol_deep"
+    },
+    "constraints": {
+      "horizonCampaigns": 3
+    },
+    "priorities": {
+      "priority": "conserve_moisture"
+    },
+    "nowIso": "2026-11-15T18:00:00Z"
+  },
+  "climateFixture": "tests/fixtures/power-chaco-2016-2025.json",
+  "diagnostics": {
+    "outcome": "viable",
+    "generated": 109,
+    "evaluated": 109,
+    "viable": 109,
+    "returned": 8,
+    "horizonCampaigns": 3,
+    "region": "norte",
+    "rejections": [],
+    "generationBlocks": [],
+    "missingInputs": [
+      "Estadísticas MAGyP regionales: estabilidad sin puntuar; no bloquea la generación.",
+      "Estabilidad regional (MAGyP): series MAGyP insuficientes para los cultivos de la secuencia."
+    ],
+    "errors": [],
+    "scenarios": [
+      {
+        "id": "referencia",
+        "evaluated": 109,
+        "viable": 109
+      },
+      {
+        "id": "precip_menor",
+        "evaluated": 109,
+        "viable": 109
+      },
+      {
+        "id": "temp_mayor",
+        "evaluated": 109,
+        "viable": 109
+      },
+      {
+        "id": "estres_combinado",
+        "evaluated": 109,
+        "viable": 109
+      }
+    ],
+    "comparison": "no_history"
+  },
+  "bestThree": [
+    {
+      "label": "Maíz → Girasol → Trigo + Soja de segunda (tras trigo)",
+      "score": 0.8295253292989467,
+      "completeness": 0.9,
+      "sequence": [
+        {
+          "campaign": "2026/27",
+          "sowYear": 2026,
+          "primary": "maiz",
+          "primaryLabel": "Maíz",
+          "sowMonth": 9
+        },
+        {
+          "campaign": "2027/28",
+          "sowYear": 2027,
+          "primary": "girasol",
+          "primaryLabel": "Girasol",
+          "sowMonth": 7
+        },
+        {
+          "campaign": "2028/29",
+          "sowYear": 2028,
+          "primary": "trigo",
+          "primaryLabel": "Trigo",
+          "sowMonth": 6,
+          "secondary": "soja2",
+          "secondaryLabel": "Soja de segunda (tras trigo)"
+        }
+      ],
+      "exclusions": [],
+      "criteria": [
+        {
+          "id": "clima_aptitud",
+          "label": "Aptitud térmica (EcoCrop sobre POWER)",
+          "weight": 0.15,
+          "value": 0.9540000000000001,
+          "detail": "Media de la aptitud trapezoidal por mes del ciclo en 3 campaña(s) bajo el escenario \"Referencia histórica\". Aptitud térmica del ciclo (Maíz): media 1 entre 5 meses; mínimo mensual 1."
+        },
+        {
+          "id": "agua_compatibilidad",
+          "label": "Compatibilidad hídrica (balance FAO-56)",
+          "weight": 0.25,
+          "value": 0.902,
+          "detail": "1 − índice de estrés (1 − ΣETa/ΣETc) por campaña con suelo mollisol_deep, TAW 225 mm y secano (sin riego declarado)."
+        },
+        {
+          "id": "suelo_compatibilidad",
+          "label": "Compatibilidad con el suelo declarado",
+          "weight": 0.15,
+          "value": 0.9,
+          "detail": "Media de compatibilidad cultivo-suelo del catálogo ArgField sobre 3 campaña(s); el riego disponible no modifica este criterio. Maíz sobre mollisol_deep: compatibilidad de catálogo 1 (el riego disponible no modifica la compatibilidad de suelo; su efecto hídrico se evalúa en el balance FAO-56)."
+        },
+        {
+          "id": "cobertura_suelo",
+          "label": "Cobertura del suelo / residuos",
+          "weight": 0.2,
+          "value": 0.5,
+          "detail": "Fracción del año con cobertura o rastrojo según meses de cobertura por cultivo (orientativo del catálogo; no es una medición de cobertura satelital)."
+        },
+        {
+          "id": "diversificacion",
+          "label": "Diversificación de familias",
+          "weight": 0.1,
+          "value": 0.9463946303571862,
+          "detail": "Entropía de familias (Shannon normalizada por ln(3)): Poaceae×2, Asteraceae×1, Fabaceae×1 → 0.946. Doble ocupación (soja2) cuenta como componente de la secuencia."
+        },
+        {
+          "id": "sucesion",
+          "label": "Compatibilidad de sucesión",
+          "weight": 0.05,
+          "value": 0.9666666666666667,
+          "detail": "1 − penalización media de sucesión (mapa documentado por cultivo). Maíz tras Soja de primera: penalización 0"
+        },
+        {
+          "id": "estabilidad_regional",
+          "label": "Estabilidad regional (MAGyP)",
+          "weight": 0.1,
+          "value": null,
+          "unavailableReason": "series MAGyP insuficientes para los cultivos de la secuencia",
+          "detail": "Sin puntuación: no hay series MAGyP representativas (≥ 8 campañas) para los cultivos de la secuencia en esta escala regional."
+        }
+      ]
+    },
+    {
+      "label": "Trigo + Soja de segunda (tras trigo) → Girasol → Maíz",
+      "score": 0.8295253292989467,
+      "completeness": 0.9,
+      "sequence": [
+        {
+          "campaign": "2026/27",
+          "sowYear": 2026,
+          "primary": "trigo",
+          "primaryLabel": "Trigo",
+          "sowMonth": 6,
+          "secondary": "soja2",
+          "secondaryLabel": "Soja de segunda (tras trigo)"
+        },
+        {
+          "campaign": "2027/28",
+          "sowYear": 2027,
+          "primary": "girasol",
+          "primaryLabel": "Girasol",
+          "sowMonth": 7
+        },
+        {
+          "campaign": "2028/29",
+          "sowYear": 2028,
+          "primary": "maiz",
+          "primaryLabel": "Maíz",
+          "sowMonth": 9
+        }
+      ],
+      "exclusions": [],
+      "criteria": [
+        {
+          "id": "clima_aptitud",
+          "label": "Aptitud térmica (EcoCrop sobre POWER)",
+          "weight": 0.15,
+          "value": 0.9540000000000001,
+          "detail": "Media de la aptitud trapezoidal por mes del ciclo en 3 campaña(s) bajo el escenario \"Referencia histórica\". Aptitud térmica del ciclo (Trigo): media 0.969 entre 6 meses; mínimo mensual 0.812."
+        },
+        {
+          "id": "agua_compatibilidad",
+          "label": "Compatibilidad hídrica (balance FAO-56)",
+          "weight": 0.25,
+          "value": 0.902,
+          "detail": "1 − índice de estrés (1 − ΣETa/ΣETc) por campaña con suelo mollisol_deep, TAW 210 mm y secano (sin riego declarado)."
+        },
+        {
+          "id": "suelo_compatibilidad",
+          "label": "Compatibilidad con el suelo declarado",
+          "weight": 0.15,
+          "value": 0.9,
+          "detail": "Media de compatibilidad cultivo-suelo del catálogo ArgField sobre 3 campaña(s); el riego disponible no modifica este criterio. Trigo sobre mollisol_deep: compatibilidad de catálogo 0.9 (el riego disponible no modifica la compatibilidad de suelo; su efecto hídrico se evalúa en el balance FAO-56)."
+        },
+        {
+          "id": "cobertura_suelo",
+          "label": "Cobertura del suelo / residuos",
+          "weight": 0.2,
+          "value": 0.5,
+          "detail": "Fracción del año con cobertura o rastrojo según meses de cobertura por cultivo (orientativo del catálogo; no es una medición de cobertura satelital)."
+        },
+        {
+          "id": "diversificacion",
+          "label": "Diversificación de familias",
+          "weight": 0.1,
+          "value": 0.9463946303571862,
+          "detail": "Entropía de familias (Shannon normalizada por ln(3)): Poaceae×2, Fabaceae×1, Asteraceae×1 → 0.946. Doble ocupación (soja2) cuenta como componente de la secuencia."
+        },
+        {
+          "id": "sucesion",
+          "label": "Compatibilidad de sucesión",
+          "weight": 0.05,
+          "value": 0.9666666666666667,
+          "detail": "1 − penalización media de sucesión (mapa documentado por cultivo). Trigo tras Soja de primera: penalización 0; soja2 tras trigo en la misma campaña: sucesión documentada, sin penalización."
+        },
+        {
+          "id": "estabilidad_regional",
+          "label": "Estabilidad regional (MAGyP)",
+          "weight": 0.1,
+          "value": null,
+          "unavailableReason": "series MAGyP insuficientes para los cultivos de la secuencia",
+          "detail": "Sin puntuación: no hay series MAGyP representativas (≥ 8 campañas) para los cultivos de la secuencia en esta escala regional."
+        }
+      ]
+    },
+    {
+      "label": "Maíz → Trigo + Soja de segunda (tras trigo) → Girasol",
+      "score": 0.8276734774470949,
+      "completeness": 0.9,
+      "sequence": [
+        {
+          "campaign": "2026/27",
+          "sowYear": 2026,
+          "primary": "maiz",
+          "primaryLabel": "Maíz",
+          "sowMonth": 9
+        },
+        {
+          "campaign": "2027/28",
+          "sowYear": 2027,
+          "primary": "trigo",
+          "primaryLabel": "Trigo",
+          "sowMonth": 6,
+          "secondary": "soja2",
+          "secondaryLabel": "Soja de segunda (tras trigo)"
+        },
+        {
+          "campaign": "2028/29",
+          "sowYear": 2028,
+          "primary": "girasol",
+          "primaryLabel": "Girasol",
+          "sowMonth": 7
+        }
+      ],
+      "exclusions": [],
+      "criteria": [
+        {
+          "id": "clima_aptitud",
+          "label": "Aptitud térmica (EcoCrop sobre POWER)",
+          "weight": 0.15,
+          "value": 0.9540000000000001,
+          "detail": "Media de la aptitud trapezoidal por mes del ciclo en 3 campaña(s) bajo el escenario \"Referencia histórica\". Aptitud térmica del ciclo (Maíz): media 1 entre 5 meses; mínimo mensual 1."
+        },
+        {
+          "id": "agua_compatibilidad",
+          "label": "Compatibilidad hídrica (balance FAO-56)",
+          "weight": 0.25,
+          "value": 0.902,
+          "detail": "1 − índice de estrés (1 − ΣETa/ΣETc) por campaña con suelo mollisol_deep, TAW 225 mm y secano (sin riego declarado)."
+        },
+        {
+          "id": "suelo_compatibilidad",
+          "label": "Compatibilidad con el suelo declarado",
+          "weight": 0.15,
+          "value": 0.9,
+          "detail": "Media de compatibilidad cultivo-suelo del catálogo ArgField sobre 3 campaña(s); el riego disponible no modifica este criterio. Maíz sobre mollisol_deep: compatibilidad de catálogo 1 (el riego disponible no modifica la compatibilidad de suelo; su efecto hídrico se evalúa en el balance FAO-56)."
+        },
+        {
+          "id": "cobertura_suelo",
+          "label": "Cobertura del suelo / residuos",
+          "weight": 0.2,
+          "value": 0.49999999999999994,
+          "detail": "Fracción del año con cobertura o rastrojo según meses de cobertura por cultivo (orientativo del catálogo; no es una medición de cobertura satelital)."
+        },
+        {
+          "id": "diversificacion",
+          "label": "Diversificación de familias",
+          "weight": 0.1,
+          "value": 0.9463946303571862,
+          "detail": "Entropía de familias (Shannon normalizada por ln(3)): Poaceae×2, Fabaceae×1, Asteraceae×1 → 0.946. Doble ocupación (soja2) cuenta como componente de la secuencia."
+        },
+        {
+          "id": "sucesion",
+          "label": "Compatibilidad de sucesión",
+          "weight": 0.05,
+          "value": 0.9333333333333332,
+          "detail": "1 − penalización media de sucesión (mapa documentado por cultivo). Maíz tras Soja de primera: penalización 0"
+        },
+        {
+          "id": "estabilidad_regional",
+          "label": "Estabilidad regional (MAGyP)",
+          "weight": 0.1,
+          "value": null,
+          "unavailableReason": "series MAGyP insuficientes para los cultivos de la secuencia",
+          "detail": "Sin puntuación: no hay series MAGyP representativas (≥ 8 campañas) para los cultivos de la secuencia en esta escala regional."
+        }
+      ]
+    }
+  ]
+}

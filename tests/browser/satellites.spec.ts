@@ -230,7 +230,7 @@ test('coverage and quality failures are explained and the field point can be edi
 });
 
 
-test('declared rotation persists and compares with two alternatives using the same criteria', async ({ page }) => {
+test('declared rotation persists and compares with three alternatives using the same criteria', async ({ page }) => {
   await mockProviders(page);
   const power = await readFile('tests/fixtures/power-chaco-2016-2025.json', 'utf8');
   await page.route('**/proxy/power/**', route => route.fulfill({ contentType: 'application/json', body: power }));
@@ -242,6 +242,7 @@ test('declared rotation persists and compares with two alternatives using the sa
   await page.goto('/');
   await page.getByRole('button', { name: 'Gestionar estancias', exact: true }).click();
   await page.getByTitle('Editar', { exact: true }).click();
+  await page.getByLabel('Horizonte de optimización', { exact: true }).selectOption('2');
   await page.getByLabel('Rotación campaña 1', { exact: true }).selectOption('soja1');
   await page.getByLabel('Rotación campaña 2', { exact: true }).selectOption('soja1');
   await page.getByLabel('Tipo de suelo', { exact: true }).selectOption('sandy_loam');
@@ -249,13 +250,52 @@ test('declared rotation persists and compares with two alternatives using the sa
   await page.getByLabel('Tope de riego mm/mes', { exact: true }).fill('40');
   await page.getByRole('button', { name: 'Guardar estancia', exact: true }).click();
   await page.getByRole('button', { name: 'Optimizador', exact: true }).click();
-  await expect(page.getByText('Comparación con la rotación declarada', { exact: true })).toBeVisible();
+  await expect(page.getByText('Alternativas prospectivas y comparación', { exact: true })).toBeVisible();
   await expect(page.getByRole('columnheader', { name: /^Actual declarada:/ })).toBeVisible();
-  await expect(page.getByRole('columnheader', { name: /^Alternativa:/ })).toHaveCount(2);
+  await expect(page.getByRole('columnheader', { name: /^Alternativa:/ })).toHaveCount(3);
   await expect(page.getByRole('cell', { name: 'Excluida / sin puntaje', exact: true })).toBeVisible();
   const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('argfield_registered_farms')!)[0].profile);
   expect(saved.currentRotation).toEqual([{ primary: 'soja1' }, { primary: 'soja1' }]);
   expect(saved.maxMonthlyIrrigationMm).toBe(40);
   expect(saved.soilType).toBe('sandy_loam');
   await page.screenshot({ path: 'test-results/rotation-comparison.png', fullPage: true });
+});
+
+
+test('optimizer without history uses real Chaco POWER fixture, keeps three plans and sources, and works after reload', async ({ page }) => {
+  const errors: string[] = [];
+  const failed: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  page.on('requestfailed', request => { if (!request.failure()?.errorText.includes('ABORTED')) failed.push(request.url()); });
+  await mockProviders(page, { tab: 'optimizador' });
+  const power = await readFile('tests/fixtures/power-chaco-2016-2025.json', 'utf8');
+  await page.route('**/proxy/power/**', route => route.fulfill({ contentType: 'application/json', body: power }));
+  await page.route('**/nominatim.openstreetmap.org/reverse**', route => route.fulfill({ json: { address: { county: 'Comandante Fernández', state: 'Chaco' } } }));
+  // Missing MAGyP reproduces the reported availability; no yield is substituted.
+  await page.route('**/data/magyp-*.json', route => route.fulfill({ status: 404, body: 'Missing MAGyP fixture' }));
+  await page.addInitScript(() => {
+    const profile = JSON.parse(localStorage.getItem('field_shift_farm_profile')!);
+    profile.location = { ...profile.location, name: 'Chaco reproducible', lat: -26.786, lng: -60.443, province: 'Chaco', region: 'norte' };
+    profile.previousCrop = 'Soja 1ra';
+    profile.rotationConstraints = { horizonCampaigns: 3 };
+    localStorage.setItem('field_shift_farm_profile', JSON.stringify(profile));
+  });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Optimizador', exact: true }).click();
+  await expect(page.locator('[id^="plan-select-"]')).toHaveCount(3);
+  await expect(page.locator('#plan-select-0')).toContainText('Recomendada');
+  await expect(page.getByText('Comparación histórica opcional:', { exact: false })).toBeVisible();
+  await expect(page.getByRole('columnheader', { name: /^Alternativa:/ })).toHaveCount(3);
+  await page.getByTestId('optimization-diagnostics').locator('summary').first().click();
+  await expect(page.getByTestId('optimization-diagnostics')).toContainText(/Generadas: [1-9]/);
+  await expect(page.getByTestId('optimization-diagnostics')).toContainText('MAGyP');
+  await page.getByText('Evidencia, datos faltantes y fuentes regionales', { exact: true }).click();
+  await expect(page.getByRole('link', { name: 'Consulta NASA POWER utilizada' })).toBeVisible();
+  const firstPlan = await page.locator('#plan-select-0').innerText();
+  await page.reload();
+  await expect(page.locator('#plan-select-0')).toHaveText(firstPlan);
+  expect(errors).toEqual([]);
+  // Other providers are intentionally blocked by the existing fixture harness.
+  expect(failed.filter(url => url.includes('/proxy/power/') || url.includes('/data/magyp-'))).toEqual([]);
+  await page.screenshot({ path: 'test-results/optimizer-no-history.png', fullPage: true });
 });

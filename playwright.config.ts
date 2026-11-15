@@ -8,6 +8,7 @@ export default defineConfig({
   use: {
     baseURL: 'http://127.0.0.1:3173',
     channel: process.env.PLAYWRIGHT_CHANNEL ?? 'chrome',
+    launchOptions: process.env.PLAYWRIGHT_EXECUTABLE_PATH ? { executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH } : undefined,
     viewport: { width: 1280, height: 900 },
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure'
