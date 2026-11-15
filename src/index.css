@@ -40,6 +40,46 @@
   }
 }
 
+.landing-page {
+  background-image:
+    radial-gradient(ellipse at 10% 0%, rgba(15, 50, 96, 0.08), transparent 38%),
+    linear-gradient(180deg, #f8fafc 0%, var(--gov-bg) 65%);
+}
+
+.dark .landing-page {
+  background-image:
+    radial-gradient(ellipse at 10% 0%, rgba(63, 63, 70, 0.24), transparent 38%),
+    linear-gradient(180deg, #18181b 0%, var(--gov-bg) 65%);
+}
+
+.landing-page .landing-card {
+  box-shadow: 0 24px 70px -38px rgba(15, 35, 65, 0.34), 0 2px 8px rgba(15, 35, 65, 0.04);
+}
+
+.dark .landing-page .landing-card {
+  box-shadow: 0 24px 70px -38px rgba(0, 0, 0, 0.8), 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.landing-page input:not([type="checkbox"]):focus,
+.landing-page select:focus {
+  box-shadow: 0 0 0 3px rgba(15, 50, 96, 0.12);
+}
+
+.landing-page input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--gov-navy);
+}
+
+.landing-page button {
+  transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.landing-page #landing-confirm-enter-btn:not(:disabled):hover {
+  box-shadow: 0 8px 18px -8px rgba(15, 50, 96, 0.55);
+  transform: translateY(-1px);
+}
+
 /* Custom leaflet marker styling */
 .leaflet-container {
   font-family: inherit;

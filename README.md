@@ -51,6 +51,6 @@ Las pruebas de navegador usan Chrome instalado, respuestas controladas y bloquea
 
 ## Desplegar
 
-`npm run build` genera `dist`. Vercel y Netlify incluyen las rutas `/proxy/conae1`, `/proxy/conae2`, `/proxy/conae3`, `/proxy/planetary` y `/proxy/power`. Vite aplica las mismas rutas en desarrollo y preview. Otro alojamiento estático necesita configurar estos proxies; copiar solo `dist` no alcanza para consultar proveedores que restringen CORS. Los destinos son fijos; no hay un proxy de URLs arbitrarias ni credenciales embebidas.
+`npm run build` genera `dist`. Vercel y Netlify incluyen las rutas `/proxy/conae1`, `/proxy/conae2`, `/proxy/conae3`, `/proxy/planetary` y `/proxy/power`; Vercel además redirige las rutas del frontend, como `/landing`, a la aplicación. Vite aplica las mismas rutas en desarrollo y preview. Otro alojamiento estático necesita configurar estos proxies; copiar solo `dist` no alcanza para consultar proveedores que restringen CORS. Los destinos son fijos; no hay un proxy de URLs arbitrarias ni credenciales embebidas.
 
 El análisis del proyecto, las fuentes consultadas y los límites de la integración están en [docs/INTEGRACION_SATELITAL.md](docs/INTEGRACION_SATELITAL.md).

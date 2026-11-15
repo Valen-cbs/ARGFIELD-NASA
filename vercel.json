@@ -7,6 +7,7 @@
     { "source": "/proxy/power/:path*", "destination": "https://power.larc.nasa.gov/:path*" },
     { "source": "/proxy/conae1/:path*", "destination": "https://geoservicios.conae.gov.ar/:path*" },
     { "source": "/proxy/conae2/:path*", "destination": "https://geoservicios2.conae.gov.ar/:path*" },
-    { "source": "/proxy/conae3/:path*", "destination": "https://geoservicios3.conae.gov.ar/:path*" }
+    { "source": "/proxy/conae3/:path*", "destination": "https://geoservicios3.conae.gov.ar/:path*" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

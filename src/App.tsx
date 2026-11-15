@@ -8,7 +8,7 @@ import { FarmProfileView } from './components/FarmProfileView';
 import { AgenciesView } from './components/AgenciesView';
 import { AlertDetailModal } from './components/AlertDetailModal';
 import { EditFarmModal } from './components/EditFarmModal';
-import { FarmRegistryModal, RegisteredFarm } from './components/FarmRegistryModal';
+import { FarmRegistryModal, RegisteredFarm } from './components/FarmRegistryView';
 import { AboutModal } from './components/AboutModal';
 import { ExportReportModal } from './components/ExportReportModal';
 import { LandingView } from './components/LandingView';
@@ -68,9 +68,8 @@ export default function App() {
     if (window.location.hash === '#landing' || window.location.pathname.includes('/landing')) {
       return true;
     }
-    return readRegisteredFarms().length > 0 && !localStorage.getItem(STORAGE_LANDING_SEEN);
+    return readRegisteredFarms().length === 0;
   });
-
   const [activeTab, setActiveTab] = useState<AppTab>(() => {
     const saved = localStorage.getItem(STORAGE_TAB_KEY) as AppTab;
     if (saved && ['home', 'clima', 'alertas', 'mapa', 'fuentes', 'optimizador'].includes(saved)) {
@@ -169,6 +168,8 @@ export default function App() {
     setActiveFarmId(farmId);
     setFarmProfileState(profile);
     setShowRegistryModal(false);
+    setShowLanding(false);
+    localStorage.setItem(STORAGE_LANDING_SEEN, 'true');
   };
   const handleSelectFarm = (farm: RegisteredFarm) => { setActiveFarmId(farm.id); setFarmProfileState(farm.profile); };
   const handleDeleteFarm = (farm: RegisteredFarm) => {
@@ -178,6 +179,7 @@ export default function App() {
       const next = remaining[0];
       setActiveFarmId(next?.id ?? null);
       if (next) setFarmProfileState(next.profile);
+      else setShowLanding(true);
     }
   };
 
@@ -227,12 +229,18 @@ export default function App() {
   };
 
   // When location is confirmed on Landing page
-  const handleConfirmLandingLocation = (location: FarmLocation) => {
-    setFarmProfile((prev) => ({
-      ...prev,
-      location
-    }));
-    setShowLanding(false);
+  const handleConfirmLandingLocation = (location: FarmLocation, agriculturalData: Pick<FarmProfile, 'producerName' | 'fieldSizeHectares' | 'currentCrop' | 'cropAllocations' | 'previousCrop' | 'previousCrops' | 'irrigationAvailable'>) => {
+    const updatedProfile: FarmProfile = {
+      ...farmProfile,
+      ...agriculturalData,
+      location,
+      irrigation: agriculturalData.irrigationAvailable ? farmProfile.irrigation : 'dryland'
+    };
+    if (!activeFarmId) handleSaveFarm(updatedProfile);
+    else {
+      setFarmProfile(updatedProfile);
+      setShowLanding(false);
+    }
     localStorage.setItem(STORAGE_LANDING_SEEN, 'true');
     if (window.location.hash === '#landing') {
       window.history.replaceState(null, '', window.location.pathname);
@@ -247,11 +255,16 @@ export default function App() {
   // If user is on landing page
   if (showLanding) {
     return (
-      <LandingView
-        currentLocation={farmProfile.location}
-        onConfirmLocation={handleConfirmLandingLocation}
-        lang={lang}
-      />
+      <>
+        <LandingView
+          currentLocation={farmProfile.location}
+          currentProfile={activeFarmId ? farmProfile : undefined}
+          onConfirmLocation={handleConfirmLandingLocation}
+          onManageFarms={farms.length ? () => setShowRegistryModal(true) : undefined}
+          lang={lang}
+        />
+        <FarmRegistryModal open={showRegistryModal} lang={lang} farms={farms} activeFarmId={activeFarmId} template={farmProfile} onClose={() => setShowRegistryModal(false)} onSelect={farm => { handleSelectFarm(farm); setShowLanding(false); }} onSave={handleSaveFarm} onDelete={handleDeleteFarm} />
+      </>
     );
   }
 
@@ -285,7 +298,6 @@ export default function App() {
 
         {/* Viewport Content Area */}
         <main className="flex-1 overflow-y-auto p-3 sm:p-5 md:p-6">
-          {!activeFarmId && activeTab !== 'home' && activeTab !== 'fuentes' && <section className="mx-auto max-w-xl border border-slate-300 bg-white p-6 text-center dark:border-zinc-700 dark:bg-[#1c1c1e]"><h1 className="text-lg font-bold">{lang === 'es' ? 'Registrá una estancia para empezar' : 'Register a farm to get started'}</h1><p className="mt-2 text-sm text-slate-600 dark:text-zinc-400">{lang === 'es' ? 'Clima, mapa, alertas y optimizador se vinculan a la ubicación y los cultivos de una estancia.' : 'Weather, maps, alerts and optimization use a farm’s location and crops.'}</p><button type="button" onClick={() => setShowRegistryModal(true)} className="mt-4 bg-[#0f3260] px-4 py-2 text-sm font-bold text-white">{lang === 'es' ? 'Registrar estancia' : 'Register farm'}</button></section>}
           {showDemoBanner && activeTab !== 'mapa' && activeTab !== 'fuentes' && activeTab !== 'clima' && (
             <DemoBanner
               lang={lang}

@@ -1,13 +1,16 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { FarmLocation } from '../types';
+import { FarmLocation, FarmProfile } from '../types';
 import { determineBasin, determineRegion, isWithinArgentina } from '../services/geo';
+import { MAGYP_CROPS, canAddMagypCrop, removeConflictingMagypCrops } from '../data/magypCrops';
 import { FlagIcon } from './FlagIcon';
 import { GoogleIcon } from './GoogleIcon';
 
 interface LandingViewProps {
-  onConfirmLocation: (location: FarmLocation) => void;
+  onConfirmLocation: (location: FarmLocation, agriculturalData: Pick<FarmProfile, 'producerName' | 'fieldSizeHectares' | 'currentCrop' | 'cropAllocations' | 'previousCrop' | 'previousCrops' | 'irrigationAvailable'>) => void;
+  onManageFarms?: () => void;
   currentLocation: FarmLocation;
+  currentProfile?: FarmProfile;
   lang: 'es' | 'en';
 }
 
@@ -18,6 +21,16 @@ interface LocationSuggestion {
   lat: number;
   lng: number;
 }
+
+const cropToMain = (crop: string): FarmProfile['currentCrop'] => {
+  if (/soja/i.test(crop)) return 'soybean';
+  if (/ma.z/i.test(crop)) return 'maize';
+  if (/trigo/i.test(crop)) return 'wheat';
+  if (/girasol/i.test(crop)) return 'sunflower';
+  if (/sorgo/i.test(crop)) return 'sorghum';
+  if (/cebada/i.test(crop)) return 'barley';
+  return 'pasture';
+};
 
 // Built-in list of prominent Argentine agricultural and urban hubs for instant zero-latency suggestions
 const LOCAL_SUGGESTIONS: LocationSuggestion[] = [
@@ -64,10 +77,22 @@ const LOCAL_SUGGESTIONS: LocationSuggestion[] = [
 
 export const LandingView: React.FC<LandingViewProps> = ({
   onConfirmLocation,
+  onManageFarms,
   currentLocation,
+  currentProfile,
   lang
 }) => {
-  const [farmName, setFarmName] = useState('');
+  const [farmName, setFarmName] = useState(currentProfile?.location.name ?? '');
+  const [producerName, setProducerName] = useState(currentProfile?.producerName ?? '');
+  const [farmArea, setFarmArea] = useState(currentProfile ? String(currentProfile.fieldSizeHectares) : '');
+  const [areaUnit, setAreaUnit] = useState<'ha' | 'm2'>('ha');
+  const [selectedCrops, setSelectedCrops] = useState<string[]>(currentProfile?.cropAllocations?.map(item => item.crop) ?? []);
+  const [cropAllocations, setCropAllocations] = useState<Record<string, string>>(Object.fromEntries((currentProfile?.cropAllocations ?? []).map(item => [item.crop, String(item.hectares)])));
+  const [previousCrops, setPreviousCrops] = useState<string[]>(currentProfile?.previousCrops ?? (currentProfile?.previousCrop ? [currentProfile.previousCrop] : []));
+  const [currentCropQuery, setCurrentCropQuery] = useState('');
+  const [previousCropQuery, setPreviousCropQuery] = useState('');
+  const [irrigationAvailable, setIrrigationAvailable] = useState(currentProfile?.irrigationAvailable ?? false);
+  const [registrationError, setRegistrationError] = useState('');
   const [addressQuery, setAddressQuery] = useState('');
   const [customLat, setCustomLat] = useState('');
   const [customLng, setCustomLng] = useState('');
@@ -87,6 +112,10 @@ export const LandingView: React.FC<LandingViewProps> = ({
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const visibleCurrentCrops = useMemo(() => MAGYP_CROPS.filter(crop => crop.toLocaleLowerCase('es').includes(currentCropQuery.toLocaleLowerCase('es'))), [currentCropQuery]);
+  const visiblePreviousCrops = useMemo(() => MAGYP_CROPS.filter(crop => crop.toLocaleLowerCase('es').includes(previousCropQuery.toLocaleLowerCase('es'))), [previousCropQuery]);
+  const totalHectares = Number(farmArea) * (areaUnit === 'm2' ? 0.0001 : 1);
+  const allocatedHectares = selectedCrops.reduce((sum, crop) => sum + Number(cropAllocations[crop] || 0) * (areaUnit === 'm2' ? 0.0001 : 1), 0);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -310,9 +339,38 @@ export const LandingView: React.FC<LandingViewProps> = ({
   const isInvalidTerritory = hasPlace && !isInArgentina;
   const isLocationValid = hasPlace && isInArgentina;
 
+  const toggleCurrentCrop = (crop: string) => {
+    if (selectedCrops.includes(crop)) {
+      setSelectedCrops(selectedCrops.filter(item => item !== crop));
+      setCropAllocations(({ [crop]: _removed, ...rest }) => rest);
+    } else if (canAddMagypCrop(selectedCrops, crop)) {
+      const next = removeConflictingMagypCrops(selectedCrops, crop);
+      setSelectedCrops(next);
+      setCropAllocations(current => Object.fromEntries(Object.entries(current).filter(([item]) => next.includes(item))));
+    }
+  };
+
+  const togglePreviousCrop = (crop: string) => {
+    if (previousCrops.includes(crop)) setPreviousCrops(previousCrops.filter(item => item !== crop));
+    else if (canAddMagypCrop(previousCrops, crop)) setPreviousCrops(removeConflictingMagypCrops(previousCrops, crop));
+  };
+
+  const changeAreaUnit = (nextUnit: 'ha' | 'm2') => {
+    if (nextUnit === areaUnit) return;
+    const factor = nextUnit === 'm2' ? 10000 : 0.0001;
+    setFarmArea(value => value ? String(Number(value) * factor) : value);
+    setCropAllocations(current => Object.fromEntries(Object.entries(current).map(([crop, value]) => [crop, value ? String(Number(value) * factor) : value])));
+    setAreaUnit(nextUnit);
+  };
+
   // Submit and Enter System
   const handleStart = () => {
+    setRegistrationError('');
     if (!isLocationValid) return;
+    if (!Number.isFinite(totalHectares) || totalHectares <= 0) return setRegistrationError(lang === 'es' ? 'Ingresá una superficie total mayor que cero.' : 'Enter a total area greater than zero.');
+    if (!selectedCrops.length) return setRegistrationError(lang === 'es' ? 'Seleccioná al menos un cultivo actual.' : 'Select at least one current crop.');
+    if (selectedCrops.some(crop => !Number.isFinite(Number(cropAllocations[crop])) || Number(cropAllocations[crop]) <= 0)) return setRegistrationError(lang === 'es' ? 'Completá la superficie de cada cultivo actual.' : 'Enter the area for each current crop.');
+    if (allocatedHectares > totalHectares + 1e-8) return setRegistrationError(lang === 'es' ? 'La superficie asignada supera la superficie total.' : 'Allocated crop area exceeds total farm area.');
 
     const validLat = parsedLat;
     const validLng = parsedLng;
@@ -333,16 +391,24 @@ export const LandingView: React.FC<LandingViewProps> = ({
       basinName: basin.name,
       mainRiver: basin.mainRiver,
       aquifer: basin.aquifer
+    }, {
+      producerName: producerName.trim() || undefined,
+      fieldSizeHectares: totalHectares,
+      currentCrop: cropToMain(selectedCrops[0]),
+      cropAllocations: selectedCrops.map(crop => ({ crop, hectares: Number(cropAllocations[crop]) * (areaUnit === 'm2' ? 0.0001 : 1) })),
+      previousCrop: previousCrops[0] || undefined,
+      previousCrops: previousCrops.length ? previousCrops : undefined,
+      irrigationAvailable
     });
   };
 
   return (
-    <div className="min-h-screen bg-[#f4f6f8] dark:bg-[#121212] text-slate-900 dark:text-zinc-100 flex flex-col justify-between font-sans transition-colors">
+    <div className="landing-page min-h-screen bg-[#f4f6f8] dark:bg-[#121212] text-slate-900 dark:text-zinc-100 flex flex-col justify-between font-sans transition-colors">
       {/* Official Header Banner */}
-      <header className="bg-[#0f3260] dark:bg-[#161618] text-white px-6 py-3 border-b-2 border-[#092040] dark:border-[#2e2e33] shadow-xs">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
+      <header className="bg-[#0f3260] dark:bg-[#161618] text-white px-6 py-4 border-b border-[#092040] dark:border-[#2e2e33] shadow-xs">
+        <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="font-black tracking-tight text-base">FIELD SHIFT</span>
+            <span className="font-black tracking-tight text-lg">FIELD SHIFT</span>
             <span className="text-xs text-slate-300 dark:text-zinc-400 border-l border-slate-500 pl-3">
               NASA Space Apps Challenge
             </span>
@@ -350,18 +416,18 @@ export const LandingView: React.FC<LandingViewProps> = ({
         </div>
       </header>
 
-      {/* Main Single Block / Box */}
-      <main className="max-w-3xl mx-auto p-4 sm:p-6 w-full my-auto">
-        <div className="bg-white dark:bg-[#1c1c1e] border border-slate-300 dark:border-[#2e2e33] p-6 sm:p-8 space-y-6 rounded-none shadow-xs transition-colors">
+      <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 w-full my-auto">
+        <div className={`grid items-start gap-6 ${isLocationValid ? 'xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]' : 'grid-cols-1'}`}>
+        <section className="landing-card min-w-0 bg-white dark:bg-[#1c1c1e] border border-slate-200 dark:border-[#2e2e33] p-6 sm:p-7 lg:p-8 space-y-6 transition-colors">
           {/* Header section inside the single block */}
-          <div className="border-b border-slate-200 dark:border-[#2e2e33] pb-4 space-y-2">
+          <div className="border-b border-slate-200 dark:border-[#2e2e33] pb-5 space-y-2.5">
             <div className="flex items-center gap-2">
               <GoogleIcon name="map" className="text-[#0f3260] dark:text-zinc-200" size={22} />
-              <h1 className="text-xl font-bold text-slate-900 dark:text-zinc-100 tracking-tight">
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-zinc-100 tracking-tight">
                 {lang === 'es' ? 'Localización del Lote' : 'Farm Location Setup'}
               </h1>
             </div>
-            <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">
+            <p className="text-sm text-slate-600 dark:text-zinc-400 leading-relaxed max-w-4xl">
               {lang === 'es'
                 ? 'El sistema utiliza observaciones satelitales de humedad (NASA SMAP / CONAE SAOCOM) y precipitaciones para calcular estrategias de rotación adaptadas a tu cuenca.'
                 : 'The system uses satellite moisture and precipitation data to calculate crop rotation strategies adapted to your local basin.'}
@@ -369,12 +435,12 @@ export const LandingView: React.FC<LandingViewProps> = ({
           </div>
 
           {/* Form Fields inside the block */}
-          <div className="space-y-5">
+          <div className="space-y-6">
             {/* Field: Farm Name (Optional) */}
             <div>
               <label
                 htmlFor="farm-name-input"
-                className="text-xs font-bold text-slate-800 dark:text-zinc-200 block uppercase tracking-wider mb-1.5"
+                className="text-xs font-bold text-slate-800 dark:text-zinc-200 block uppercase tracking-wider mb-2"
               >
                 {lang === 'es' ? 'Nombre del campo' : 'Farm Name'}
                 <span className="text-slate-500 dark:text-zinc-400 font-normal lowercase ml-1.5">
@@ -387,7 +453,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
                 value={farmName}
                 onChange={(e) => setFarmName(e.target.value)}
                 placeholder={lang === 'es' ? 'Mi establecimiento' : 'My Farm'}
-                className="w-full bg-slate-50 dark:bg-[#232326] border border-slate-300 dark:border-[#333336] px-3.5 py-2 text-xs text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-[#0f3260] dark:focus:border-zinc-400 focus:bg-white dark:focus:bg-[#232326] transition-colors"
+                className="w-full bg-slate-50 dark:bg-[#232326] border border-slate-300 dark:border-[#333336] px-4 py-3 text-sm text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-[#0f3260] dark:focus:border-zinc-400 focus:bg-white dark:focus:bg-[#232326] transition-colors"
               />
               <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-1">
                 {lang === 'es'
@@ -420,7 +486,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
                         : 'Type a town, city or address...'
                     }
                     autoComplete="off"
-                    className="w-full bg-slate-50 dark:bg-[#232326] border border-slate-300 dark:border-[#333336] px-3.5 py-2 text-xs text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-[#0f3260] dark:focus:border-zinc-400 focus:bg-white dark:focus:bg-[#232326] transition-colors"
+                    className="w-full bg-slate-50 dark:bg-[#232326] border border-slate-300 dark:border-[#333336] px-4 py-3 text-sm text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-[#0f3260] dark:focus:border-zinc-400 focus:bg-white dark:focus:bg-[#232326] transition-colors"
                   />
                   {isLoadingSuggestions && (
                     <span className="absolute right-3 top-2.5 text-[10px] text-slate-400 dark:text-zinc-500 font-mono">
@@ -437,7 +503,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
                   disabled={isLocating}
                   title={lang === 'es' ? 'Detectar por GPS' : 'Detect with GPS'}
                   aria-label={lang === 'es' ? 'Detectar por GPS' : 'Detect with GPS'}
-                  className="h-9 w-9 bg-slate-100 dark:bg-[#232326] hover:bg-[#0f3260] hover:text-white dark:hover:bg-[#3f3f46] text-[#0f3260] dark:text-zinc-200 border border-slate-300 dark:border-[#333336] flex items-center justify-center transition-colors shrink-0 cursor-pointer disabled:opacity-50"
+                  className="h-11 w-11 bg-slate-100 dark:bg-[#232326] hover:bg-[#0f3260] hover:text-white dark:hover:bg-[#3f3f46] text-[#0f3260] dark:text-zinc-200 border border-slate-300 dark:border-[#333336] flex items-center justify-center transition-colors shrink-0 cursor-pointer disabled:opacity-50"
                 >
                   <GoogleIcon name={isLocating ? 'sync' : 'my_location'} size={18} className={isLocating ? 'animate-spin' : ''} />
                 </button>
@@ -449,7 +515,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
                   onClick={() => setShowCoordsToggle(!showCoordsToggle)}
                   title={lang === 'es' ? 'Ingreso manual de coordenadas' : 'Manual coordinate entry'}
                   aria-label={lang === 'es' ? 'Ingreso manual de coordenadas' : 'Manual coordinate entry'}
-                  className={`h-9 w-9 flex items-center justify-center transition-colors shrink-0 cursor-pointer border ${
+                  className={`h-11 w-11 flex items-center justify-center transition-colors shrink-0 cursor-pointer border ${
                     showCoordsToggle
                       ? 'bg-[#0f3260] text-white border-[#0f3260] dark:bg-[#3f3f46] dark:border-[#52525b]'
                       : 'bg-slate-100 dark:bg-[#232326] hover:bg-[#0f3260] hover:text-white dark:hover:bg-[#3f3f46] text-[#0f3260] dark:text-zinc-200 border-slate-300 dark:border-[#333336]'
@@ -465,7 +531,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
                   disabled={!addressQuery.trim()}
                   title={lang === 'es' ? 'Buscar localidad' : 'Search locality'}
                   aria-label={lang === 'es' ? 'Buscar localidad' : 'Search locality'}
-                  className="h-9 w-9 bg-[#0f3260] dark:bg-[#27272a] hover:bg-[#17437e] dark:hover:bg-[#3f3f46] text-white border border-[#0f3260] dark:border-[#3f3f46] flex items-center justify-center transition-colors shrink-0 cursor-pointer disabled:opacity-40 disabled:hover:bg-[#0f3260]"
+                  className="h-11 w-11 bg-[#0f3260] dark:bg-[#27272a] hover:bg-[#17437e] dark:hover:bg-[#3f3f46] text-white border border-[#0f3260] dark:border-[#3f3f46] flex items-center justify-center transition-colors shrink-0 cursor-pointer disabled:opacity-40 disabled:hover:bg-[#0f3260]"
                 >
                   <GoogleIcon name="search" size={18} />
                 </button>
@@ -515,7 +581,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
                   transition={{ duration: 0.22, ease: 'easeOut' }}
                   className="overflow-hidden"
                 >
-                  <div className="p-3.5 bg-slate-50/90 dark:bg-[#1f1f22] border border-slate-200 dark:border-[#2e2e33] space-y-2.5">
+                  <div className="p-4 sm:p-5 bg-slate-50/90 dark:bg-[#1f1f22] border border-slate-200 dark:border-[#2e2e33] space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-[11px] font-bold text-[#0f3260] dark:text-zinc-200 uppercase tracking-wider">
                         {lang === 'es' ? 'Ingreso manual de coordenadas' : 'Manual coordinate entry'}
@@ -621,7 +687,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
 
             {isLocationValid && (
               <div className="p-2.5 border text-xs flex items-center gap-2 bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200">
-                <GoogleIcon name="check_circle" size={16} className="text-emerald-700 dark:text-emerald-400 shrink-0" />
+                <GoogleIcon name="check" size={16} className="text-emerald-700 dark:text-emerald-400 shrink-0" />
                 <span className="font-medium">
                   {lang === 'es'
                     ? 'Ubicación validada dentro del territorio argentino'
@@ -638,33 +704,98 @@ export const LandingView: React.FC<LandingViewProps> = ({
               </div>
             )}
           </div>
-
-          {/* Confirmation CTA Footer inside the block */}
-          <div className="pt-4 border-t border-slate-200 dark:border-[#2e2e33] flex justify-end">
-            <button
-              id="landing-confirm-enter-btn"
-              type="button"
-              onClick={handleStart}
-              disabled={!isLocationValid}
-              className={`px-6 py-2.5 text-xs font-bold border flex items-center gap-2 transition-all ${
-                isLocationValid
-                  ? 'bg-[#0f3260] dark:bg-[#27272a] hover:bg-[#17437e] dark:hover:bg-[#3f3f46] text-white border-[#0f3260] dark:border-[#3f3f46] cursor-pointer shadow-xs'
-                  : 'bg-slate-200 dark:bg-[#202023] text-slate-400 dark:text-zinc-600 border-slate-300 dark:border-[#2e2e33] cursor-not-allowed opacity-50'
-              }`}
+        </section>
+        <AnimatePresence>
+          {isLocationValid && (
+            <motion.section
+              key="farm-details"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 12 }}
+              transition={{ duration: 0.28, ease: 'easeOut' }}
+              className="landing-card min-w-0 bg-white dark:bg-[#1c1c1e] border border-slate-200 dark:border-[#2e2e33] p-6 sm:p-7 lg:p-8 space-y-5 transition-colors"
             >
-              <span>{lang === 'es' ? 'Ingresar al Sistema' : 'Enter System'}</span>
-              <GoogleIcon 
-                name="arrow_forward" 
-                className={isLocationValid ? 'text-white' : 'text-slate-400 dark:text-zinc-600'} 
-                size={16} 
-              />
+              <h2 className="text-sm font-bold uppercase tracking-wider text-[#0f3260] dark:text-zinc-200">
+                {lang === 'es' ? 'Datos del establecimiento' : 'Farm details'}
+              </h2>
+
+              <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_150px]">
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-800 dark:text-zinc-200">
+                  {lang === 'es' ? 'Productor (opcional)' : 'Producer (optional)'}
+                  <input value={producerName} onChange={e => setProducerName(e.target.value)} className="mt-1.5 h-11 w-full border border-slate-300 bg-slate-50 px-3.5 text-sm font-normal normal-case text-slate-900 outline-none focus:border-[#0f3260] dark:border-[#333336] dark:bg-[#232326] dark:text-zinc-100" />
+                </label>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-800 dark:text-zinc-200">
+                  {lang === 'es' ? 'Tamaño de la estancia' : 'Farm area'}
+                  <input type="number" min="0.01" step="any" value={farmArea} onChange={e => setFarmArea(e.target.value)} className="mt-1.5 h-11 w-full border border-slate-300 bg-slate-50 px-3.5 text-sm font-normal normal-case text-slate-900 outline-none focus:border-[#0f3260] dark:border-[#333336] dark:bg-[#232326] dark:text-zinc-100" />
+                </label>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-800 dark:text-zinc-200">
+                  {lang === 'es' ? 'Unidad' : 'Unit'}
+                  <select value={areaUnit} onChange={e => changeAreaUnit(e.target.value as 'ha' | 'm2')} className="mt-1.5 h-11 w-full border border-slate-300 bg-slate-50 px-3 text-sm font-normal normal-case text-slate-900 dark:border-[#333336] dark:bg-[#232326] dark:text-zinc-100">
+                    <option value="ha">hectáreas</option><option value="m2">m²</option>
+                  </select>
+                </label>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <section className="space-y-1.5">
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-800 dark:text-zinc-200">
+                    {lang === 'es' ? 'Cultivos anteriores (opcional)' : 'Previous crops (optional)'}
+                    <input value={previousCropQuery} onChange={e => setPreviousCropQuery(e.target.value)} placeholder={lang === 'es' ? 'Buscar cultivo' : 'Search crops'} className="mt-1.5 w-full border border-slate-300 bg-slate-50 px-3 py-2 text-xs font-normal normal-case text-slate-900 outline-none focus:border-[#0f3260] dark:border-[#333336] dark:bg-[#232326] dark:text-zinc-100" />
+                  </label>
+                  <div className="max-h-52 overflow-y-auto border border-slate-200 p-3 dark:border-[#333336]">
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-2">{visiblePreviousCrops.map(crop => <label key={crop} className="flex items-center gap-2 text-xs text-slate-700 dark:text-zinc-300"><input type="checkbox" checked={previousCrops.includes(crop)} onChange={() => togglePreviousCrop(crop)} />{crop}</label>)}</div>
+                  </div>
+                  <p className="text-[10px] text-slate-500 dark:text-zinc-400">{lang === 'es' ? 'Opcional. Podés seleccionar más de uno.' : 'Optional. Select more than one.'}</p>
+                </section>
+
+                <section className="space-y-1.5">
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-800 dark:text-zinc-200">
+                    {lang === 'es' ? 'Cultivos actuales' : 'Current crops'}
+                    <input value={currentCropQuery} onChange={e => setCurrentCropQuery(e.target.value)} placeholder={lang === 'es' ? 'Buscar cultivo' : 'Search crops'} className="mt-1.5 w-full border border-slate-300 bg-slate-50 px-3 py-2 text-xs font-normal normal-case text-slate-900 outline-none focus:border-[#0f3260] dark:border-[#333336] dark:bg-[#232326] dark:text-zinc-100" />
+                  </label>
+                  <div className="max-h-52 overflow-y-auto border border-slate-200 p-3 dark:border-[#333336]">
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-2">{visibleCurrentCrops.map(crop => <div key={crop} className="flex min-w-0 items-center gap-2 text-xs text-slate-700 dark:text-zinc-300"><label className="flex min-w-0 flex-1 items-center gap-2"><input type="checkbox" checked={selectedCrops.includes(crop)} onChange={() => toggleCurrentCrop(crop)} /><span className="truncate">{crop}</span></label>{selectedCrops.includes(crop) && <input aria-label={`${lang === 'es' ? 'Superficie' : 'Area'} ${crop}`} type="number" min="0.01" step="any" value={cropAllocations[crop] ?? ''} onChange={e => setCropAllocations({ ...cropAllocations, [crop]: e.target.value })} className="w-20 border border-slate-300 bg-white px-2 py-1 text-xs text-slate-900 dark:border-[#333336] dark:bg-[#1c1c1e] dark:text-zinc-100" />}</div>)}</div>
+                  </div>
+                  <p className="text-[10px] text-slate-500 dark:text-zinc-400">{lang === 'es' ? 'Los cultivos “total” agrupan sus variantes.' : '“Total” crops include their variants.'}</p>
+                </section>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3 dark:border-[#2e2e33]">
+                <label className="flex items-center gap-2 text-xs text-slate-700 dark:text-zinc-300"><input type="checkbox" checked={irrigationAvailable} onChange={e => setIrrigationAvailable(e.target.checked)} />{lang === 'es' ? 'Cuenta con riego' : 'Has irrigation'}</label>
+                <span className={`text-xs ${allocatedHectares > totalHectares ? 'text-rose-600' : 'text-slate-500 dark:text-zinc-400'}`}>{lang === 'es' ? 'Asignado' : 'Allocated'}: {allocatedHectares.toFixed(2)} / {Number.isFinite(totalHectares) ? totalHectares.toFixed(2) : '0'} ha</span>
+              </div>
+            </motion.section>
+          )}
+        </AnimatePresence>
+        </div>
+
+        {registrationError && <div role="alert" className="mt-4 border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-800 dark:border-red-800 dark:bg-red-950/40 dark:text-red-200">{registrationError}</div>}
+
+        <div className={`mt-5 border-t border-slate-200 pt-5 dark:border-[#2e2e33] flex items-center gap-3 ${onManageFarms ? 'justify-between' : 'justify-end'}`}>
+          {onManageFarms && (
+            <button type="button" onClick={onManageFarms} className="text-[11px] text-slate-500 dark:text-zinc-400 underline underline-offset-2">
+              {lang === 'es' ? 'Administrar estancias' : 'Manage farms'}
             </button>
-          </div>
+          )}
+          <button
+            id="landing-confirm-enter-btn"
+            type="button"
+            onClick={handleStart}
+            disabled={!isLocationValid}
+            className={`px-7 py-3 text-sm font-bold border flex items-center gap-2 transition-all ${
+              isLocationValid
+                ? 'bg-[#0f3260] dark:bg-[#27272a] hover:bg-[#17437e] dark:hover:bg-[#3f3f46] text-white border-[#0f3260] dark:border-[#3f3f46] cursor-pointer shadow-xs'
+                : 'bg-slate-200 dark:bg-[#202023] text-slate-400 dark:text-zinc-600 border-slate-300 dark:border-[#2e2e33] cursor-not-allowed opacity-50'
+            }`}
+          >
+            <span>{lang === 'es' ? 'Ingresar al Sistema' : 'Enter System'}</span>
+            <GoogleIcon name="arrow_forward" className={isLocationValid ? 'text-white' : 'text-slate-400 dark:text-zinc-600'} size={16} />
+          </button>
         </div>
       </main>
 
       {/* Official Footer */}
-      <footer className="border-t border-slate-300 dark:border-[#2e2e33] bg-white dark:bg-[#161618] py-3 px-6 text-center text-xs text-slate-500 dark:text-zinc-400 font-mono">
+      <footer className="border-t border-slate-200 dark:border-[#2e2e33] bg-white/80 dark:bg-[#161618] py-4 px-6 text-center text-xs text-slate-500 dark:text-zinc-400 font-mono">
         NASA Space Apps • Argfield
       </footer>
     </div>

@@ -157,7 +157,7 @@ test('farm registration saves location and crop allocations across reloads', asy
   await page.getByLabel('Ubicación · OpenStreetMap').fill('Pergamino');
   await page.getByRole('button', { name: 'Pergamino · Buenos Aires' }).click();
   await page.getByLabel('Superficie total').fill('100');
-  await page.getByRole('checkbox', { name: /Soja 1ra/ }).check();
+  await page.locator('section').filter({ hasText: 'Cultivos actuales' }).getByRole('checkbox', { name: /Soja 1ra/ }).check();
   await page.getByLabel('Superficie Soja 1ra').fill('70');
   await page.getByRole('button', { name: 'Guardar estancia' }).click();
   await expect(page.getByRole('heading', { name: 'La Esperanza', exact: true })).toBeVisible();

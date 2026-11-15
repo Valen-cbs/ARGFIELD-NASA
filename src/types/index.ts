@@ -88,6 +88,7 @@ export interface FarmProfile {
   currentCrop: MainCrop;
   cropAllocations?: Array<{ crop: string; hectares: number }>;
   previousCrop?: string;
+  previousCrops?: string[];
   irrigationAvailable?: boolean;
   soilType: SoilType;
   irrigation: IrrigationType;

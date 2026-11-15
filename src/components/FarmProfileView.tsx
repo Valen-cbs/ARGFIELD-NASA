@@ -5,7 +5,7 @@ import React, { useState, useMemo } from 'react';
 import { FarmProfile, MainCrop, SoilType, FarmerPriority, Alert } from '../types';
 import { CROPS_DATABASE, SOIL_DATABASE } from '../data/crops';
 import { EditFarmModal } from './EditFarmModal';
-import { RegisteredFarm } from './FarmRegistryModal';
+import { RegisteredFarm } from './FarmRegistryView';
 import { WeatherBrief } from '../services/weatherAlerts';
 import { 
   Droplets, 
@@ -158,13 +158,6 @@ export const FarmProfileView: React.FC<FarmProfileViewProps> = ({
       icon: <TrendingUp className="w-4 h-4" />
     }
   ];
-
-  if (farms.length === 0) return <div className="mx-auto max-w-2xl border border-slate-300 bg-white p-6 text-center dark:border-zinc-700 dark:bg-[#1c1c1e] sm:p-10">
-    <Compass className="mx-auto h-10 w-10 text-[#0f3260] dark:text-sky-300" />
-    <h1 className="mt-4 text-2xl font-bold text-slate-900 dark:text-white">{lang === 'es' ? 'Empezá por registrar tu estancia' : 'Start by registering your farm'}</h1>
-    <p className="mx-auto mt-2 max-w-lg text-sm text-slate-600 dark:text-zinc-400">{lang === 'es' ? 'Guardá su ubicación, superficie y cultivos. ArgField usará esos datos para consultar el clima y las fuentes ambientales disponibles para el punto.' : 'Save its location, area and crops. ArgField will use them to query weather and environmental sources available for the point.'}</p>
-    <button type="button" onClick={onManageFarms} className="mt-5 bg-[#0f3260] px-5 py-3 text-sm font-bold text-white">{lang === 'es' ? 'Registrar estancia' : 'Register farm'}</button>
-  </div>;
 
   return (
     <div className="space-y-4 pb-12 font-sans select-none">
