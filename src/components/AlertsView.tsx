@@ -1,4 +1,4 @@
-import { DemoBadge } from './DemoBadge';
+import { SatelliteReading } from '../types/satellite';
 import React, { useState, useEffect } from 'react';
 import { Alert } from '../types';
 import { AlertCard } from './AlertCard';
@@ -15,12 +15,16 @@ import {
 
 interface AlertsViewProps {
   alerts: Alert[];
+  readings: SatelliteReading[];
+  loadingData: boolean;
   onSelectAlert: (alert: Alert) => void;
   lang: 'es' | 'en';
 }
 
 export const AlertsView: React.FC<AlertsViewProps> = ({
   alerts,
+  readings,
+  loadingData,
   onSelectAlert,
   lang
 }) => {
@@ -50,12 +54,11 @@ export const AlertsView: React.FC<AlertsViewProps> = ({
         <div className="p-4 sm:p-5">
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex flex-wrap items-center gap-2">
             {lang === 'es' ? 'Monitoreo Hidroclimático Satelital' : 'Satellite Hydroclimatic Monitoring'}
-            <DemoBadge lang={lang} />
           </h1>
           <p className="text-xs text-slate-600 dark:text-zinc-400 mt-1">
             {lang === 'es' 
-              ? 'Detección automática de anomalías en suelo, lluvias y estrés térmico aguas arriba y en el lote.' 
-              : 'Automated anomaly detection across soil moisture, rainfall deficit, and upstream river basins.'}
+              ? 'Avisos de seguimiento basados en productos vigentes de CONAE. Revisá cada lectura con tu agrónomo.'
+              : 'Follow-up notices based on current CONAE products. Review each reading with your agronomist.'}
           </p>
         </div>
 
@@ -110,11 +113,11 @@ export const AlertsView: React.FC<AlertsViewProps> = ({
               <Satellite className="w-3.5 h-3.5 text-emerald-500" />
             </div>
             <div className="mt-1 text-xs font-mono font-bold text-slate-900 dark:text-white pt-1">
-              SMAP • GPM • SAOCOM
+              {readings.filter(r => r.status === 'available' && !r.cached).length} / {readings.length}
             </div>
             <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold mt-1 flex items-center gap-1">
               <CheckCircle2 className="w-3 h-3" />
-              {lang === 'es' ? 'Órbitas sincronizadas' : 'Orbits synced'}
+              {lang === 'es' ? 'Productos vigentes en el punto' : 'Current products at this point'}
             </div>
           </div>
         </div>
@@ -179,7 +182,7 @@ export const AlertsView: React.FC<AlertsViewProps> = ({
       </div>
 
       {/* 4. Alerts List or Skeleton Loader */}
-      {isLoading ? (
+      {isLoading || loadingData ? (
         <SkeletonLoader type="card" count={3} />
       ) : filteredAlerts.length === 0 ? (
         <div className="bg-white dark:bg-[#1c1c1e] border border-slate-300 dark:border-[#2e2e33] p-8 text-center space-y-3">
@@ -191,8 +194,8 @@ export const AlertsView: React.FC<AlertsViewProps> = ({
           </h3>
           <p className="text-xs text-slate-500 dark:text-zinc-400 max-w-sm mx-auto">
             {lang === 'es' 
-              ? 'Los parámetros satelitales analizados se encuentran dentro de las tolerancias agroclimáticas esperadas.'
-              : 'All analyzed satellite parameters are within normal agroclimatic ranges.'}
+              ? 'No se activaron reglas con los datos vigentes disponibles. Los productos sin cobertura, antiguos o sin fecha no permiten descartar riesgos.'
+              : 'No rules were triggered by available current data. Missing, historical or undated products cannot rule out risks.'}
           </p>
           <button
             type="button"

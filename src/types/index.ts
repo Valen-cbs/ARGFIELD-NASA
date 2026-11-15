@@ -18,13 +18,14 @@ export type AlertType =
   | 'frost_risk'
   | 'atmospheric_river'
   | 'groundwater_depletion'
-  | 'vegetation_vigor_drop';
+  | 'vegetation_vigor_drop'
+  | 'crop_disease_risk';
 
 export type Severity = 'low' | 'medium' | 'high' | 'critical';
 
 export type Timeframe = 'immediate' | 'this_week' | 'next_2_weeks' | 'monitor';
 
-export type Trend = 'worsening' | 'improving' | 'stable';
+export type Trend = 'worsening' | 'improving' | 'stable' | 'unknown';
 
 export interface LatLng {
   lat: number;
@@ -127,7 +128,8 @@ export interface Alert {
   localImpact: string;
   currentValue: number;
   unit: string;
-  baseline: number;
+  baseline: number | null;
+  sourceUrl?: string;
   trend: Trend;
   distanceKm: number;
   observationLocation: LatLng;

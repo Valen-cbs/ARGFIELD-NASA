@@ -96,7 +96,7 @@ export const AgenciesInfoModal: React.FC<AgenciesInfoModalProps> = ({
               <div className="text-xs text-slate-400">{activeAgency.country}</div>
             </div>
             <span className="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 font-mono text-[11px] text-blue-400">
-              Open Earth Data
+              {lang === 'es' ? 'Catálogo informativo' : 'Informational catalogue'}
             </span>
           </div>
 
@@ -104,7 +104,7 @@ export const AgenciesInfoModal: React.FC<AgenciesInfoModalProps> = ({
           <div className="space-y-3">
             <h3 className="font-bold text-slate-200 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
               <Radar className="w-4 h-4 text-emerald-400" />
-              {lang === 'es' ? 'Sensores & Misiones Espaciales Integradas' : 'Integrated Space Missions & Sensors'}
+              {lang === 'es' ? 'Sensores y misiones de referencia' : 'Reference missions and sensors'}
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -138,8 +138,8 @@ export const AgenciesInfoModal: React.FC<AgenciesInfoModalProps> = ({
             </h4>
             <p className="text-slate-300">
               {lang === 'es'
-                ? 'Ningún satélite individual resuelve todos los desafíos del campo. NASA SMAP provee humedad superficial de alta frecuencia diaria; CONAE SAOCOM usa microondas banda L para penetrar el dosel de los cultivos y medir hasta 50 cm en la raíz; GPM IMERG rastrea las lluvias; y sensores upstream de Brasil (AEB) y Paraguay (AEP) anticipan la disponibilidad de agua en el Río Paraná 200 km antes de que afecte a los campos argentinos.'
-                : 'No single satellite solves all farm pressures. NASA SMAP delivers frequent topsoil moisture; CONAE SAOCOM penetrates deep canopies with L-Band radar to reach root zones down to 50cm; NASA GPM detects dry spells; and upstream data from AEB and AEP warn of river fluctuations 200km away.'}
+                ? 'Los productos aportan información diferente: SMAP observa humedad superficial; CONAE combina información SAOCOM con modelos para estimar la humedad del perfil hasta 50 cm; GPM estima precipitación. Consultá Fuentes para ver qué productos están conectados, sus fechas y sus limitaciones. Las misiones de este catálogo no están todas integradas.'
+                : 'Products provide different information: SMAP observes surface moisture; CONAE combines SAOCOM data and models to estimate moisture down to 50 cm; GPM estimates precipitation. Check Sources for connected products, their dates and limitations. Not all missions in this catalogue are integrated.'}
             </p>
           </div>
         </div>

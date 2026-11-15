@@ -1,0 +1,11 @@
+{
+  "_context": "Respuestas GetFeatureInfo verificadas el 14/11/2026 en el centro urbano público de Pergamino; no son datos de un lote del usuario.",
+  "saocom_humedad": { "type": "FeatureCollection", "features": [{ "type": "Feature", "id": "", "geometry": null, "properties": { "HUMEDAD_DE_SUELO": 36 } }] },
+  "saocom_percentil": { "type": "FeatureCollection", "features": [{ "type": "Feature", "id": "", "geometry": null, "properties": { "PERCENTIL_HUMEDAD_DE_SUELO": 27 } }] },
+  "smap": { "type": "FeatureCollection", "features": [{ "type": "Feature", "id": "", "geometry": null, "properties": { "HUMEDAD_DE_SUELO": null } }] },
+  "smos": { "type": "FeatureCollection", "features": [{ "type": "Feature", "id": "", "geometry": null, "properties": { "HUMEDAD_DE_SUELO": 0.06352628022432327 } }] },
+  "lluvia_imerg": { "type": "FeatureCollection", "features": [{ "type": "Feature", "id": "", "geometry": null, "properties": { "PA1D": 4.199999809265137 } }] },
+  "lluvia_imerg_mensual": { "type": "FeatureCollection", "features": [{ "type": "Feature", "id": "", "geometry": null, "properties": { "PA1M": 124.61499709635973 } }] },
+  "fusarium": { "type": "FeatureCollection", "features": [{ "type": "Feature", "id": "", "geometry": null, "properties": { "INCIDENCIA_FUSARIOSIS_TRIGO": 1 } }] },
+  "estatus_hidrico": { "type": "FeatureCollection", "features": [{ "type": "Feature", "id": "", "geometry": null, "properties": { "PCNTLAPI": 59.985130310058594 } }] }
+}

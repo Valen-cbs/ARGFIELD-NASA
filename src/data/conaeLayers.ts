@@ -2,9 +2,8 @@
  * Capas reales publicadas por CONAE como servicios WMS (OGC).
  * Fuente de nombres y endpoints: https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html
  *
- * Las capas con `days: true` se publican como serie de 7 días (sufijos _1 a _7).
- * CONAE no aclara en la página qué sufijo es el día más reciente; por convención
- * de otros servicios suyos se usa _1 por defecto. Verificar con la leyenda.
+ * Las capas con `days: true` son series; seriesLength define su longitud.
+ * La fecha se obtiene de GetCapabilities; el sufijo no se convierte en una fecha.
  */
 
 export type ConaeLayerId =
@@ -12,23 +11,31 @@ export type ConaeLayerId =
   | 'saocom_humedad'
   | 'saocom_percentil'
   | 'smap'
+  | 'smos'
   | 'lluvia_imerg'
+  | 'lluvia_imerg_mensual'
   | 'inundacion'
   | 'focos_viirs'
-  | 'focos_goes';
+  | 'focos_goes'
+  | 'fusarium'
+  | 'rinde_maiz'
+  | 'rinde_soja';
 
 export interface ConaeLayer {
   id: ConaeLayerId;
-  group: 'agua' | 'riesgo';
+  group: 'agua' | 'riesgo' | 'cultivo';
   name: { es: string; en: string };
   description: { es: string; en: string };
   /** Endpoint WMS del workspace de GeoServer */
   url: string;
-  /** Nombre de la capa; si `days` es true, se le agrega el número de día (1 a 7) */
+  /** Nombre de la capa; si `days` es true, se agrega la posición de la serie. */
   layer: string;
   days: boolean;
   source: string;
   coverage?: { es: string; en: string };
+  seriesLength?: number;
+  maxAgeDays?: number;
+  measure?: { unit: string; min: number; max: number; scale?: number; noData?: number[]; fields?: string[] };
 }
 
 export const CONAE_GEOSERVICIOS_URL =
@@ -46,20 +53,22 @@ export const CONAE_LAYERS: ConaeLayer[] = [
     url: 'https://geoservicios2.conae.gov.ar/geoserver/EstatusHidrico/wms',
     layer: 'EstatusHidrico:MHS_GPMIMERG_PCNTLAPI_',
     days: true,
-    source: 'CONAE · NASA GPM IMERG'
+    source: 'CONAE · NASA GPM IMERG',
+    measure: { unit: 'percentil API', min: 0, max: 100, noData: [255], fields: ['PCNTLAPI'] }
   },
   {
     id: 'saocom_humedad',
     group: 'agua',
     name: { es: 'Humedad SAOCOM 0–50 cm', en: 'SAOCOM soil moisture 0–50 cm' },
     description: {
-      es: 'Agua en el perfil del suelo hasta 50 cm, del radar argentino SAOCOM.',
-      en: 'Soil profile moisture down to 50 cm from the Argentine SAOCOM radar.'
+      es: 'Humedad volumétrica media hasta 50 cm estimada por zonas homogéneas con datos SAOCOM y modelado de CONAE. No es agua útil.',
+      en: 'Mean volumetric moisture down to 50 cm estimated for homogeneous zones from SAOCOM data and CONAE modelling. This is not plant-available water.'
     },
     url: 'https://geoservicios3.conae.gov.ar/geoserver/HumedadDeSuelos/wms',
     layer: 'HumedadDeSuelos:DSS_MSM_',
     days: true,
     source: 'CONAE · SAOCOM 1',
+    measure: { unit: '% vol.', min: 0, max: 100, noData: [0, 255], fields: ['HUMEDAD_DE_SUELO'] },
     coverage: { es: 'Solo Región Pampeana', en: 'Pampas region only' }
   },
   {
@@ -74,6 +83,7 @@ export const CONAE_LAYERS: ConaeLayer[] = [
     layer: 'HumedadDeSuelos:DSS_PSM_',
     days: true,
     source: 'CONAE · SAOCOM 1',
+    measure: { unit: 'percentil', min: 1, max: 100, noData: [0, 255], fields: ['PERCENTIL_HUMEDAD_DE_SUELO'] },
     coverage: { es: 'Solo Región Pampeana', en: 'Pampas region only' }
   },
   {
@@ -87,7 +97,17 @@ export const CONAE_LAYERS: ConaeLayer[] = [
     url: 'https://geoservicios2.conae.gov.ar/geoserver/HumedadDeSuelos/wms',
     layer: 'HumedadDeSuelos:SMAP_Pasada_Descendente',
     days: false,
-    source: 'NASA SMAP vía CONAE'
+    source: 'NASA SMAP vía CONAE',
+    measure: { unit: '% vol.', min: 0, max: 100, scale: 100, fields: ['HUMEDAD_DE_SUELO'] }
+  },
+  {
+    id: 'smos', group: 'agua',
+    name: { es: 'Humedad superficial SMOS', en: 'SMOS surface moisture' },
+    description: { es: 'Humedad superficial de ESA SMOS. La fecha corresponde al producto publicado por CONAE.', en: 'ESA SMOS surface moisture. Date comes from the product published by CONAE.' },
+    url: 'https://geoservicios2.conae.gov.ar/geoserver/HumedadDeSuelos/wms',
+    layer: 'HumedadDeSuelos:SMOS_Pasada_Descendente', days: false,
+    source: 'ESA SMOS vía CONAE',
+    measure: { unit: '% vol.', min: 0, max: 100, scale: 100, fields: ['HUMEDAD_DE_SUELO'] }
   },
   {
     id: 'lluvia_imerg',
@@ -100,7 +120,18 @@ export const CONAE_LAYERS: ConaeLayer[] = [
     url: 'https://geoservicios2.conae.gov.ar/geoserver/PrecipitacionAcumulada/wms',
     layer: 'PrecipitacionAcumulada:MOM_GPMIMERG_PA1D_',
     days: true,
-    source: 'NASA GPM IMERG vía CONAE'
+    source: 'NASA GPM IMERG vía CONAE',
+    maxAgeDays: 3,
+    measure: { unit: 'mm/día', min: 0, max: 3000, fields: ['PA1D'] }
+  },
+  {
+    id: 'lluvia_imerg_mensual', group: 'agua',
+    name: { es: 'Lluvia mensual GPM', en: 'GPM monthly rainfall' },
+    description: { es: 'Acumulado del mes publicado por CONAE; no representa los últimos 30 días móviles.', en: 'Published calendar-month total; this is not a rolling 30-day total.' },
+    url: 'https://geoservicios2.conae.gov.ar/geoserver/PrecipitacionAcumulada/wms',
+    layer: 'PrecipitacionAcumulada:MOM_GPMIMERG_PA1M_', days: true, seriesLength: 13,
+    source: 'NASA GPM IMERG vía CONAE', maxAgeDays: 70,
+    measure: { unit: 'mm/mes', min: 0, max: 10000, fields: ['PA1M'] }
   },
   {
     id: 'inundacion',
@@ -113,7 +144,8 @@ export const CONAE_LAYERS: ConaeLayer[] = [
     url: 'https://geoservicios2.conae.gov.ar/geoserver/Inundaciones/wms',
     layer: 'Inundaciones:NOAA20-SNPP-GOES19_VIIRS-VIIRS-ABI_FLD_',
     days: true,
-    source: 'NOAA-20/SNPP VIIRS + GOES-19 vía CONAE'
+    source: 'NOAA-20/SNPP VIIRS + GOES-19 vía CONAE',
+    measure: { unit: 'código (ver leyenda)', min: 1, max: 200, noData: [0, 255], fields: ['FLD'] }
   },
   {
     id: 'focos_viirs',
@@ -140,6 +172,28 @@ export const CONAE_LAYERS: ConaeLayer[] = [
     layer: 'FocosDeCalor:FocosGOES_24hs',
     days: false,
     source: 'NOAA GOES vía CONAE'
+  },
+  {
+    id: 'fusarium', group: 'cultivo',
+    name: { es: 'Fusariosis en trigo', en: 'Wheat fusarium incidence' },
+    description: { es: 'Incidencia estimada por el modelo de CONAE. Requiere revisar el estado fenológico del trigo con un agrónomo.', en: 'CONAE modelled incidence. Review wheat growth stage with an agronomist.' },
+    url: 'https://geoservicios3.conae.gov.ar/geoserver/Cultivos/wms',
+    layer: 'Cultivos:MHS_FIM_PCP_', days: true, source: 'Modelo CONAE · Fusariosis',
+    measure: { unit: '% incidencia', min: 0, max: 100, noData: [255], fields: ['INCIDENCIA_FUSARIOSIS_TRIGO'] }
+  },
+  {
+    id: 'rinde_maiz', group: 'cultivo',
+    name: { es: 'Anomalía de rinde de maíz', en: 'Maize yield anomaly' },
+    description: { es: 'Escenario de rinde respecto de la mediana 1990–2019. No es un rinde medido del lote.', en: 'Yield scenario relative to the 1990–2019 median. It is not a measured farm yield.' },
+    url: 'https://geoservicios3.conae.gov.ar/geoserver/Cultivos/wms',
+    layer: 'Cultivos:MHS_DSS_NMZ_', days: true, seriesLength: 8, maxAgeDays: 21, source: 'Modelo CONAE · Maíz'
+  },
+  {
+    id: 'rinde_soja', group: 'cultivo',
+    name: { es: 'Anomalía de rinde de soja', en: 'Soybean yield anomaly' },
+    description: { es: 'Escenario de soja de primera respecto de la mediana 1990–2019. Consultá la fecha de campaña.', en: 'First-crop soybean scenario relative to the 1990–2019 median. Check the season date.' },
+    url: 'https://geoservicios3.conae.gov.ar/geoserver/Cultivos/wms',
+    layer: 'Cultivos:MHS_DSS_NSB_', days: true, seriesLength: 8, maxAgeDays: 21, source: 'Modelo CONAE · Soja'
   }
 ];
 
@@ -148,7 +202,8 @@ export function getConaeLayer(id: ConaeLayerId | null): ConaeLayer | undefined {
 }
 
 export function resolveLayerName(layer: ConaeLayer, day: number): string {
-  return layer.days ? `${layer.layer}${day}` : layer.layer;
+  const slot = Math.max(1, Math.min(layer.seriesLength ?? 7, Math.trunc(day) || 1));
+  return layer.days ? `${layer.layer}${slot}` : layer.layer;
 }
 
 export function buildLegendUrl(layer: ConaeLayer, day: number): string {
@@ -183,6 +238,7 @@ export function buildFeatureInfoUrl(layer: ConaeLayer, day: number, lat: number,
     X: '50',
     Y: '50',
     INFO_FORMAT: 'application/json',
+    FORMAT: 'image/png',
     FEATURE_COUNT: '1'
   });
   return `${layer.url}?${params.toString()}`;

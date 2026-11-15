@@ -1,6 +1,7 @@
 import React from 'react';
 import { Alert } from '../types';
 import { AgencyLogo } from './AgencyLogo';
+import { formatReadingDate } from './SatelliteReadings';
 import { 
   AlertTriangle, 
   ArrowRight, 
@@ -99,10 +100,10 @@ export const AlertCard: React.FC<AlertCardProps> = ({ alert, onSelect, lang }) =
         </div>
         <div>
           <span className="text-slate-400 dark:text-zinc-500 text-[10px] block uppercase font-bold">
-            {lang === 'es' ? 'Línea Base Normal' : 'Baseline Normal'}
+            {lang === 'es' ? 'Fecha del producto' : 'Product date'}
           </span>
           <span className="font-mono text-slate-700 dark:text-zinc-300">
-            {alert.baseline} {alert.unit}
+            {formatReadingDate(alert.detectedAt, lang)}
           </span>
         </div>
         <div>

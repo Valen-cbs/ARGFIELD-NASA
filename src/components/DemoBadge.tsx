@@ -12,8 +12,8 @@ interface DemoBadgeProps {
 export const DemoBadge: React.FC<DemoBadgeProps> = ({ lang, className = '' }) => {
   const title =
     lang === 'es'
-      ? 'Valor simulado para la demo. Las capas reales de CONAE están en el Mapa.'
-      : 'Simulated value for the demo. Real CONAE layers are on the Map.';
+      ? 'Estimación ilustrativa de la demo; no es una medición ni un pronóstico verificado.'
+      : 'Illustrative demo estimate; not a verified measurement or forecast.';
   return (
     <span
       title={title}
@@ -40,8 +40,8 @@ export const DemoBanner: React.FC<DemoBannerProps> = ({ lang, onGoToMap, onDismi
       <DemoBadge lang={lang} />
       <span className="flex-1 min-w-[220px]">
         {es
-          ? 'Modo demo: los números de tarjetas, alertas, clima y rotaciones son simulados. El Mapa muestra capas reales de CONAE.'
-          : 'Demo mode: numbers in cards, alerts, weather and rotations are simulated. The Map shows real CONAE layers.'}
+          ? 'Las lecturas satelitales muestran su fuente y fecha real. El clima y los beneficios estimados de las rotaciones siguen en modo demo.'
+          : 'Satellite readings show their actual source and date. Weather and estimated rotation benefits remain in demo mode.'}
       </span>
       <button
         type="button"

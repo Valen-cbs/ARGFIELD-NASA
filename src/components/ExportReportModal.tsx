@@ -1,10 +1,12 @@
 import React from 'react';
 import { GoogleIcon } from './GoogleIcon';
 import { FarmProfile, Alert, CropRotationPlan } from '../types';
+import { SatelliteReading } from '../types/satellite';
 
 interface ExportReportModalProps {
   farmProfile: FarmProfile;
   alerts: Alert[];
+  readings: SatelliteReading[];
   plans: CropRotationPlan[];
   onClose: () => void;
   lang: 'es' | 'en';
@@ -13,6 +15,7 @@ interface ExportReportModalProps {
 export const ExportReportModal: React.FC<ExportReportModalProps> = ({
   farmProfile,
   alerts,
+  readings,
   plans,
   onClose,
   lang
@@ -25,6 +28,9 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
     const reportData = {
       exportTimestamp: new Date().toISOString(),
       platform: 'Argfield (NASA Space Apps)',
+      dataNotice: 'Satellite readings are provider data at a point, with individual date/coverage/quality states. Weather and rotation estimates remain illustrative demo data.',
+      rotationStrategiesMode: 'demo',
+      satelliteReadings: readings,
       farmProfile,
       activeAlertsCount: alerts.length,
       alerts,
@@ -54,7 +60,7 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
           <div className="flex items-center gap-2.5">
             <GoogleIcon name="description" size={20} className="text-white" />
             <h2 className="text-sm font-bold tracking-tight">
-              {lang === 'es' ? 'Exportar Informe Agronómico Oficial' : 'Export Official Agronomic Report'}
+              {lang === 'es' ? 'Exportar informe del lote' : 'Export farm report'}
             </h2>
           </div>
 
@@ -71,6 +77,10 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
         {/* Modal Preview Body */}
         <div className="p-5 overflow-y-auto space-y-4 text-xs text-slate-700 dark:text-slate-300">
           <div id="printable-report" className="space-y-4">
+            <p className="p-2 border border-amber-300 bg-amber-50 text-amber-950">{lang === 'es' ? 'Las lecturas satelitales conservan su fuente, fecha y estado. Los planes de rotación y sus beneficios son ejemplos de la demo.' : 'Satellite readings retain their source, date and status. Rotation plans and benefits are demo examples.'}</p>
+            <div className="space-y-1">
+              {readings.map(r => <p key={r.productId} className="text-[11px] break-words"><strong>{r.productId}</strong>: {r.value ?? '—'} {r.unit} · {r.observedAt ?? 'sin fecha'} · {r.status}{r.cached ? ' · guardado' : ''} · {r.source}</p>)}
+            </div>
             <div className="bg-slate-50 dark:bg-[#111c2e] p-4 border border-slate-300 dark:border-slate-800 space-y-2">
               <div className="flex items-center justify-between font-bold text-slate-900 dark:text-slate-100 text-sm">
                 <span>{farmProfile.location.name}</span>

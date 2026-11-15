@@ -32,7 +32,7 @@ export function generateRotationStrategies(
     primaryGoal: 'Retener hasta 45mm adicionales de agua útil en los primeros 50cm',
     waterSavingsPct: 28,
     soilCarbonPotential: '+1.8 t C/ha/año en biomasa aérea y radicular',
-    nasaDataTrigger: `Activada por ${topCriticalAlert ? `${topCriticalAlert.source} ${topCriticalAlert.mission}` : 'NASA SMAP / CONAE SAOCOM'} detectando humedad en zona radicular por debajo de umbral de resiliencia.`,
+    nasaDataTrigger: topCriticalAlert ? `Ejemplo de planificación para revisar junto al aviso: ${topCriticalAlert.title}. Los beneficios son ilustrativos.` : 'Ejemplo de planificación según el perfil. No hay un aviso satelital vigente que active esta estrategia.',
     summary:
       'Reemplaza el barbecho químico limpio por un cultivo de servicios multiespecie (Vicia villosa + Centeno) con secado anticipado a floración. Genera un colchón de rastrojo que suprime la temperatura estival del suelo hasta 7°C y evita la pérdida evaporativa directa.',
     steps: [
@@ -103,7 +103,7 @@ export function generateRotationStrategies(
     waterSavingsPct: 22,
     soilCarbonPotential: '+2.4 t C/ha/año (alta tasa de secuestro en profundidad)',
     nasaDataTrigger:
-      'Respuesta a observaciones SAR de deformación/compactación (AEE/ASI) y descenso de reservas profundas (CONAE SAOCOM 1A).',
+      'Ejemplo orientado al tipo de suelo declarado. No hay una medición conectada de compactación ni de profundidad de napas.',
     summary:
       'Utiliza la fuerza biomecánica de raíces tipo pivotante agresiva (Rábano forrajero / Nabo forrajero) combinadas con cereales C4 de gran volumen radical (Sorgo granífero) para romper capas densas o "piso de arado" sin disturbar mecánicamente el suelo.',
     steps: [
@@ -174,7 +174,7 @@ export function generateRotationStrategies(
     waterSavingsPct: 32,
     soilCarbonPotential: '+2.1 t C/ha/año con balance mineralizado equilibrado',
     nasaDataTrigger:
-      'Grounded en pronósticos GPM de ventanas secas prolongadas y modelos de anomalía térmica MODIS.',
+      'Ejemplo de diversificación por prioridad del productor. Las lecturas GPM y MODIS no son pronósticos de esta estrategia.',
     summary:
       'Evita concentrar el capital del agricultor en una única ventana de siembra estival. Escala la producción entre cereales de invierno resistentes al frío, oleaginosas profundas y cultivos de verano rústicos, asegurando flujos de caja y conservación biológica.',
     steps: [

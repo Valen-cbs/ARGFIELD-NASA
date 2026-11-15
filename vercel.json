@@ -3,6 +3,7 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
+    { "source": "/proxy/planetary/:path*", "destination": "https://planetarycomputer.microsoft.com/:path*" },
     { "source": "/proxy/power/:path*", "destination": "https://power.larc.nasa.gov/:path*" },
     { "source": "/proxy/conae1/:path*", "destination": "https://geoservicios.conae.gov.ar/:path*" },
     { "source": "/proxy/conae2/:path*", "destination": "https://geoservicios2.conae.gov.ar/:path*" },

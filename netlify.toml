@@ -4,6 +4,12 @@
 
 # Proxy hacia servicios que no permiten pedidos directos desde el navegador (CORS).
 [[redirects]]
+  from = "/proxy/planetary/*"
+  to = "https://planetarycomputer.microsoft.com/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/proxy/power/*"
   to = "https://power.larc.nasa.gov/:splat"
   status = 200

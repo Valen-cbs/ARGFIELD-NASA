@@ -5,19 +5,25 @@ import { Alert, FarmLocation, LatLng } from '../types';
 import { WIKIMEDIA_FLAGS, AGENCY_TO_COUNTRY } from './FlagIcon';
 import { GoogleIcon } from './GoogleIcon';
 import { ConaeLayerPanel, ConaeLayerStatus } from './ConaeLayerPanel';
-import { CONAE_LAYERS, ConaeLayerId, getConaeLayer, resolveLayerName } from '../data/conaeLayers';
+import { resolveLayerName } from '../data/conaeLayers';
+import { SATELLITE_PRODUCTS, getSatelliteProduct } from '../data/satelliteProducts';
+import { SatelliteReading } from '../types/satellite';
+import { emptyReading, loadSatelliteProduct } from '../services/satelliteApi';
+import { viaProxy } from '../services/proxy';
 import { isWithinArgentina, determineRegion, determineBasin, haversineDistance, determineLocationName } from '../services/geo';
 
 type LayerMode = 'standard' | 'terrain' | 'satellite';
 
 const LAYER_STORAGE_KEY = 'argfield_map_layer_mode';
 const CONAE_LAYER_STORAGE_KEY = 'argfield_conae_layer';
-const DEFAULT_CONAE_LAYER: ConaeLayerId = 'estatus_hidrico';
+const DEFAULT_CONAE_LAYER = 'saocom_humedad';
 const CONAE_ERROR_TILE = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
 interface MapProps {
   farmLocation: FarmLocation;
   alerts: Alert[];
+  readings: SatelliteReading[];
+  isOffline: boolean;
   onSelectAlert: (alert: Alert) => void;
   onSelectFarm?: (farm: FarmLocation) => void;
   onMapClickSetLocation?: (coords: LatLng) => void;
@@ -162,6 +168,8 @@ function createInspectionPopupElement({
 export const MapComponent: React.FC<MapProps> = ({
   farmLocation,
   alerts,
+  readings,
+  isOffline,
   onSelectAlert,
   onSelectFarm,
   onMapClickSetLocation,
@@ -197,16 +205,16 @@ export const MapComponent: React.FC<MapProps> = ({
   };
 
   // Capas reales de CONAE (WMS) superpuestas al mapa base
-  const conaeTileLayerRef = useRef<L.TileLayer.WMS | null>(null);
+  const conaeTileLayerRef = useRef<L.TileLayer | null>(null);
   // Abierto en escritorio; cerrado en celular para no tapar el mapa
   const [showConaePanel, setShowConaePanel] = useState(
     () => typeof window === 'undefined' || window.innerWidth >= 640
   );
-  const [conaeLayerId, setConaeLayerId] = useState<ConaeLayerId | null>(() => {
+  const [conaeLayerId, setConaeLayerId] = useState<string | null>(() => {
     try {
       const saved = localStorage.getItem(CONAE_LAYER_STORAGE_KEY);
       if (saved === 'none') return null;
-      if (saved && CONAE_LAYERS.some((l) => l.id === saved)) return saved as ConaeLayerId;
+      if (saved && SATELLITE_PRODUCTS.some((l) => l.id === saved)) return saved;
     } catch {
       // ignore
     }
@@ -217,14 +225,35 @@ export const MapComponent: React.FC<MapProps> = ({
   const [conaeStatus, setConaeStatus] = useState<ConaeLayerStatus>('idle');
   const [conaeLoadedAt, setConaeLoadedAt] = useState<Date | null>(null);
 
-  const handleSelectConaeLayer = (id: ConaeLayerId | null) => {
+  const handleSelectConaeLayer = (id: string | null) => {
     setConaeLayerId(id);
+    setConaeDay(1);
+    setMapRefreshId(0);
     try {
       localStorage.setItem(CONAE_LAYER_STORAGE_KEY, id ?? 'none');
     } catch {
       // ignore
     }
   };
+
+  const [mapRefreshId, setMapRefreshId] = useState(0);
+  const pointKey = `${conaeLayerId}/${conaeDay}/${farmLocation.lat}/${farmLocation.lng}/${isOffline}/${mapRefreshId}`;
+  const [pointState, setPointState] = useState<{ key: string; reading: SatelliteReading } | null>(null);
+  const selectedProduct = getSatelliteProduct(conaeLayerId);
+  const dashboardReading = conaeDay === 1 && mapRefreshId === 0 ? readings.find(r => r.productId === conaeLayerId) : undefined;
+  const pointReading = pointState?.key === pointKey ? pointState.reading : selectedProduct ? emptyReading(selectedProduct, isOffline ? 'offline' : 'loading') : null;
+
+  useEffect(() => {
+    const controller = new AbortController();
+    if (!selectedProduct) { setPointState(null); return; }
+    if (dashboardReading) { setPointState({ key: pointKey, reading: dashboardReading }); return; }
+    if (isOffline) { setPointState({ key: pointKey, reading: emptyReading(selectedProduct, 'offline') }); return; }
+    setPointState({ key: pointKey, reading: emptyReading(selectedProduct) });
+    loadSatelliteProduct(selectedProduct, farmLocation, conaeDay, controller.signal).then(reading => {
+      if (!controller.signal.aborted) setPointState({ key: pointKey, reading });
+    }).catch(() => { /* Cancelled when point, product or series changes. */ });
+    return () => controller.abort();
+  }, [pointKey, dashboardReading]);
 
   // Keep references to latest callbacks to avoid stale closures in Leaflet events
   const onSelectFarmRef = useRef(onSelectFarm);
@@ -398,69 +427,57 @@ export const MapComponent: React.FC<MapProps> = ({
     tileLayerRef.current = newTileLayer;
   }, [layerMode, mapLoaded]);
 
-  // Capa WMS real de CONAE sobre el mapa base
+  // Image transport and point data availability have independent states.
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map || !mapLoaded) return;
-
-    if (conaeTileLayerRef.current) {
-      map.removeLayer(conaeTileLayerRef.current);
-      conaeTileLayerRef.current = null;
+    setConaeLoadedAt(null);
+    setConaeStatus('idle');
+    if (!selectedProduct || isOffline) return;
+    const options: L.TileLayerOptions = {
+      opacity: conaeOpacity, zIndex: 5, errorTileUrl: CONAE_ERROR_TILE,
+      attribution: `Capa: ${selectedProduct.source}`, maxZoom: 19
+    };
+    let tiles: L.TileLayer;
+    if (selectedProduct.kind === 'wms') {
+      tiles = L.tileLayer.wms(viaProxy(selectedProduct.wms.url), {
+        ...options, layers: resolveLayerName(selectedProduct.wms, conaeDay),
+        format: 'image/png', transparent: true, version: '1.1.1'
+      });
+    } else {
+      if (!pointReading?.tileUrl) return;
+      const bounds = pointReading.sceneBounds;
+      tiles = L.tileLayer(pointReading.tileUrl, {
+        ...options, maxNativeZoom: selectedProduct.id === 'modis_lst' ? 8 : 14,
+        ...(bounds ? { bounds: L.latLngBounds([bounds[1], bounds[0]], [bounds[3], bounds[2]]) } : {})
+      });
     }
-
-    const layer = getConaeLayer(conaeLayerId);
-    if (!layer) {
-      setConaeStatus('idle');
-      return;
-    }
-
-    const wms = L.tileLayer.wms(layer.url, {
-      layers: resolveLayerName(layer, conaeDay),
-      format: 'image/png',
-      transparent: true,
-      version: '1.1.1',
-      opacity: conaeOpacity,
-      zIndex: 5,
-      // Tile transparente si CONAE no responde, para no mostrar íconos de imagen rota
-      errorTileUrl: CONAE_ERROR_TILE,
-      attribution: `Capa: &copy; <a href="https://www.argentina.gob.ar/ciencia/conae" target="_blank" rel="noreferrer">CONAE</a> (${layer.source})`
-    });
-
     let tilesOk = 0;
     let tilesFailed = 0;
+    let disposed = false;
     setConaeStatus('loading');
-    wms.on('loading', () => {
-      tilesOk = 0;
-      tilesFailed = 0;
-      setConaeStatus('loading');
+    tiles.on('loading', () => {
+      tilesOk = 0; tilesFailed = 0;
+      if (!disposed) setConaeStatus('loading');
     });
-    wms.on('tileload', (e: L.TileEvent) => {
-      // Leaflet también dispara tileload cuando carga el tile de reemplazo por error
-      if (e.tile.getAttribute('src') !== CONAE_ERROR_TILE) {
-        tilesOk += 1;
-      }
+    tiles.on('tileload', (event: L.TileEvent) => {
+      if (event.tile.getAttribute('src') !== CONAE_ERROR_TILE) tilesOk++;
     });
-    wms.on('tileerror', () => {
-      tilesFailed += 1;
+    tiles.on('tileerror', () => { tilesFailed++; });
+    tiles.on('load', () => {
+      if (disposed) return;
+      setConaeStatus(tilesOk === 0 ? 'error' : tilesFailed > 0 ? 'partial' : 'loaded');
+      if (tilesOk > 0) setConaeLoadedAt(new Date());
     });
-    wms.on('load', () => {
-      if (tilesOk === 0 && tilesFailed > 0) {
-        setConaeStatus('error');
-      } else {
-        setConaeStatus('ok');
-        setConaeLoadedAt(new Date());
-      }
-    });
-
-    wms.addTo(map);
-    conaeTileLayerRef.current = wms;
-
+    tiles.addTo(map);
+    conaeTileLayerRef.current = tiles;
     return () => {
-      wms.off();
+      disposed = true;
+      tiles.off();
+      map.removeLayer(tiles);
+      if (conaeTileLayerRef.current === tiles) conaeTileLayerRef.current = null;
     };
-    // La opacidad se actualiza aparte para no recargar los tiles.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [conaeLayerId, conaeDay, mapLoaded]);
+  }, [conaeLayerId, conaeDay, mapLoaded, isOffline, pointReading?.tileUrl]);
 
   useEffect(() => {
     conaeTileLayerRef.current?.setOpacity(conaeOpacity);
@@ -712,10 +729,10 @@ export const MapComponent: React.FC<MapProps> = ({
                     ? 'bg-[#0f3260] border-[#0f3260] text-white dark:bg-sky-700 dark:border-sky-700'
                     : 'bg-white dark:bg-[#232326] border-slate-300 dark:border-[#38383e] text-[#0f3260] dark:text-sky-300'
                 }`}
-                title={lang === 'es' ? 'Capas reales de CONAE' : 'Real CONAE layers'}
+                title={lang === 'es' ? 'Capas satelitales' : 'Satellite layers'}
               >
                 <Layers size={13} />
-                CONAE
+                {lang === 'es' ? 'Satélites' : 'Satellites'}
               </button>
             </div>
 
@@ -869,7 +886,7 @@ export const MapComponent: React.FC<MapProps> = ({
                   ? 'bg-[#0f3260] border-[#0f3260] text-white dark:bg-sky-700 dark:border-sky-700'
                   : 'bg-white dark:bg-[#232326] border-slate-300 dark:border-[#38383e] text-[#0f3260] dark:text-sky-300 hover:bg-slate-100 dark:hover:bg-[#2c2c30]'
               }`}
-              title={lang === 'es' ? 'Capas reales de CONAE' : 'Real CONAE layers'}
+              title={lang === 'es' ? 'Capas satelitales' : 'Satellite layers'}
             >
               <Layers size={14} />
               {lang === 'es' ? 'Capas CONAE' : 'CONAE layers'}
@@ -944,8 +961,9 @@ export const MapComponent: React.FC<MapProps> = ({
             onChangeOpacity={setConaeOpacity}
             status={conaeStatus}
             lastLoadedAt={conaeLoadedAt}
-            farmLat={farmLocation.lat}
-            farmLng={farmLocation.lng}
+            reading={pointReading}
+            offline={isOffline}
+            onRefresh={() => setMapRefreshId(id => id + 1)}
             onClose={() => setShowConaePanel(false)}
           />
         )}

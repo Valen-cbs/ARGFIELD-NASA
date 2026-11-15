@@ -15,8 +15,8 @@ import { WeatherView } from './components/WeatherView';
 import { DemoBanner } from './components/DemoBadge';
 import { PRESET_FARMS } from './data/regions';
 import { Alert, FarmLocation, FarmProfile, LatLng } from './types';
-import { generateSensorObservations } from './services/dataLoader';
-import { scoreObservation } from './services/scoring';
+import { useSatelliteData } from './services/dataLoader';
+import { deriveSatelliteAlerts } from './services/satelliteAlerts';
 import { generateRotationStrategies } from './services/rotationOptimizer';
 import { determineBasin, determineRegion, isWithinArgentina } from './services/geo';
 
@@ -118,12 +118,12 @@ export default function App() {
     localStorage.setItem(STORAGE_TAB_KEY, activeTab);
   }, [activeTab]);
 
-  // Generate and score alerts dynamically based on chosen farm location
+  const satelliteData = useSatelliteData(farmProfile.location, isOffline || showLanding);
+
+  // Only dated, current provider readings can generate follow-up alerts.
   const alerts: Alert[] = useMemo(() => {
-    const rawObservations = generateSensorObservations(farmProfile.location);
-    const scored = rawObservations.map((obs) => scoreObservation(obs, farmProfile));
-    return scored.sort((a, b) => b.score - a.score);
-  }, [farmProfile]);
+    return deriveSatelliteAlerts(satelliteData.readings, farmProfile);
+  }, [farmProfile, satelliteData.readings]);
 
   const criticalCount = useMemo(() => {
     return alerts.filter(a => a.severity === 'critical' || a.severity === 'high').length;
@@ -235,6 +235,9 @@ export default function App() {
             <FarmProfileView
               farmProfile={farmProfile}
               alerts={alerts}
+              readings={satelliteData.readings}
+              onRefreshData={satelliteData.refresh}
+              isOffline={isOffline}
               onChangeProfile={setFarmProfile}
               onOpenExport={() => setShowExportModal(true)}
               onNavigateToOptimizer={() => setActiveTab('optimizador')}
@@ -259,6 +262,8 @@ export default function App() {
           {activeTab === 'alertas' && (
             <AlertsView
               alerts={alerts}
+              readings={satelliteData.readings}
+              loadingData={satelliteData.loading}
               onSelectAlert={setSelectedAlert}
               lang={lang}
             />
@@ -271,6 +276,8 @@ export default function App() {
                 <MapComponent
                   farmLocation={farmProfile.location}
                   alerts={alerts}
+                  readings={satelliteData.readings}
+                  isOffline={isOffline}
                   onSelectAlert={setSelectedAlert}
                   onSelectFarm={() => setShowFarmModal(true)}
                   onMapClickSetLocation={handleMapClick}
@@ -285,7 +292,7 @@ export default function App() {
 
           {/* Tab 4: Fuentes */}
           {activeTab === 'fuentes' && (
-            <AgenciesView lang={lang} />
+            <AgenciesView lang={lang} readings={satelliteData.readings} onRefresh={satelliteData.refresh} isOffline={isOffline} />
           )}
 
           {/* Tab 5: Optimizador */}
@@ -338,6 +345,7 @@ export default function App() {
         <ExportReportModal
           farmProfile={farmProfile}
           alerts={alerts}
+          readings={satelliteData.readings}
           plans={rotationPlans}
           onClose={() => setShowExportModal(false)}
           lang={lang}

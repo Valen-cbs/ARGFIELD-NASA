@@ -1,0 +1,1572 @@
+{
+  "auditedAt": "2026-11-15T03:01:50.634Z",
+  "note": "Public city-centre points; not farm averages. Values must not be hardcoded into the application.",
+  "results": [
+    {
+      "city": {
+        "name": "Pergamino",
+        "lat": -33.896,
+        "lng": -60.573
+      },
+      "readings": [
+        {
+          "productId": "saocom_humedad",
+          "status": "available",
+          "value": 36,
+          "unit": "% vol.",
+          "observedAt": "2026-11-12",
+          "fetchedAt": "2026-11-15T03:01:17.321Z",
+          "source": "CONAE · SAOCOM 1",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [
+            [
+              "HUMEDAD_DE_SUELO",
+              "36"
+            ]
+          ],
+          "detail": "Humedad del Perfil de Suelo hasta 50cm 2026-11-12"
+        },
+        {
+          "productId": "saocom_percentil",
+          "status": "available",
+          "value": 27,
+          "unit": "percentil",
+          "observedAt": "2026-11-12",
+          "fetchedAt": "2026-11-15T03:01:17.380Z",
+          "source": "CONAE · SAOCOM 1",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [
+            [
+              "PERCENTIL_HUMEDAD_DE_SUELO",
+              "27"
+            ]
+          ],
+          "detail": "Rango de Percentiles de Humedad 2026-11-12"
+        },
+        {
+          "productId": "smap",
+          "status": "no_data",
+          "value": null,
+          "unit": "% vol.",
+          "observedAt": "2023-11-21",
+          "fetchedAt": "2026-11-15T03:01:17.480Z",
+          "source": "NASA SMAP vía CONAE",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [],
+          "missingReason": "provider_nodata",
+          "detail": "El proveedor respondió sin un dato válido en este punto. No confirma ausencia de riesgo."
+        },
+        {
+          "productId": "smos",
+          "status": "stale",
+          "value": 6.353,
+          "unit": "% vol.",
+          "observedAt": "2026-01-14",
+          "fetchedAt": "2026-11-15T03:01:17.542Z",
+          "source": "ESA SMOS vía CONAE",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [
+            [
+              "HUMEDAD_DE_SUELO",
+              "0.06352628022432327"
+            ]
+          ],
+          "detail": "Humedad de Suelo SMOS 2026-01-14 18:00"
+        },
+        {
+          "productId": "lluvia_imerg",
+          "status": "available",
+          "value": 4.2,
+          "unit": "mm/día",
+          "observedAt": "2026-11-13",
+          "fetchedAt": "2026-11-15T03:01:17.498Z",
+          "source": "NASA GPM IMERG vía CONAE",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [
+            [
+              "PA1D",
+              "4.199999809265137"
+            ]
+          ],
+          "detail": "PA diaria GPM-IMERG 2026-11-13"
+        },
+        {
+          "productId": "lluvia_imerg_mensual",
+          "status": "available",
+          "value": 124.615,
+          "unit": "mm/mes",
+          "observedAt": "2026-10-31",
+          "fetchedAt": "2026-11-15T03:01:17.858Z",
+          "source": "NASA GPM IMERG vía CONAE",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [
+            [
+              "PA1M",
+              "124.61499709635973"
+            ]
+          ],
+          "detail": "PA mensual GPM-IMERG 2026-10"
+        },
+        {
+          "productId": "fusarium",
+          "status": "available",
+          "value": 1,
+          "unit": "% incidencia",
+          "observedAt": "2026-11-12",
+          "fetchedAt": "2026-11-15T03:01:17.308Z",
+          "source": "Modelo CONAE · Fusariosis",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [
+            [
+              "INCIDENCIA_FUSARIOSIS_TRIGO",
+              "1"
+            ]
+          ],
+          "detail": "Incidencia de la fusariosis de la espiga de trigo 2026-11-12"
+        },
+        {
+          "productId": "sentinel2_ndvi",
+          "status": "available",
+          "value": -0.049,
+          "unit": "NDVI",
+          "observedAt": "2026-11-11T13:57:49.024000Z",
+          "fetchedAt": "2026-11-15T03:01:19.439Z",
+          "source": "ESA Copernicus · Planetary Computer",
+          "sourceUrl": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/sentinel-2-l2a/items/S2B_MSIL2A_20261111T135749_R067_T20HQH_20261111T191733",
+          "sceneId": "S2B_MSIL2A_20261111T135749_R067_T20HQH_20261111T191733",
+          "tileUrl": "/proxy/planetary/api/data/v1/item/tiles/WebMercatorQuad/{z}/{x}/{y}@1x.png?collection=sentinel-2-l2a&item=S2B_MSIL2A_20261111T135749_R067_T20HQH_20261111T191733&assets=visual",
+          "scenesChecked": 1,
+          "sceneBounds": [
+            -60.8494061,
+            -34.4099686,
+            -59.6458497,
+            -33.3943146
+          ],
+          "detail": "NDVI del píxel validado con SCL. El mapa muestra la escena en color natural."
+        },
+        {
+          "productId": "sentinel1_radar",
+          "status": "available",
+          "value": -6.144,
+          "unit": "dB γ⁰ VV",
+          "observedAt": "2026-11-13T09:14:31.550697Z",
+          "fetchedAt": "2026-11-15T03:01:18.919Z",
+          "source": "ESA Copernicus · Planetary Computer",
+          "sourceUrl": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/sentinel-1-rtc/items/S1C_IW_GRDH_1SDV_20261113T091406_20261113T091431_010316_0149A9_rtc",
+          "sceneId": "S1C_IW_GRDH_1SDV_20261113T091406_20261113T091431_010316_0149A9_rtc",
+          "tileUrl": "/proxy/planetary/api/data/v1/item/tiles/WebMercatorQuad/{z}/{x}/{y}@1x.png?collection=sentinel-1-rtc&item=S1C_IW_GRDH_1SDV_20261113T091406_20261113T091431_010316_0149A9_rtc&expression=10*log10%28vv_b1%29&rescale=-25%2C0&colormap_name=gray",
+          "scenesChecked": 1,
+          "sceneBounds": [
+            -60.90999496290245,
+            -34.664045514855346,
+            -57.8020334322381,
+            -32.55711496348872
+          ],
+          "detail": "Retrodispersión gamma nought VV con corrección de terreno. No es humedad, compactación ni un aviso de inundación por sí sola."
+        },
+        {
+          "productId": "modis_lst",
+          "status": "available",
+          "value": 23.17,
+          "unit": "°C superficie",
+          "observedAt": "2026-10-31T23:59:59.000000Z",
+          "fetchedAt": "2026-11-15T03:01:19.179Z",
+          "source": "NASA Terra/Aqua MODIS · Planetary Computer",
+          "sourceUrl": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/modis-11A2-061/items/MOD11A2.A2026297.h12v12.061.2026307171559",
+          "sceneId": "MOD11A2.A2026297.h12v12.061.2026307171559",
+          "tileUrl": "/proxy/planetary/api/data/v1/item/tiles/WebMercatorQuad/{z}/{x}/{y}@1x.png?collection=modis-11A2-061&item=MOD11A2.A2026297.h12v12.061.2026307171559&expression=LST_Day_1km_b1*0.02-273.15&rescale=-10%2C55&colormap_name=magma",
+          "scenesChecked": 1,
+          "sceneBounds": [
+            -78.324437,
+            -40,
+            -57.735027,
+            -30
+          ],
+          "detail": "MOD11A2: temperatura superficial diurna compuesta de 8 días con control de calidad. No es temperatura del aire ni anomalía respecto de lo normal."
+        }
+      ]
+    },
+    {
+      "city": {
+        "name": "Rosario",
+        "lat": -32.9468,
+        "lng": -60.6393
+      },
+      "readings": [
+        {
+          "productId": "saocom_humedad",
+          "status": "no_data",
+          "value": null,
+          "unit": "% vol.",
+          "observedAt": "2026-11-12",
+          "fetchedAt": "2026-11-15T03:01:19.508Z",
+          "source": "CONAE · SAOCOM 1",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [],
+          "missingReason": "provider_nodata",
+          "detail": "El proveedor respondió sin un dato válido en este punto. No confirma ausencia de riesgo."
+        },
+        {
+          "productId": "saocom_percentil",
+          "status": "no_data",
+          "value": null,
+          "unit": "percentil",
+          "observedAt": "2026-11-12",
+          "fetchedAt": "2026-11-15T03:01:19.500Z",
+          "source": "CONAE · SAOCOM 1",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [],
+          "missingReason": "provider_nodata",
+          "detail": "El proveedor respondió sin un dato válido en este punto. No confirma ausencia de riesgo."
+        },
+        {
+          "productId": "smap",
+          "status": "no_data",
+          "value": null,
+          "unit": "% vol.",
+          "observedAt": "2023-11-21",
+          "fetchedAt": "2026-11-15T03:01:19.529Z",
+          "source": "NASA SMAP vía CONAE",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [],
+          "missingReason": "provider_nodata",
+          "detail": "El proveedor respondió sin un dato válido en este punto. No confirma ausencia de riesgo."
+        },
+        {
+          "productId": "smos",
+          "status": "stale",
+          "value": 11.129,
+          "unit": "% vol.",
+          "observedAt": "2026-01-14",
+          "fetchedAt": "2026-11-15T03:01:19.542Z",
+          "source": "ESA SMOS vía CONAE",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [
+            [
+              "HUMEDAD_DE_SUELO",
+              "0.11128599941730499"
+            ]
+          ],
+          "detail": "Humedad de Suelo SMOS 2026-01-14 18:00"
+        },
+        {
+          "productId": "lluvia_imerg",
+          "status": "available",
+          "value": 12.1,
+          "unit": "mm/día",
+          "observedAt": "2026-11-13",
+          "fetchedAt": "2026-11-15T03:01:19.533Z",
+          "source": "NASA GPM IMERG vía CONAE",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [
+            [
+              "PA1D",
+              "12.100000381469727"
+            ]
+          ],
+          "detail": "PA diaria GPM-IMERG 2026-11-13"
+        },
+        {
+          "productId": "lluvia_imerg_mensual",
+          "status": "available",
+          "value": 101.015,
+          "unit": "mm/mes",
+          "observedAt": "2026-10-31",
+          "fetchedAt": "2026-11-15T03:01:19.513Z",
+          "source": "NASA GPM IMERG vía CONAE",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [
+            [
+              "PA1M",
+              "101.0149973295629"
+            ]
+          ],
+          "detail": "PA mensual GPM-IMERG 2026-10"
+        },
+        {
+          "productId": "fusarium",
+          "status": "available",
+          "value": 0,
+          "unit": "% incidencia",
+          "observedAt": "2026-11-12",
+          "fetchedAt": "2026-11-15T03:01:19.504Z",
+          "source": "Modelo CONAE · Fusariosis",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [
+            [
+              "INCIDENCIA_FUSARIOSIS_TRIGO",
+              "0"
+            ]
+          ],
+          "detail": "Incidencia de la fusariosis de la espiga de trigo 2026-11-12"
+        },
+        {
+          "productId": "sentinel2_ndvi",
+          "status": "available",
+          "value": 0.085,
+          "unit": "NDVI",
+          "observedAt": "2026-11-11T13:57:49.024000Z",
+          "fetchedAt": "2026-11-15T03:01:21.093Z",
+          "source": "ESA Copernicus · Planetary Computer",
+          "sourceUrl": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/sentinel-2-l2a/items/S2B_MSIL2A_20261111T135749_R067_T20HQJ_20261111T191733",
+          "sceneId": "S2B_MSIL2A_20261111T135749_R067_T20HQJ_20261111T191733",
+          "tileUrl": "/proxy/planetary/api/data/v1/item/tiles/WebMercatorQuad/{z}/{x}/{y}@1x.png?collection=sentinel-2-l2a&item=S2B_MSIL2A_20261111T135749_R067_T20HQJ_20261111T191733&assets=visual",
+          "scenesChecked": 1,
+          "sceneBounds": [
+            -60.8711412,
+            -33.5090765,
+            -59.6665333,
+            -32.4941417
+          ],
+          "detail": "NDVI del píxel validado con SCL. El mapa muestra la escena en color natural."
+        },
+        {
+          "productId": "sentinel1_radar",
+          "status": "no_data",
+          "value": null,
+          "unit": "dB γ⁰ VV",
+          "observedAt": "2026-11-12T09:22:57.729919Z",
+          "fetchedAt": "2026-11-15T03:01:23.983Z",
+          "source": "ESA Copernicus · Planetary Computer",
+          "sourceUrl": "https://planetarycomputer.microsoft.com/dataset/sentinel-1-rtc",
+          "scenesChecked": 8,
+          "missingReason": "quality",
+          "sceneId": "S1D_IW_GRDH_1SDV_20261112T092232_20261112T092257_005432_00A5EA_rtc",
+          "tileUrl": "/proxy/planetary/api/data/v1/item/tiles/WebMercatorQuad/{z}/{x}/{y}@1x.png?collection=sentinel-1-rtc&item=S1D_IW_GRDH_1SDV_20261112T092232_20261112T092257_005432_00A5EA_rtc&expression=10*log10%28vv_b1%29&rescale=-25%2C0&colormap_name=gray",
+          "sceneBounds": [
+            -62.952898431955354,
+            -34.62392647515771,
+            -59.84511094501,
+            -32.51710563837785
+          ],
+          "detail": "Ningún píxel superó el control de calidad en 8 escenas revisadas en este punto (búsqueda de hasta 90 días)."
+        },
+        {
+          "productId": "modis_lst",
+          "status": "available",
+          "value": 20.65,
+          "unit": "°C superficie",
+          "observedAt": "2026-10-31T23:59:59.000000Z",
+          "fetchedAt": "2026-11-15T03:01:20.825Z",
+          "source": "NASA Terra/Aqua MODIS · Planetary Computer",
+          "sourceUrl": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/modis-11A2-061/items/MOD11A2.A2026297.h12v12.061.2026307171559",
+          "sceneId": "MOD11A2.A2026297.h12v12.061.2026307171559",
+          "tileUrl": "/proxy/planetary/api/data/v1/item/tiles/WebMercatorQuad/{z}/{x}/{y}@1x.png?collection=modis-11A2-061&item=MOD11A2.A2026297.h12v12.061.2026307171559&expression=LST_Day_1km_b1*0.02-273.15&rescale=-10%2C55&colormap_name=magma",
+          "scenesChecked": 1,
+          "sceneBounds": [
+            -78.324437,
+            -40,
+            -57.735027,
+            -30
+          ],
+          "detail": "MOD11A2: temperatura superficial diurna compuesta de 8 días con control de calidad. No es temperatura del aire ni anomalía respecto de lo normal."
+        }
+      ]
+    },
+    {
+      "city": {
+        "name": "Córdoba",
+        "lat": -31.4201,
+        "lng": -64.1888
+      },
+      "readings": [
+        {
+          "productId": "saocom_humedad",
+          "status": "no_data",
+          "value": null,
+          "unit": "% vol.",
+          "observedAt": "2026-11-12",
+          "fetchedAt": "2026-11-15T03:01:24.102Z",
+          "source": "CONAE · SAOCOM 1",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [],
+          "missingReason": "provider_nodata",
+          "detail": "El proveedor respondió sin un dato válido en este punto. No confirma ausencia de riesgo."
+        },
+        {
+          "productId": "saocom_percentil",
+          "status": "no_data",
+          "value": null,
+          "unit": "percentil",
+          "observedAt": "2026-11-12",
+          "fetchedAt": "2026-11-15T03:01:24.096Z",
+          "source": "CONAE · SAOCOM 1",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [],
+          "missingReason": "provider_nodata",
+          "detail": "El proveedor respondió sin un dato válido en este punto. No confirma ausencia de riesgo."
+        },
+        {
+          "productId": "smap",
+          "status": "stale",
+          "value": 14.028,
+          "unit": "% vol.",
+          "observedAt": "2023-11-21",
+          "fetchedAt": "2026-11-15T03:01:24.129Z",
+          "source": "NASA SMAP vía CONAE",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [
+            [
+              "HUMEDAD_DE_SUELO",
+              "0.14027976989746094"
+            ]
+          ],
+          "detail": "SMAP Humedad del Suelo 2023-11-21 06:00"
+        },
+        {
+          "productId": "smos",
+          "status": "stale",
+          "value": 12.117,
+          "unit": "% vol.",
+          "observedAt": "2026-01-14",
+          "fetchedAt": "2026-11-15T03:01:24.125Z",
+          "source": "ESA SMOS vía CONAE",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [
+            [
+              "HUMEDAD_DE_SUELO",
+              "0.1211734265089035"
+            ]
+          ],
+          "detail": "Humedad de Suelo SMOS 2026-01-14 18:00"
+        },
+        {
+          "productId": "lluvia_imerg",
+          "status": "available",
+          "value": 51.7,
+          "unit": "mm/día",
+          "observedAt": "2026-11-13",
+          "fetchedAt": "2026-11-15T03:01:24.134Z",
+          "source": "NASA GPM IMERG vía CONAE",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [
+            [
+              "PA1D",
+              "51.70000076293945"
+            ]
+          ],
+          "detail": "PA diaria GPM-IMERG 2026-11-13"
+        },
+        {
+          "productId": "lluvia_imerg_mensual",
+          "status": "available",
+          "value": 46.045,
+          "unit": "mm/mes",
+          "observedAt": "2026-10-31",
+          "fetchedAt": "2026-11-15T03:01:24.094Z",
+          "source": "NASA GPM IMERG vía CONAE",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [
+            [
+              "PA1M",
+              "46.044999229721725"
+            ]
+          ],
+          "detail": "PA mensual GPM-IMERG 2026-10"
+        },
+        {
+          "productId": "fusarium",
+          "status": "no_data",
+          "value": null,
+          "unit": "% incidencia",
+          "observedAt": "2026-11-12",
+          "fetchedAt": "2026-11-15T03:01:24.113Z",
+          "source": "Modelo CONAE · Fusariosis",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [],
+          "missingReason": "provider_nodata",
+          "detail": "El proveedor respondió sin un dato válido en este punto. No confirma ausencia de riesgo."
+        },
+        {
+          "productId": "sentinel2_ndvi",
+          "status": "available",
+          "value": 0.034,
+          "unit": "NDVI",
+          "observedAt": "2026-11-12T14:17:51.025000Z",
+          "fetchedAt": "2026-11-15T03:01:27.928Z",
+          "source": "ESA Copernicus · Planetary Computer",
+          "sourceUrl": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/sentinel-2-l2a/items/S2C_MSIL2A_20261112T141751_R010_T20JLL_20261112T173510",
+          "sceneId": "S2C_MSIL2A_20261112T141751_R010_T20JLL_20261112T173510",
+          "tileUrl": "/proxy/planetary/api/data/v1/item/tiles/WebMercatorQuad/{z}/{x}/{y}@1x.png?collection=sentinel-2-l2a&item=S2C_MSIL2A_20261112T141751_R010_T20JLL_20261112T173510&assets=visual",
+          "scenesChecked": 3,
+          "sceneBounds": [
+            -65.1104751,
+            -31.7181947,
+            -63.9421651,
+            -30.7157226
+          ],
+          "detail": "NDVI del píxel validado con SCL. El mapa muestra la escena en color natural."
+        },
+        {
+          "productId": "sentinel1_radar",
+          "status": "available",
+          "value": -12.478,
+          "unit": "dB γ⁰ VV",
+          "observedAt": "2026-11-04T09:38:39.211994Z",
+          "fetchedAt": "2026-11-15T03:01:25.050Z",
+          "source": "ESA Copernicus · Planetary Computer",
+          "sourceUrl": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/sentinel-1-rtc/items/S1C_IW_GRDH_1SDV_20261104T093804_20261104T093839_010185_014557_rtc",
+          "sceneId": "S1C_IW_GRDH_1SDV_20261104T093804_20261104T093839_010185_014557_rtc",
+          "tileUrl": "/proxy/planetary/api/data/v1/item/tiles/WebMercatorQuad/{z}/{x}/{y}@1x.png?collection=sentinel-1-rtc&item=S1C_IW_GRDH_1SDV_20261104T093804_20261104T093839_010185_014557_rtc&expression=10*log10%28vv_b1%29&rescale=-25%2C0&colormap_name=gray",
+          "scenesChecked": 1,
+          "sceneBounds": [
+            -66.37640000140256,
+            -32.52334032171308,
+            -63.154362926970215,
+            -29.94889241509806
+          ],
+          "detail": "Retrodispersión gamma nought VV con corrección de terreno. No es humedad, compactación ni un aviso de inundación por sí sola."
+        },
+        {
+          "productId": "modis_lst",
+          "status": "available",
+          "value": 26.51,
+          "unit": "°C superficie",
+          "observedAt": "2026-10-31T23:59:59.000000Z",
+          "fetchedAt": "2026-11-15T03:01:25.656Z",
+          "source": "NASA Terra/Aqua MODIS · Planetary Computer",
+          "sourceUrl": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/modis-11A2-061/items/MOD11A2.A2026297.h12v12.061.2026307171559",
+          "sceneId": "MOD11A2.A2026297.h12v12.061.2026307171559",
+          "tileUrl": "/proxy/planetary/api/data/v1/item/tiles/WebMercatorQuad/{z}/{x}/{y}@1x.png?collection=modis-11A2-061&item=MOD11A2.A2026297.h12v12.061.2026307171559&expression=LST_Day_1km_b1*0.02-273.15&rescale=-10%2C55&colormap_name=magma",
+          "scenesChecked": 1,
+          "sceneBounds": [
+            -78.324437,
+            -40,
+            -57.735027,
+            -30
+          ],
+          "detail": "MOD11A2: temperatura superficial diurna compuesta de 8 días con control de calidad. No es temperatura del aire ni anomalía respecto de lo normal."
+        }
+      ]
+    },
+    {
+      "city": {
+        "name": "Resistencia",
+        "lat": -27.4514,
+        "lng": -58.9867
+      },
+      "readings": [
+        {
+          "productId": "saocom_humedad",
+          "status": "no_data",
+          "value": null,
+          "unit": "% vol.",
+          "observedAt": "2026-11-12",
+          "fetchedAt": "2026-11-15T03:01:27.929Z",
+          "source": "CONAE · SAOCOM 1",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "missingReason": "outside_coverage",
+          "detail": "El punto está fuera de la extensión geográfica publicada para este producto. No se reemplaza por otra localidad."
+        },
+        {
+          "productId": "saocom_percentil",
+          "status": "no_data",
+          "value": null,
+          "unit": "percentil",
+          "observedAt": "2026-11-12",
+          "fetchedAt": "2026-11-15T03:01:27.929Z",
+          "source": "CONAE · SAOCOM 1",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "missingReason": "outside_coverage",
+          "detail": "El punto está fuera de la extensión geográfica publicada para este producto. No se reemplaza por otra localidad."
+        },
+        {
+          "productId": "smap",
+          "status": "no_data",
+          "value": null,
+          "unit": "% vol.",
+          "observedAt": "2023-11-21",
+          "fetchedAt": "2026-11-15T03:01:27.988Z",
+          "source": "NASA SMAP vía CONAE",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [],
+          "missingReason": "provider_nodata",
+          "detail": "El proveedor respondió sin un dato válido en este punto. No confirma ausencia de riesgo."
+        },
+        {
+          "productId": "smos",
+          "status": "stale",
+          "value": 33.659,
+          "unit": "% vol.",
+          "observedAt": "2026-01-14",
+          "fetchedAt": "2026-11-15T03:01:27.997Z",
+          "source": "ESA SMOS vía CONAE",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [
+            [
+              "HUMEDAD_DE_SUELO",
+              "0.3365899920463562"
+            ]
+          ],
+          "detail": "Humedad de Suelo SMOS 2026-01-14 18:00"
+        },
+        {
+          "productId": "lluvia_imerg",
+          "status": "available",
+          "value": 0,
+          "unit": "mm/día",
+          "observedAt": "2026-11-13",
+          "fetchedAt": "2026-11-15T03:01:28.011Z",
+          "source": "NASA GPM IMERG vía CONAE",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [
+            [
+              "PA1D",
+              "0"
+            ]
+          ],
+          "detail": "PA diaria GPM-IMERG 2026-11-13"
+        },
+        {
+          "productId": "lluvia_imerg_mensual",
+          "status": "available",
+          "value": 98.715,
+          "unit": "mm/mes",
+          "observedAt": "2026-10-31",
+          "fetchedAt": "2026-11-15T03:01:28.017Z",
+          "source": "NASA GPM IMERG vía CONAE",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [
+            [
+              "PA1M",
+              "98.71499734465033"
+            ]
+          ],
+          "detail": "PA mensual GPM-IMERG 2026-10"
+        },
+        {
+          "productId": "fusarium",
+          "status": "no_data",
+          "value": null,
+          "unit": "% incidencia",
+          "observedAt": "2026-11-12",
+          "fetchedAt": "2026-11-15T03:01:27.929Z",
+          "source": "Modelo CONAE · Fusariosis",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "missingReason": "outside_coverage",
+          "detail": "El punto está fuera de la extensión geográfica publicada para este producto. No se reemplaza por otra localidad."
+        },
+        {
+          "productId": "sentinel2_ndvi",
+          "status": "available",
+          "value": 0.25,
+          "unit": "NDVI",
+          "observedAt": "2026-11-11T13:57:49.024000Z",
+          "fetchedAt": "2026-11-15T03:01:29.682Z",
+          "source": "ESA Copernicus · Planetary Computer",
+          "sourceUrl": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/sentinel-2-l2a/items/S2B_MSIL2A_20261111T135749_R067_T21JUK_20261111T191733",
+          "sceneId": "S2B_MSIL2A_20261111T135749_R067_T21JUK_20261111T191733",
+          "tileUrl": "/proxy/planetary/api/data/v1/item/tiles/WebMercatorQuad/{z}/{x}/{y}@1x.png?collection=sentinel-2-l2a&item=S2B_MSIL2A_20261111T135749_R067_T21JUK_20261111T191733&assets=visual",
+          "scenesChecked": 1,
+          "sceneBounds": [
+            -59.0357383,
+            -28.1084551,
+            -57.9100766,
+            -27.1079795
+          ],
+          "detail": "NDVI del píxel validado con SCL. El mapa muestra la escena en color natural."
+        },
+        {
+          "productId": "sentinel1_radar",
+          "status": "available",
+          "value": -10.024,
+          "unit": "dB γ⁰ VV",
+          "observedAt": "2026-11-06T09:20:52.140680Z",
+          "fetchedAt": "2026-11-15T03:01:29.036Z",
+          "source": "ESA Copernicus · Planetary Computer",
+          "sourceUrl": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/sentinel-1-rtc/items/S1C_IW_GRDH_1SDV_20261106T092027_20261106T092052_010214_014658_rtc",
+          "sceneId": "S1C_IW_GRDH_1SDV_20261106T092027_20261106T092052_010214_014658_rtc",
+          "tileUrl": "/proxy/planetary/api/data/v1/item/tiles/WebMercatorQuad/{z}/{x}/{y}@1x.png?collection=sentinel-1-rtc&item=S1C_IW_GRDH_1SDV_20261106T092027_20261106T092052_010214_014658_rtc&expression=10*log10%28vv_b1%29&rescale=-25%2C0&colormap_name=gray",
+          "scenesChecked": 1,
+          "sceneBounds": [
+            -60.7196597944757,
+            -27.89551964789351,
+            -57.831228640165115,
+            -25.822922883487514
+          ],
+          "detail": "Retrodispersión gamma nought VV con corrección de terreno. No es humedad, compactación ni un aviso de inundación por sí sola."
+        },
+        {
+          "productId": "modis_lst",
+          "status": "available",
+          "value": 28.81,
+          "unit": "°C superficie",
+          "observedAt": "2026-10-31T23:59:59.000000Z",
+          "fetchedAt": "2026-11-15T03:01:29.518Z",
+          "source": "NASA Terra/Aqua MODIS · Planetary Computer",
+          "sourceUrl": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/modis-11A2-061/items/MYD11A2.A2026297.h12v11.061.2026307171701",
+          "sceneId": "MYD11A2.A2026297.h12v11.061.2026307171701",
+          "tileUrl": "/proxy/planetary/api/data/v1/item/tiles/WebMercatorQuad/{z}/{x}/{y}@1x.png?collection=modis-11A2-061&item=MYD11A2.A2026297.h12v11.061.2026307171701&expression=LST_Day_1km_b1*0.02-273.15&rescale=-10%2C55&colormap_name=magma",
+          "scenesChecked": 1,
+          "sceneBounds": [
+            -69.282032,
+            -30,
+            -53.208889,
+            -20
+          ],
+          "detail": "MOD11A2: temperatura superficial diurna compuesta de 8 días con control de calidad. No es temperatura del aire ni anomalía respecto de lo normal."
+        }
+      ]
+    },
+    {
+      "city": {
+        "name": "Salta",
+        "lat": -24.7821,
+        "lng": -65.4232
+      },
+      "readings": [
+        {
+          "productId": "saocom_humedad",
+          "status": "no_data",
+          "value": null,
+          "unit": "% vol.",
+          "observedAt": "2026-11-12",
+          "fetchedAt": "2026-11-15T03:01:29.683Z",
+          "source": "CONAE · SAOCOM 1",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "missingReason": "outside_coverage",
+          "detail": "El punto está fuera de la extensión geográfica publicada para este producto. No se reemplaza por otra localidad."
+        },
+        {
+          "productId": "saocom_percentil",
+          "status": "no_data",
+          "value": null,
+          "unit": "percentil",
+          "observedAt": "2026-11-12",
+          "fetchedAt": "2026-11-15T03:01:29.683Z",
+          "source": "CONAE · SAOCOM 1",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "missingReason": "outside_coverage",
+          "detail": "El punto está fuera de la extensión geográfica publicada para este producto. No se reemplaza por otra localidad."
+        },
+        {
+          "productId": "smap",
+          "status": "stale",
+          "value": 12.993,
+          "unit": "% vol.",
+          "observedAt": "2023-11-21",
+          "fetchedAt": "2026-11-15T03:01:29.749Z",
+          "source": "NASA SMAP vía CONAE",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [
+            [
+              "HUMEDAD_DE_SUELO",
+              "0.12993380427360535"
+            ]
+          ],
+          "detail": "SMAP Humedad del Suelo 2023-11-21 06:00"
+        },
+        {
+          "productId": "smos",
+          "status": "stale",
+          "value": 12.182,
+          "unit": "% vol.",
+          "observedAt": "2026-01-14",
+          "fetchedAt": "2026-11-15T03:01:29.740Z",
+          "source": "ESA SMOS vía CONAE",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [
+            [
+              "HUMEDAD_DE_SUELO",
+              "0.12181879580020905"
+            ]
+          ],
+          "detail": "Humedad de Suelo SMOS 2026-01-14 18:00"
+        },
+        {
+          "productId": "lluvia_imerg",
+          "status": "available",
+          "value": 0,
+          "unit": "mm/día",
+          "observedAt": "2026-11-13",
+          "fetchedAt": "2026-11-15T03:01:29.756Z",
+          "source": "NASA GPM IMERG vía CONAE",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [
+            [
+              "PA1D",
+              "0"
+            ]
+          ],
+          "detail": "PA diaria GPM-IMERG 2026-11-13"
+        },
+        {
+          "productId": "lluvia_imerg_mensual",
+          "status": "available",
+          "value": 11.395,
+          "unit": "mm/mes",
+          "observedAt": "2026-10-31",
+          "fetchedAt": "2026-11-15T03:01:29.750Z",
+          "source": "NASA GPM IMERG vía CONAE",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [
+            [
+              "PA1M",
+              "11.39499969035387"
+            ]
+          ],
+          "detail": "PA mensual GPM-IMERG 2026-10"
+        },
+        {
+          "productId": "fusarium",
+          "status": "no_data",
+          "value": null,
+          "unit": "% incidencia",
+          "observedAt": "2026-11-12",
+          "fetchedAt": "2026-11-15T03:01:29.683Z",
+          "source": "Modelo CONAE · Fusariosis",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "missingReason": "outside_coverage",
+          "detail": "El punto está fuera de la extensión geográfica publicada para este producto. No se reemplaza por otra localidad."
+        },
+        {
+          "productId": "sentinel2_ndvi",
+          "status": "available",
+          "value": 0.194,
+          "unit": "NDVI",
+          "observedAt": "2026-11-10T14:27:19.024000Z",
+          "fetchedAt": "2026-11-15T03:01:31.057Z",
+          "source": "ESA Copernicus · Planetary Computer",
+          "sourceUrl": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/sentinel-2-l2a/items/S2B_MSIL2A_20261110T142719_R053_T20JKT_20261110T180922",
+          "sceneId": "S2B_MSIL2A_20261110T142719_R053_T20JKT_20261110T180922",
+          "tileUrl": "/proxy/planetary/api/data/v1/item/tiles/WebMercatorQuad/{z}/{x}/{y}@1x.png?collection=sentinel-2-l2a&item=S2B_MSIL2A_20261110T142719_R053_T20JKT_20261110T180922&assets=visual",
+          "scenesChecked": 1,
+          "sceneBounds": [
+            -65.9814066,
+            -25.3908903,
+            -64.8758481,
+            -24.3845351
+          ],
+          "detail": "NDVI del píxel validado con SCL. El mapa muestra la escena en color natural."
+        },
+        {
+          "productId": "sentinel1_radar",
+          "status": "available",
+          "value": -11.207,
+          "unit": "dB γ⁰ VV",
+          "observedAt": "2026-11-13T22:57:09.574081Z",
+          "fetchedAt": "2026-11-15T03:01:31.056Z",
+          "source": "ESA Copernicus · Planetary Computer",
+          "sourceUrl": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/sentinel-1-rtc/items/S1C_IW_GRDH_1SDV_20261113T225644_20261113T225709_010324_0149F4_rtc",
+          "sceneId": "S1C_IW_GRDH_1SDV_20261113T225644_20261113T225709_010324_0149F4_rtc",
+          "tileUrl": "/proxy/planetary/api/data/v1/item/tiles/WebMercatorQuad/{z}/{x}/{y}@1x.png?collection=sentinel-1-rtc&item=S1C_IW_GRDH_1SDV_20261113T225644_20261113T225709_010324_0149F4_rtc&expression=10*log10%28vv_b1%29&rescale=-25%2C0&colormap_name=gray",
+          "scenesChecked": 1,
+          "sceneBounds": [
+            -66.77766771486374,
+            -25.951838052415013,
+            -64.01129448243023,
+            -23.896330444653543
+          ],
+          "detail": "Retrodispersión gamma nought VV con corrección de terreno. No es humedad, compactación ni un aviso de inundación por sí sola."
+        },
+        {
+          "productId": "modis_lst",
+          "status": "stale",
+          "value": 24.35,
+          "unit": "°C superficie",
+          "observedAt": "2026-10-07T23:59:59.000000Z",
+          "fetchedAt": "2026-11-15T03:01:33.782Z",
+          "source": "NASA Terra/Aqua MODIS · Planetary Computer",
+          "sourceUrl": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/modis-11A2-061/items/MOD11A2.A2026273.h12v11.061.2026286144202",
+          "sceneId": "MOD11A2.A2026273.h12v11.061.2026286144202",
+          "tileUrl": "/proxy/planetary/api/data/v1/item/tiles/WebMercatorQuad/{z}/{x}/{y}@1x.png?collection=modis-11A2-061&item=MOD11A2.A2026273.h12v11.061.2026286144202&expression=LST_Day_1km_b1*0.02-273.15&rescale=-10%2C55&colormap_name=magma",
+          "scenesChecked": 5,
+          "sceneBounds": [
+            -69.282032,
+            -30,
+            -53.208889,
+            -20
+          ],
+          "detail": "MOD11A2: temperatura superficial diurna compuesta de 8 días con control de calidad. No es temperatura del aire ni anomalía respecto de lo normal."
+        }
+      ]
+    },
+    {
+      "city": {
+        "name": "Mendoza",
+        "lat": -32.8895,
+        "lng": -68.8458
+      },
+      "readings": [
+        {
+          "productId": "saocom_humedad",
+          "status": "no_data",
+          "value": null,
+          "unit": "% vol.",
+          "observedAt": "2026-11-12",
+          "fetchedAt": "2026-11-15T03:01:33.783Z",
+          "source": "CONAE · SAOCOM 1",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "missingReason": "outside_coverage",
+          "detail": "El punto está fuera de la extensión geográfica publicada para este producto. No se reemplaza por otra localidad."
+        },
+        {
+          "productId": "saocom_percentil",
+          "status": "no_data",
+          "value": null,
+          "unit": "percentil",
+          "observedAt": "2026-11-12",
+          "fetchedAt": "2026-11-15T03:01:33.783Z",
+          "source": "CONAE · SAOCOM 1",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "missingReason": "outside_coverage",
+          "detail": "El punto está fuera de la extensión geográfica publicada para este producto. No se reemplaza por otra localidad."
+        },
+        {
+          "productId": "smap",
+          "status": "stale",
+          "value": 11.995,
+          "unit": "% vol.",
+          "observedAt": "2023-11-21",
+          "fetchedAt": "2026-11-15T03:01:33.902Z",
+          "source": "NASA SMAP vía CONAE",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [
+            [
+              "HUMEDAD_DE_SUELO",
+              "0.11994586139917374"
+            ]
+          ],
+          "detail": "SMAP Humedad del Suelo 2023-11-21 06:00"
+        },
+        {
+          "productId": "smos",
+          "status": "stale",
+          "value": 14.835,
+          "unit": "% vol.",
+          "observedAt": "2026-01-14",
+          "fetchedAt": "2026-11-15T03:01:33.882Z",
+          "source": "ESA SMOS vía CONAE",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [
+            [
+              "HUMEDAD_DE_SUELO",
+              "0.14834804832935333"
+            ]
+          ],
+          "detail": "Humedad de Suelo SMOS 2026-01-14 18:00"
+        },
+        {
+          "productId": "lluvia_imerg",
+          "status": "available",
+          "value": 0,
+          "unit": "mm/día",
+          "observedAt": "2026-11-13",
+          "fetchedAt": "2026-11-15T03:01:33.888Z",
+          "source": "NASA GPM IMERG vía CONAE",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [
+            [
+              "PA1D",
+              "0"
+            ]
+          ],
+          "detail": "PA diaria GPM-IMERG 2026-11-13"
+        },
+        {
+          "productId": "lluvia_imerg_mensual",
+          "status": "available",
+          "value": 37.3,
+          "unit": "mm/mes",
+          "observedAt": "2026-10-31",
+          "fetchedAt": "2026-11-15T03:01:33.903Z",
+          "source": "NASA GPM IMERG vía CONAE",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [
+            [
+              "PA1M",
+              "37.29999907780439"
+            ]
+          ],
+          "detail": "PA mensual GPM-IMERG 2026-10"
+        },
+        {
+          "productId": "fusarium",
+          "status": "no_data",
+          "value": null,
+          "unit": "% incidencia",
+          "observedAt": "2026-11-12",
+          "fetchedAt": "2026-11-15T03:01:33.785Z",
+          "source": "Modelo CONAE · Fusariosis",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "missingReason": "outside_coverage",
+          "detail": "El punto está fuera de la extensión geográfica publicada para este producto. No se reemplaza por otra localidad."
+        },
+        {
+          "productId": "sentinel2_ndvi",
+          "status": "available",
+          "value": 0.192,
+          "unit": "NDVI",
+          "observedAt": "2026-11-07T14:28:01.024000Z",
+          "fetchedAt": "2026-11-15T03:01:35.843Z",
+          "source": "ESA Copernicus · Planetary Computer",
+          "sourceUrl": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/sentinel-2-l2a/items/S2A_MSIL2A_20261107T142801_R053_T19HED_20261107T224009",
+          "sceneId": "S2A_MSIL2A_20261107T142801_R053_T19HED_20261107T224009",
+          "tileUrl": "/proxy/planetary/api/data/v1/item/tiles/WebMercatorQuad/{z}/{x}/{y}@1x.png?collection=sentinel-2-l2a&item=S2A_MSIL2A_20261107T142801_R053_T19HED_20261107T224009&assets=visual",
+          "scenesChecked": 2,
+          "sceneBounds": [
+            -69.0002154,
+            -33.5277875,
+            -67.817845,
+            -32.5319218
+          ],
+          "detail": "NDVI del píxel validado con SCL. El mapa muestra la escena en color natural."
+        },
+        {
+          "productId": "sentinel1_radar",
+          "status": "available",
+          "value": -4.899,
+          "unit": "dB γ⁰ VV",
+          "observedAt": "2026-11-14T09:55:18.252677Z",
+          "fetchedAt": "2026-11-15T03:01:35.074Z",
+          "source": "ESA Copernicus · Planetary Computer",
+          "sourceUrl": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/sentinel-1-rtc/items/S1C_IW_GRDH_1SDV_20261114T095453_20261114T095518_010331_014A32_rtc",
+          "sceneId": "S1C_IW_GRDH_1SDV_20261114T095453_20261114T095518_010331_014A32_rtc",
+          "tileUrl": "/proxy/planetary/api/data/v1/item/tiles/WebMercatorQuad/{z}/{x}/{y}@1x.png?collection=sentinel-1-rtc&item=S1C_IW_GRDH_1SDV_20261114T095453_20261114T095518_010331_014A32_rtc&expression=10*log10%28vv_b1%29&rescale=-25%2C0&colormap_name=gray",
+          "scenesChecked": 1,
+          "sceneBounds": [
+            -70.73962704020724,
+            -33.361754422677706,
+            -67.6844850232904,
+            -31.253912664271645
+          ],
+          "detail": "Retrodispersión gamma nought VV con corrección de terreno. No es humedad, compactación ni un aviso de inundación por sí sola."
+        },
+        {
+          "productId": "modis_lst",
+          "status": "stale",
+          "value": 26.59,
+          "unit": "°C superficie",
+          "observedAt": "2026-09-29T23:59:59.000000Z",
+          "fetchedAt": "2026-11-15T03:01:39.175Z",
+          "source": "NASA Terra/Aqua MODIS · Planetary Computer",
+          "sourceUrl": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/modis-11A2-061/items/MYD11A2.A2026265.h12v12.061.2026278024008",
+          "sceneId": "MYD11A2.A2026265.h12v12.061.2026278024008",
+          "tileUrl": "/proxy/planetary/api/data/v1/item/tiles/WebMercatorQuad/{z}/{x}/{y}@1x.png?collection=modis-11A2-061&item=MYD11A2.A2026265.h12v12.061.2026278024008&expression=LST_Day_1km_b1*0.02-273.15&rescale=-10%2C55&colormap_name=magma",
+          "scenesChecked": 6,
+          "sceneBounds": [
+            -78.324437,
+            -40,
+            -57.735027,
+            -30
+          ],
+          "detail": "MOD11A2: temperatura superficial diurna compuesta de 8 días con control de calidad. No es temperatura del aire ni anomalía respecto de lo normal."
+        }
+      ]
+    },
+    {
+      "city": {
+        "name": "Neuquén",
+        "lat": -38.9516,
+        "lng": -68.0591
+      },
+      "readings": [
+        {
+          "productId": "saocom_humedad",
+          "status": "no_data",
+          "value": null,
+          "unit": "% vol.",
+          "observedAt": "2026-11-12",
+          "fetchedAt": "2026-11-15T03:01:39.726Z",
+          "source": "CONAE · SAOCOM 1",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [],
+          "missingReason": "provider_nodata",
+          "detail": "El proveedor respondió sin un dato válido en este punto. No confirma ausencia de riesgo."
+        },
+        {
+          "productId": "saocom_percentil",
+          "status": "no_data",
+          "value": null,
+          "unit": "percentil",
+          "observedAt": "2026-11-12",
+          "fetchedAt": "2026-11-15T03:01:39.865Z",
+          "source": "CONAE · SAOCOM 1",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [],
+          "missingReason": "provider_nodata",
+          "detail": "El proveedor respondió sin un dato válido en este punto. No confirma ausencia de riesgo."
+        },
+        {
+          "productId": "smap",
+          "status": "stale",
+          "value": 9.848,
+          "unit": "% vol.",
+          "observedAt": "2023-11-21",
+          "fetchedAt": "2026-11-15T03:01:39.949Z",
+          "source": "NASA SMAP vía CONAE",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [
+            [
+              "HUMEDAD_DE_SUELO",
+              "0.09847752004861832"
+            ]
+          ],
+          "detail": "SMAP Humedad del Suelo 2023-11-21 06:00"
+        },
+        {
+          "productId": "smos",
+          "status": "stale",
+          "value": 4.285,
+          "unit": "% vol.",
+          "observedAt": "2026-01-14",
+          "fetchedAt": "2026-11-15T03:01:39.726Z",
+          "source": "ESA SMOS vía CONAE",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [
+            [
+              "HUMEDAD_DE_SUELO",
+              "0.04285288602113724"
+            ]
+          ],
+          "detail": "Humedad de Suelo SMOS 2026-01-14 18:00"
+        },
+        {
+          "productId": "lluvia_imerg",
+          "status": "available",
+          "value": 0,
+          "unit": "mm/día",
+          "observedAt": "2026-11-13",
+          "fetchedAt": "2026-11-15T03:01:39.931Z",
+          "source": "NASA GPM IMERG vía CONAE",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [
+            [
+              "PA1D",
+              "0"
+            ]
+          ],
+          "detail": "PA diaria GPM-IMERG 2026-11-13"
+        },
+        {
+          "productId": "lluvia_imerg_mensual",
+          "status": "available",
+          "value": 41.755,
+          "unit": "mm/mes",
+          "observedAt": "2026-10-31",
+          "fetchedAt": "2026-11-15T03:01:39.941Z",
+          "source": "NASA GPM IMERG vía CONAE",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [
+            [
+              "PA1M",
+              "41.754998988471925"
+            ]
+          ],
+          "detail": "PA mensual GPM-IMERG 2026-10"
+        },
+        {
+          "productId": "fusarium",
+          "status": "available",
+          "value": 0,
+          "unit": "% incidencia",
+          "observedAt": "2026-11-12",
+          "fetchedAt": "2026-11-15T03:01:39.865Z",
+          "source": "Modelo CONAE · Fusariosis",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [
+            [
+              "INCIDENCIA_FUSARIOSIS_TRIGO",
+              "0"
+            ]
+          ],
+          "detail": "Incidencia de la fusariosis de la espiga de trigo 2026-11-12"
+        },
+        {
+          "productId": "sentinel2_ndvi",
+          "status": "available",
+          "value": 0.243,
+          "unit": "NDVI",
+          "observedAt": "2026-11-07T14:17:59.024000Z",
+          "fetchedAt": "2026-11-15T03:01:41.470Z",
+          "source": "ESA Copernicus · Planetary Computer",
+          "sourceUrl": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/sentinel-2-l2a/items/S2B_MSIL2A_20261107T141759_R010_T19HES_20261107T193656",
+          "sceneId": "S2B_MSIL2A_20261107T141759_R010_T19HES_20261107T193656",
+          "tileUrl": "/proxy/planetary/api/data/v1/item/tiles/WebMercatorQuad/{z}/{x}/{y}@1x.png?collection=sentinel-2-l2a&item=S2B_MSIL2A_20261107T141759_R010_T19HES_20261107T193656&assets=visual",
+          "scenesChecked": 2,
+          "sceneBounds": [
+            -69.0002338,
+            -39.8378463,
+            -67.7170942,
+            -38.8416081
+          ],
+          "detail": "NDVI del píxel validado con SCL. El mapa muestra la escena en color natural."
+        },
+        {
+          "productId": "sentinel1_radar",
+          "status": "available",
+          "value": -4.479,
+          "unit": "dB γ⁰ VV",
+          "observedAt": "2026-11-03T23:26:28.738097Z",
+          "fetchedAt": "2026-11-15T03:01:40.274Z",
+          "source": "ESA Copernicus · Planetary Computer",
+          "sourceUrl": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/sentinel-1-rtc/items/S1D_IW_GRDH_1SDV_20261103T232603_20261103T232628_005309_00A1B4_rtc",
+          "sceneId": "S1D_IW_GRDH_1SDV_20261103T232603_20261103T232628_005309_00A1B4_rtc",
+          "tileUrl": "/proxy/planetary/api/data/v1/item/tiles/WebMercatorQuad/{z}/{x}/{y}@1x.png?collection=sentinel-1-rtc&item=S1D_IW_GRDH_1SDV_20261103T232603_20261103T232628_005309_00A1B4_rtc&expression=10*log10%28vv_b1%29&rescale=-25%2C0&colormap_name=gray",
+          "scenesChecked": 1,
+          "sceneBounds": [
+            -70.79794829667229,
+            -39.617838452436196,
+            -67.49385761169496,
+            -37.48430936089222
+          ],
+          "detail": "Retrodispersión gamma nought VV con corrección de terreno. No es humedad, compactación ni un aviso de inundación por sí sola."
+        },
+        {
+          "productId": "modis_lst",
+          "status": "available",
+          "value": 22.83,
+          "unit": "°C superficie",
+          "observedAt": "2026-10-31T23:59:59.000000Z",
+          "fetchedAt": "2026-11-15T03:01:41.831Z",
+          "source": "NASA Terra/Aqua MODIS · Planetary Computer",
+          "sourceUrl": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/modis-11A2-061/items/MOD11A2.A2026297.h12v12.061.2026307171559",
+          "sceneId": "MOD11A2.A2026297.h12v12.061.2026307171559",
+          "tileUrl": "/proxy/planetary/api/data/v1/item/tiles/WebMercatorQuad/{z}/{x}/{y}@1x.png?collection=modis-11A2-061&item=MOD11A2.A2026297.h12v12.061.2026307171559&expression=LST_Day_1km_b1*0.02-273.15&rescale=-10%2C55&colormap_name=magma",
+          "scenesChecked": 1,
+          "sceneBounds": [
+            -78.324437,
+            -40,
+            -57.735027,
+            -30
+          ],
+          "detail": "MOD11A2: temperatura superficial diurna compuesta de 8 días con control de calidad. No es temperatura del aire ni anomalía respecto de lo normal."
+        }
+      ]
+    },
+    {
+      "city": {
+        "name": "Trelew",
+        "lat": -43.249,
+        "lng": -65.3051
+      },
+      "readings": [
+        {
+          "productId": "saocom_humedad",
+          "status": "no_data",
+          "value": null,
+          "unit": "% vol.",
+          "observedAt": "2026-11-12",
+          "fetchedAt": "2026-11-15T03:01:41.832Z",
+          "source": "CONAE · SAOCOM 1",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "missingReason": "outside_coverage",
+          "detail": "El punto está fuera de la extensión geográfica publicada para este producto. No se reemplaza por otra localidad."
+        },
+        {
+          "productId": "saocom_percentil",
+          "status": "no_data",
+          "value": null,
+          "unit": "percentil",
+          "observedAt": "2026-11-12",
+          "fetchedAt": "2026-11-15T03:01:41.832Z",
+          "source": "CONAE · SAOCOM 1",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "missingReason": "outside_coverage",
+          "detail": "El punto está fuera de la extensión geográfica publicada para este producto. No se reemplaza por otra localidad."
+        },
+        {
+          "productId": "smap",
+          "status": "no_data",
+          "value": null,
+          "unit": "% vol.",
+          "observedAt": "2023-11-21",
+          "fetchedAt": "2026-11-15T03:01:41.894Z",
+          "source": "NASA SMAP vía CONAE",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [],
+          "missingReason": "provider_nodata",
+          "detail": "El proveedor respondió sin un dato válido en este punto. No confirma ausencia de riesgo."
+        },
+        {
+          "productId": "smos",
+          "status": "stale",
+          "value": 4.032,
+          "unit": "% vol.",
+          "observedAt": "2026-01-14",
+          "fetchedAt": "2026-11-15T03:01:41.882Z",
+          "source": "ESA SMOS vía CONAE",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [
+            [
+              "HUMEDAD_DE_SUELO",
+              "0.04032164439558983"
+            ]
+          ],
+          "detail": "Humedad de Suelo SMOS 2026-01-14 18:00"
+        },
+        {
+          "productId": "lluvia_imerg",
+          "status": "available",
+          "value": 16.5,
+          "unit": "mm/día",
+          "observedAt": "2026-11-13",
+          "fetchedAt": "2026-11-15T03:01:41.903Z",
+          "source": "NASA GPM IMERG vía CONAE",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [
+            [
+              "PA1D",
+              "16.5"
+            ]
+          ],
+          "detail": "PA diaria GPM-IMERG 2026-11-13"
+        },
+        {
+          "productId": "lluvia_imerg_mensual",
+          "status": "available",
+          "value": 19.545,
+          "unit": "mm/mes",
+          "observedAt": "2026-10-31",
+          "fetchedAt": "2026-11-15T03:01:41.909Z",
+          "source": "NASA GPM IMERG vía CONAE",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [
+            [
+              "PA1M",
+              "19.544999543577433"
+            ]
+          ],
+          "detail": "PA mensual GPM-IMERG 2026-10"
+        },
+        {
+          "productId": "fusarium",
+          "status": "no_data",
+          "value": null,
+          "unit": "% incidencia",
+          "observedAt": "2026-11-12",
+          "fetchedAt": "2026-11-15T03:01:41.833Z",
+          "source": "Modelo CONAE · Fusariosis",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "missingReason": "outside_coverage",
+          "detail": "El punto está fuera de la extensión geográfica publicada para este producto. No se reemplaza por otra localidad."
+        },
+        {
+          "productId": "sentinel2_ndvi",
+          "status": "available",
+          "value": 0.712,
+          "unit": "NDVI",
+          "observedAt": "2026-11-14T14:07:49.024000Z",
+          "fetchedAt": "2026-11-15T03:01:43.532Z",
+          "source": "ESA Copernicus · Planetary Computer",
+          "sourceUrl": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/sentinel-2-l2a/items/S2B_MSIL2A_20261114T140749_R110_T20GLT_20261114T192321",
+          "sceneId": "S2B_MSIL2A_20261114T140749_R110_T20GLT_20261114T192321",
+          "tileUrl": "/proxy/planetary/api/data/v1/item/tiles/WebMercatorQuad/{z}/{x}/{y}@1x.png?collection=sentinel-2-l2a&item=S2B_MSIL2A_20261114T140749_R110_T20GLT_20261114T192321&assets=visual",
+          "scenesChecked": 1,
+          "sceneBounds": [
+            -65.4703525,
+            -43.4226453,
+            -64.6175135,
+            -42.4263618
+          ],
+          "detail": "NDVI del píxel validado con SCL. El mapa muestra la escena en color natural."
+        },
+        {
+          "productId": "sentinel1_radar",
+          "status": "available",
+          "value": -10.857,
+          "unit": "dB γ⁰ VV",
+          "observedAt": "2026-11-12T09:25:52.729680Z",
+          "fetchedAt": "2026-11-15T03:01:42.909Z",
+          "source": "ESA Copernicus · Planetary Computer",
+          "sourceUrl": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/sentinel-1-rtc/items/S1D_IW_GRDH_1SDV_20261112T092527_20261112T092552_005432_00A5EA_rtc",
+          "sceneId": "S1D_IW_GRDH_1SDV_20261112T092527_20261112T092552_005432_00A5EA_rtc",
+          "tileUrl": "/proxy/planetary/api/data/v1/item/tiles/WebMercatorQuad/{z}/{x}/{y}@1x.png?collection=sentinel-1-rtc&item=S1D_IW_GRDH_1SDV_20261112T092527_20261112T092552_005432_00A5EA_rtc&expression=10*log10%28vv_b1%29&rescale=-25%2C0&colormap_name=gray",
+          "scenesChecked": 1,
+          "sceneBounds": [
+            -67.27600078843373,
+            -44.97098392405438,
+            -63.64761872897815,
+            -42.79753586789875
+          ],
+          "detail": "Retrodispersión gamma nought VV con corrección de terreno. No es humedad, compactación ni un aviso de inundación por sí sola."
+        },
+        {
+          "productId": "modis_lst",
+          "status": "stale",
+          "value": 16.35,
+          "unit": "°C superficie",
+          "observedAt": "2026-10-15T23:59:59.000000Z",
+          "fetchedAt": "2026-11-15T03:01:44.546Z",
+          "source": "NASA Terra/Aqua MODIS · Planetary Computer",
+          "sourceUrl": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/modis-11A2-061/items/MOD11A2.A2026281.h13v13.061.2026290035426",
+          "sceneId": "MOD11A2.A2026281.h13v13.061.2026290035426",
+          "tileUrl": "/proxy/planetary/api/data/v1/item/tiles/WebMercatorQuad/{z}/{x}/{y}@1x.png?collection=modis-11A2-061&item=MOD11A2.A2026281.h13v13.061.2026290035426&expression=LST_Day_1km_b1*0.02-273.15&rescale=-10%2C55&colormap_name=magma",
+          "scenesChecked": 3,
+          "sceneBounds": [
+            -77.786191,
+            -50,
+            -52.216292,
+            -40
+          ],
+          "detail": "MOD11A2: temperatura superficial diurna compuesta de 8 días con control de calidad. No es temperatura del aire ni anomalía respecto de lo normal."
+        }
+      ]
+    },
+    {
+      "city": {
+        "name": "Río Gallegos",
+        "lat": -51.623,
+        "lng": -69.2168
+      },
+      "readings": [
+        {
+          "productId": "saocom_humedad",
+          "status": "no_data",
+          "value": null,
+          "unit": "% vol.",
+          "observedAt": "2026-11-12",
+          "fetchedAt": "2026-11-15T03:01:44.548Z",
+          "source": "CONAE · SAOCOM 1",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "missingReason": "outside_coverage",
+          "detail": "El punto está fuera de la extensión geográfica publicada para este producto. No se reemplaza por otra localidad."
+        },
+        {
+          "productId": "saocom_percentil",
+          "status": "no_data",
+          "value": null,
+          "unit": "percentil",
+          "observedAt": "2026-11-12",
+          "fetchedAt": "2026-11-15T03:01:44.548Z",
+          "source": "CONAE · SAOCOM 1",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "missingReason": "outside_coverage",
+          "detail": "El punto está fuera de la extensión geográfica publicada para este producto. No se reemplaza por otra localidad."
+        },
+        {
+          "productId": "smap",
+          "status": "no_data",
+          "value": null,
+          "unit": "% vol.",
+          "observedAt": "2023-11-21",
+          "fetchedAt": "2026-11-15T03:01:44.601Z",
+          "source": "NASA SMAP vía CONAE",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [],
+          "missingReason": "provider_nodata",
+          "detail": "El proveedor respondió sin un dato válido en este punto. No confirma ausencia de riesgo."
+        },
+        {
+          "productId": "smos",
+          "status": "no_data",
+          "value": null,
+          "unit": "% vol.",
+          "observedAt": "2026-01-14",
+          "fetchedAt": "2026-11-15T03:01:44.588Z",
+          "source": "ESA SMOS vía CONAE",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [],
+          "missingReason": "provider_nodata",
+          "detail": "El proveedor respondió sin un dato válido en este punto. No confirma ausencia de riesgo."
+        },
+        {
+          "productId": "lluvia_imerg",
+          "status": "available",
+          "value": 0,
+          "unit": "mm/día",
+          "observedAt": "2026-11-13",
+          "fetchedAt": "2026-11-15T03:01:44.616Z",
+          "source": "NASA GPM IMERG vía CONAE",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [
+            [
+              "PA1D",
+              "0"
+            ]
+          ],
+          "detail": "PA diaria GPM-IMERG 2026-11-13"
+        },
+        {
+          "productId": "lluvia_imerg_mensual",
+          "status": "available",
+          "value": 25.985,
+          "unit": "mm/mes",
+          "observedAt": "2026-10-31",
+          "fetchedAt": "2026-11-15T03:01:44.607Z",
+          "source": "NASA GPM IMERG vía CONAE",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "entries": [
+            [
+              "PA1M",
+              "25.98499950300902"
+            ]
+          ],
+          "detail": "PA mensual GPM-IMERG 2026-10"
+        },
+        {
+          "productId": "fusarium",
+          "status": "no_data",
+          "value": null,
+          "unit": "% incidencia",
+          "observedAt": "2026-11-12",
+          "fetchedAt": "2026-11-15T03:01:44.548Z",
+          "source": "Modelo CONAE · Fusariosis",
+          "sourceUrl": "https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html",
+          "missingReason": "outside_coverage",
+          "detail": "El punto está fuera de la extensión geográfica publicada para este producto. No se reemplaza por otra localidad."
+        },
+        {
+          "productId": "sentinel2_ndvi",
+          "status": "available",
+          "value": 0.174,
+          "unit": "NDVI",
+          "observedAt": "2026-10-30T14:07:01.025000Z",
+          "fetchedAt": "2026-11-15T03:01:50.634Z",
+          "source": "ESA Copernicus · Planetary Computer",
+          "sourceUrl": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/sentinel-2-l2a/items/S2C_MSIL2A_20261030T140701_R110_T19FDC_20261030T173205",
+          "sceneId": "S2C_MSIL2A_20261030T140701_R110_T19FDC_20261030T173205",
+          "tileUrl": "/proxy/planetary/api/data/v1/item/tiles/WebMercatorQuad/{z}/{x}/{y}@1x.png?collection=sentinel-2-l2a&item=S2C_MSIL2A_20261030T140701_R110_T19FDC_20261030T173205&assets=visual",
+          "scenesChecked": 9,
+          "sceneBounds": [
+            -70.471391,
+            -52.4383117,
+            -68.8564242,
+            -51.4423453
+          ],
+          "detail": "NDVI del píxel validado con SCL. El mapa muestra la escena en color natural."
+        },
+        {
+          "productId": "sentinel1_radar",
+          "status": "available",
+          "value": -12.373,
+          "unit": "dB γ⁰ VV",
+          "observedAt": "2026-11-11T23:55:29.316419Z",
+          "fetchedAt": "2026-11-15T03:01:45.664Z",
+          "source": "ESA Copernicus · Planetary Computer",
+          "sourceUrl": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/sentinel-1-rtc/items/S1D_IW_GRDH_1SDV_20261111T235500_20261111T235529_005426_00A5B5_rtc",
+          "sceneId": "S1D_IW_GRDH_1SDV_20261111T235500_20261111T235529_005426_00A5B5_rtc",
+          "tileUrl": "/proxy/planetary/api/data/v1/item/tiles/WebMercatorQuad/{z}/{x}/{y}@1x.png?collection=sentinel-1-rtc&item=S1D_IW_GRDH_1SDV_20261111T235500_20261111T235529_005426_00A5B5_rtc&expression=10*log10%28vv_b1%29&rescale=-25%2C0&colormap_name=gray",
+          "scenesChecked": 1,
+          "sceneBounds": [
+            -72.83689119567065,
+            -53.548788808203206,
+            -68.42159233021573,
+            -51.048641996407
+          ],
+          "detail": "Retrodispersión gamma nought VV con corrección de terreno. No es humedad, compactación ni un aviso de inundación por sí sola."
+        },
+        {
+          "productId": "modis_lst",
+          "status": "available",
+          "value": 12.85,
+          "unit": "°C superficie",
+          "observedAt": "2026-11-08T23:59:59.000000Z",
+          "fetchedAt": "2026-11-15T03:01:46.163Z",
+          "source": "NASA Terra/Aqua MODIS · Planetary Computer",
+          "sourceUrl": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/modis-11A2-061/items/MOD11A2.A2026305.h13v14.061.2026314143628",
+          "sceneId": "MOD11A2.A2026305.h13v14.061.2026314143628",
+          "tileUrl": "/proxy/planetary/api/data/v1/item/tiles/WebMercatorQuad/{z}/{x}/{y}@1x.png?collection=modis-11A2-061&item=MOD11A2.A2026305.h13v14.061.2026314143628&expression=LST_Day_1km_b1*0.02-273.15&rescale=-10%2C55&colormap_name=magma",
+          "scenesChecked": 1,
+          "sceneBounds": [
+            -100,
+            -60,
+            -62.228953,
+            -50
+          ],
+          "detail": "MOD11A2: temperatura superficial diurna compuesta de 8 días con control de calidad. No es temperatura del aire ni anomalía respecto de lo normal."
+        }
+      ]
+    }
+  ]
+}

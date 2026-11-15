@@ -1,5 +1,7 @@
 # Cambios: capas reales de CONAE en el mapa
 
+> Documento histórico de la primera integración. La implementación actual está en [docs/INTEGRACION_SATELITAL.md](docs/INTEGRACION_SATELITAL.md) y [README.md](README.md). Los indicadores satelitales ya no se generan con valores simulados y el conflicto previo de esbuild está corregido.
+
 ## Qué se agregó
 
 - **Panel "Capas CONAE" en el Mapa.** Muestra capas WMS reales de CONAE sobre el mapa base:

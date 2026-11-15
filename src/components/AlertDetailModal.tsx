@@ -1,6 +1,7 @@
 import React from 'react';
 import { Alert } from '../types';
 import { AgencyLogo } from './AgencyLogo';
+import { formatReadingDate } from './SatelliteReadings';
 import { 
   X, 
   ArrowRight, 
@@ -89,10 +90,10 @@ export const AlertDetailModal: React.FC<AlertDetailModalProps> = ({
             </div>
             <div>
               <span className="text-slate-400 dark:text-zinc-500 text-[10px] block uppercase font-bold">
-                {lang === 'es' ? 'Línea Base' : 'Baseline Normal'}
+                {lang === 'es' ? 'Fecha del producto' : 'Product date'}
               </span>
               <span className="font-mono font-bold text-slate-700 dark:text-zinc-300">
-                {alert.baseline} {alert.unit}
+                {formatReadingDate(alert.detectedAt, lang)}
               </span>
             </div>
             <div>
@@ -142,6 +143,7 @@ export const AlertDetailModal: React.FC<AlertDetailModalProps> = ({
             <span className="font-semibold text-slate-700 dark:text-zinc-300">
               {lang === 'es' ? 'Contexto científico:' : 'Scientific context:'}
             </span> {alert.scientificContext}
+            {alert.sourceUrl && <a href={alert.sourceUrl} target="_blank" rel="noreferrer" className="block mt-1 text-sky-700 dark:text-sky-300 underline">{lang === 'es' ? 'Consultar fuente' : 'View source'}</a>}
           </div>
         </div>
 
