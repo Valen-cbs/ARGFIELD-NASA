@@ -13,6 +13,7 @@ import type { ClimateScenario } from './scenarios';
 import type { ClimateDataset } from './climate';
 import type { SoilProfile, DeclaredSoilProperties } from './soil';
 import type { MagypSelection } from './magyp';
+import type { CropManagementRecommendation } from './cropManagement';
 
 export type { CriterionId, CriterionResult, Exclusion, StepEvidence };
 export type { CropId };
@@ -92,7 +93,7 @@ export interface EngineProvenance {
 
 /** Counts refer to prospective sequences in the reference scenario, never to the baseline. */
 export interface OptimizationDiagnostics {
-  outcome: 'viable' | 'no_candidates' | 'incompatible_constraints' | 'insufficient_data' | 'calculation_error' | 'integration_error' | 'unsupported_perennial';
+  outcome: 'viable' | 'management' | 'no_candidates' | 'incompatible_constraints' | 'insufficient_data' | 'calculation_error' | 'integration_error' | 'unsupported_perennial';
   generated: number;
   evaluated: number;
   viable: number;
@@ -108,6 +109,7 @@ export interface OptimizationDiagnostics {
 }
 
 export interface EngineResult {
+  managementRecommendations?: CropManagementRecommendation[];
   /** Alternativas ordenadas por S(r) desc (excluyentes fuera; null score al final). */
   alternatives: EngineAlternative[];
   diagnostics: OptimizationDiagnostics;

@@ -40,7 +40,7 @@ test('NDVI requires four distinct valid dates spanning 30 days; never claims cov
   assert.equal(observationIndicators(evidence, now).length, 0);
 });
 
-test('offline cached data and bad values are excluded at service boundary', () => {
+test('cached observations and bad values are excluded at service boundary', () => {
   const r = { productId: 'saocom_humedad', status: 'available', value: 24, unit: '% vol.', observedAt: '2026-11-12' };
   for (const patch of [{ cached: true }, { status: 'error' }, { value: NaN }, { unit: 'NDVI' }, { observedAt: null }]) {
     assert.equal(evidenceFromReadings([{ ...r, ...patch }], now)[0].current, false);

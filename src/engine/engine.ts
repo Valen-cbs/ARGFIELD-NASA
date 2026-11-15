@@ -19,6 +19,7 @@
  */
 
 import { validObservation, observationIndicators } from './observations';
+import { recommendCropManagement } from './cropManagement';
 import { CropId, CROP_AGRONOMY, PILOT_CROP_IDS, regionOfProvince, nominalSowMonth } from './agronomy';
 import { ClimateDataset, fetchPowerDaily, DEFAULT_POWER_START_YEAR, DEFAULT_POWER_END_YEAR } from './climate';
 import { SoilProfile, buildSoilProfile } from './soil';
@@ -70,9 +71,9 @@ export function mapCropToCropId(rawName: string): CropId | null {
   return hit ? hit[1] : null;
 }
 
-const PERENNIAL_HINTS = /yerba|t[eé]|lim[oó]n|mandarina|naranja|pomelo|banana|jojoba|tung|olivo|nogal|alfalfa|pastura|pastizal|perenne/i;
+const PERENNIAL_HINTS = /\b(?:yerba(?: mate)?|te|limon|mandarina|naranja|pomelo|banana|jojoba|tung|olivo|nogal|alfalfa|pastura|pastizal|perenne|cana de azucar)\b/i;
 export function isPerennialCropName(name: string): boolean {
-  return PERENNIAL_HINTS.test(name ?? '');
+  return PERENNIAL_HINTS.test((name ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, ''));
 }
 
 export { evidenceFromReadings as satelliteEvidenceFromReadings } from './observations';
@@ -159,6 +160,7 @@ export async function evaluateRotations(
   const now = new Date(nowIso);
   input = { ...input, satellite: (input.satellite ?? []).map(s => ({ ...s, current: validObservation(s, now) })) };
   const indicators = observationIndicators(input.satellite ?? [], now);
+  const managementRecommendations = recommendCropManagement(input);
   const years = deps.climateYears ?? { start: DEFAULT_POWER_START_YEAR, end: DEFAULT_POWER_END_YEAR };
   const warnings: string[] = [];
   const notes: string[] = [];
@@ -204,14 +206,17 @@ export async function evaluateRotations(
 
   // ---- perennes: no corresponde rotación anual ----
   const perennialNote = perennialEvidence(input);
-  if (perennialNote) {
+  const hasRotationCrop = (input.currentCropIds ?? []).some(name => mapCropToCropId(name) !== null);
+  if (perennialNote || (managementRecommendations.length > 0 && !hasRotationCrop)) {
     return {
+      managementRecommendations,
       alternatives: [],
-      diagnostics: { ...diagnostics, outcome: 'unsupported_perennial', generationBlocks: [perennialNote] },
+      diagnostics: { ...diagnostics, outcome: managementRecommendations.length ? 'management' : 'unsupported_perennial', generationBlocks: managementRecommendations.length ? [] : [perennialNote!] },
+      observationIndicators: indicators,
       excluded: [],
       scenarios: [],
-      warnings: [perennialNote, ...warnings],
-      provenance: buildProvenance(climate, magyp, input.satellite ?? [], nowIso),
+      warnings: [...(perennialNote ? [managementRecommendations.length ? `Cultivos perennes registrados (${input.currentCropIds?.join(', ')}). Se evalúan prácticas de manejo y renovación de la plantación.` : perennialNote] : []), ...warnings],
+      provenance: buildProvenance(climate, magyp, input.satellite ?? [], nowIso, [], indicators),
       completeness: 0,
       referenceScenarioId: 'referencia',
       input,
@@ -378,6 +383,7 @@ export async function evaluateRotations(
   }
   return {
     alternatives,
+    managementRecommendations,
     diagnostics,
     baseline: baselineResult,
     observationIndicators: indicators,

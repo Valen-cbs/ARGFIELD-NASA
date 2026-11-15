@@ -1,3 +1,5 @@
+import 'dotenv/config';
+import { analysisMiddleware } from './server/analysis';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
@@ -16,7 +18,7 @@ const proxy = Object.fromEntries(Object.entries({
 
 export default defineConfig(() => {
   return {
-    plugins: [react(), tailwindcss()],
+    plugins: [react(), tailwindcss(), {name:'argfield-analysis', configureServer(server) { server.middlewares.use(analysisMiddleware); }, configurePreviewServer(server) { server.middlewares.use(analysisMiddleware); }}],
     resolve: {
       alias: {
         '@': path.resolve(import.meta.dirname, '.'),

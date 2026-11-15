@@ -7,36 +7,38 @@ import { RotationStrategies } from './components/RotationStrategies';
 import { FarmProfileView } from './components/FarmProfileView';
 import { AgenciesView } from './components/AgenciesView';
 import { AlertDetailModal } from './components/AlertDetailModal';
-import { EditFarmModal } from './components/EditFarmModal';
-import { FarmRegistryModal, RegisteredFarm } from './components/FarmRegistryView';
+import { FarmProfileEditorModal } from './components/FarmProfileEditorModal';
 import { AboutModal } from './components/AboutModal';
 import { ExportReportModal } from './components/ExportReportModal';
 import { LandingView } from './components/LandingView';
 import { WeatherView } from './components/WeatherView';
-import { DemoBanner } from './components/DemoBadge';
 import { PRESET_FARMS } from './data/regions';
-import { Alert, FarmLocation, FarmProfile, LatLng } from './types';
+import { Alert, FarmLocation, FarmProfile } from './types';
 import { useSatelliteData } from './services/dataLoader';
 import { deriveSatelliteAlerts } from './services/satelliteAlerts';
 import { generateRotationStrategies } from './services/rotationOptimizer';
 import { useRotationEngine } from './services/rotationEngineAdapter';
-import { determineBasin, determineRegion, isWithinArgentina } from './services/geo';
 import { useOpenMeteoDashboard } from './services/weatherAlerts';
 
 const STORAGE_PROFILE_KEY = 'field_shift_farm_profile';
-const STORAGE_OFFLINE_KEY = 'field_shift_is_offline';
 const STORAGE_TAB_KEY = 'field_shift_active_tab';
 const STORAGE_LANDING_SEEN = 'field_shift_landing_seen';
 const STORAGE_THEME_KEY = 'field_shift_theme';
 const STORAGE_FARMS_KEY = 'argfield_registered_farms';
 const STORAGE_ACTIVE_FARM_KEY = 'argfield_active_farm';
 
+interface RegisteredFarm { id: string; profile: FarmProfile }
+
 function readRegisteredFarms(): RegisteredFarm[] {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_FARMS_KEY) ?? '[]');
     if (Array.isArray(saved)) {
       const valid = saved.filter(item => typeof item?.id === 'string' && item?.profile?.location && typeof item.profile.fieldSizeHectares === 'number');
-      if (valid.length) return valid;
+      if (valid.length) {
+        const activeId = localStorage.getItem(STORAGE_ACTIVE_FARM_KEY);
+        const active = valid.find(item => item.id === activeId) ?? valid[0];
+        return [active];
+      }
     }
     const legacy = JSON.parse(localStorage.getItem(STORAGE_PROFILE_KEY) ?? 'null') as FarmProfile | null;
     if (legacy?.location?.name && !['Mi establecimiento', 'My Farm'].includes(legacy.location.name) && Number(legacy.fieldSizeHectares) > 0) {
@@ -66,7 +68,7 @@ export default function App() {
 
   // Landing state: shown first time or if requested via route/button
   const [showLanding, setShowLanding] = useState<boolean>(() => {
-    if (window.location.hash === '#landing' || window.location.pathname.includes('/landing')) {
+    if ((window.location.hash === '#landing' || window.location.pathname.includes('/landing')) && readRegisteredFarms().length === 0) {
       return true;
     }
     return readRegisteredFarms().length === 0;
@@ -79,10 +81,6 @@ export default function App() {
     return 'home';
   });
 
-  const [isOffline, setIsOffline] = useState<boolean>(() => {
-    return localStorage.getItem(STORAGE_OFFLINE_KEY) === 'true';
-  });
-
   const [farms, setFarms] = useState<RegisteredFarm[]>(readRegisteredFarms);
   const [activeFarmId, setActiveFarmId] = useState<string | null>(() => {
     const savedId = localStorage.getItem(STORAGE_ACTIVE_FARM_KEY);
@@ -92,19 +90,13 @@ export default function App() {
 
   // Farm Profile based on the selected registered farm, with legacy profile migration.
   const [farmProfile, setFarmProfileState] = useState<FarmProfile>(() => {
+    const registered = readRegisteredFarms()[0]?.profile;
+    if (registered) return registered;
     try {
-      const savedFarms = JSON.parse(localStorage.getItem(STORAGE_FARMS_KEY) ?? '[]');
-      const activeId = localStorage.getItem(STORAGE_ACTIVE_FARM_KEY);
-      const active = Array.isArray(savedFarms) ? savedFarms.find((farm: RegisteredFarm) => farm.id === activeId) : null;
-      if (active?.profile) return active.profile;
-    } catch { /* fall through to the saved single-farm profile */ }
-    const saved = localStorage.getItem(STORAGE_PROFILE_KEY);
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error('Failed to parse cached farm profile', e);
-      }
+      const saved = localStorage.getItem(STORAGE_PROFILE_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error('Failed to parse cached farm profile', e);
     }
     return {
       location: {
@@ -119,30 +111,22 @@ export default function App() {
     };
   });
 
-  const setFarmProfile = (value: FarmProfile | ((previous: FarmProfile) => FarmProfile)) => {
-    const updated = typeof value === 'function' ? value(farmProfile) : value;
-    setFarmProfileState(updated);
-    if (activeFarmId) setFarms(previous => previous.map(farm => farm.id === activeFarmId ? { ...farm, profile: updated } : farm));
-  };
-
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
-  const [showFarmModal, setShowFarmModal] = useState<boolean>(false);
-  const [showRegistryModal, setShowRegistryModal] = useState(false);
+  const [showFarmEditor, setShowFarmEditor] = useState(false);
   const [showAboutModal, setShowAboutModal] = useState<boolean>(false);
   const [showExportModal, setShowExportModal] = useState<boolean>(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
-  const [showDemoBanner, setShowDemoBanner] = useState<boolean>(true);
 
   // Sync hash routing for landing
   useEffect(() => {
     const handleHashChange = () => {
       if (window.location.hash === '#landing') {
-        setShowLanding(true);
+        if (!activeFarmId) setShowLanding(true);
       }
     };
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
+  }, [activeFarmId]);
 
   // Persist state to localStorage
   useEffect(() => {
@@ -153,39 +137,23 @@ export default function App() {
   useEffect(() => { if (activeFarmId) localStorage.setItem(STORAGE_ACTIVE_FARM_KEY, activeFarmId); else localStorage.removeItem(STORAGE_ACTIVE_FARM_KEY); }, [activeFarmId]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_OFFLINE_KEY, String(isOffline));
-  }, [isOffline]);
-
-  useEffect(() => {
     localStorage.setItem(STORAGE_TAB_KEY, activeTab);
   }, [activeTab]);
 
-  const satelliteData = useSatelliteData(farmProfile.location, isOffline || showLanding || !activeFarmId);
+  const satelliteData = useSatelliteData(farmProfile.location, Boolean(activeFarmId) && !showLanding);
 
   const handleSaveFarm = (profile: FarmProfile, id?: string) => {
-    const farmId = id ?? `farm-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const farmId = id ?? activeFarmId ?? `farm-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const record = { id: farmId, profile };
-    setFarms(previous => id ? previous.map(farm => farm.id === id ? record : farm) : [...previous, record]);
+    setFarms([record]);
     setActiveFarmId(farmId);
     setFarmProfileState(profile);
-    setShowRegistryModal(false);
+    setShowFarmEditor(false);
     setShowLanding(false);
     localStorage.setItem(STORAGE_LANDING_SEEN, 'true');
   };
-  const handleSelectFarm = (farm: RegisteredFarm) => { setActiveFarmId(farm.id); setFarmProfileState(farm.profile); };
-  const handleDeleteFarm = (farm: RegisteredFarm) => {
-    const remaining = farms.filter(item => item.id !== farm.id);
-    setFarms(remaining);
-    if (farm.id === activeFarmId) {
-      const next = remaining[0];
-      setActiveFarmId(next?.id ?? null);
-      if (next) setFarmProfileState(next.profile);
-      else setShowLanding(true);
-    }
-  };
-
   // Only dated, current provider readings can generate follow-up alerts.
-  const weatherData = useOpenMeteoDashboard(farmProfile, Boolean(activeFarmId) && !isOffline && !showLanding);
+  const weatherData = useOpenMeteoDashboard(farmProfile, Boolean(activeFarmId) && !showLanding);
   const weatherAlerts = weatherData.alerts;
   const alerts: Alert[] = useMemo(() => {
     return [...deriveSatelliteAlerts(satelliteData.readings, farmProfile), ...weatherAlerts].sort((a, b) => b.score - a.score);
@@ -203,35 +171,6 @@ export default function App() {
   }, [farmProfile, alerts]);
   const rotationPlans = rotationEngine.status === 'perennial' ? fallbackPlans : rotationEngine.plans;
 
-  // Handle map click location change
-  const handleMapClick = (coords: LatLng) => {
-    if (!isWithinArgentina(coords.lat, coords.lng)) return;
-    const region = determineRegion(coords.lat, coords.lng);
-    const basin = determineBasin(coords.lat, coords.lng);
-    setFarmProfile({
-      ...farmProfile,
-      location: {
-        name: farmProfile.location.name || 'Mi establecimiento',
-        province: region === 'norte' ? 'Norte Argentino' : region === 'sur' ? 'Patagonia' : 'Región Pampeana',
-        region,
-        lat: coords.lat,
-        lng: coords.lng,
-        basinId: basin.id,
-        basinName: basin.name,
-        mainRiver: basin.mainRiver,
-        aquifer: basin.aquifer
-      }
-    });
-  };
-
-  const handleSelectPreset = (preset: FarmLocation) => {
-    if (!isWithinArgentina(preset.lat, preset.lng)) return;
-    setFarmProfile({
-      ...farmProfile,
-      location: preset
-    });
-  };
-
   // When location is confirmed on Landing page
   const handleConfirmLandingLocation = (location: FarmLocation, agriculturalData: Pick<FarmProfile, 'producerName' | 'fieldSizeHectares' | 'currentCrop' | 'cropAllocations' | 'previousCrop' | 'previousCrops' | 'irrigationAvailable'>) => {
     const updatedProfile: FarmProfile = {
@@ -240,20 +179,11 @@ export default function App() {
       location,
       irrigation: agriculturalData.irrigationAvailable ? farmProfile.irrigation : 'dryland'
     };
-    if (!activeFarmId) handleSaveFarm(updatedProfile);
-    else {
-      setFarmProfile(updatedProfile);
-      setShowLanding(false);
-    }
+    handleSaveFarm(updatedProfile);
     localStorage.setItem(STORAGE_LANDING_SEEN, 'true');
-    if (window.location.hash === '#landing') {
+    if (window.location.hash === '#landing' && !activeFarmId) {
       window.history.replaceState(null, '', window.location.pathname);
     }
-  };
-
-  const handleOpenLanding = () => {
-    setShowLanding(true);
-    window.location.hash = 'landing';
   };
 
   // If user is on landing page
@@ -264,10 +194,8 @@ export default function App() {
           currentLocation={farmProfile.location}
           currentProfile={activeFarmId ? farmProfile : undefined}
           onConfirmLocation={handleConfirmLandingLocation}
-          onManageFarms={farms.length ? () => setShowRegistryModal(true) : undefined}
           lang={lang}
         />
-        <FarmRegistryModal open={showRegistryModal} lang={lang} farms={farms} activeFarmId={activeFarmId} template={farmProfile} onClose={() => setShowRegistryModal(false)} onSelect={farm => { handleSelectFarm(farm); setShowLanding(false); }} onSave={handleSaveFarm} onDelete={handleDeleteFarm} />
       </>
     );
   }
@@ -279,11 +207,9 @@ export default function App() {
         activeTab={activeTab}
         onSelectTab={setActiveTab}
         criticalAlertsCount={criticalCount}
-        isOffline={isOffline}
-        onToggleOffline={() => setIsOffline(!isOffline)}
+        onOpenFarmEditor={() => setShowFarmEditor(true)}
         isDarkMode={isDarkMode}
         onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
-        onOpenLanding={handleOpenLanding}
         onOpenAbout={() => setShowAboutModal(true)}
         lang={lang}
         onToggleLang={() => setLang(lang === 'es' ? 'en' : 'es')}
@@ -302,14 +228,6 @@ export default function App() {
 
         {/* Viewport Content Area */}
         <main className="flex-1 overflow-y-auto p-3 sm:p-5 md:p-6">
-          {showDemoBanner && activeTab !== 'mapa' && activeTab !== 'fuentes' && activeTab !== 'clima' && (
-            <DemoBanner
-              lang={lang}
-              onGoToMap={() => setActiveTab('mapa')}
-              onDismiss={() => setShowDemoBanner(false)}
-            />
-          )}
-
           {/* Tab 1: Inicio */}
           {activeTab === 'home' && (
             <FarmProfileView
@@ -317,12 +235,7 @@ export default function App() {
               alerts={alerts}
               readings={satelliteData.readings}
               onRefreshData={satelliteData.refresh}
-              isOffline={isOffline}
-              onChangeProfile={setFarmProfile}
-              farms={farms}
-              activeFarmId={activeFarmId}
-              onManageFarms={() => setShowRegistryModal(true)}
-              onSelectFarm={handleSelectFarm}
+              onOpenEditFarm={() => setShowFarmEditor(true)}
               weatherSummary={weatherData.summary}
               forecast={weatherData.forecast}
               rotationEngine={rotationEngine}
@@ -330,7 +243,6 @@ export default function App() {
               onNavigateToOptimizer={() => setActiveTab('optimizador')}
               onNavigateToAlerts={() => setActiveTab('alertas')}
               onNavigateToWeather={() => setActiveTab('clima')}
-              onOpenEditLocation={() => setShowFarmModal(true)}
               lang={lang}
             />
           )}
@@ -339,9 +251,6 @@ export default function App() {
           {activeTab === 'clima' && activeFarmId && (
             <WeatherView
               farmProfile={farmProfile}
-              onChangeFarmLocation={handleSelectPreset}
-              onOpenEditLocation={() => setShowFarmModal(true)}
-              isOffline={isOffline || !activeFarmId}
               lang={lang}
             />
           )}
@@ -365,11 +274,7 @@ export default function App() {
                   farmLocation={farmProfile.location}
                   alerts={alerts}
                   readings={satelliteData.readings}
-                  isOffline={isOffline}
                   onSelectAlert={setSelectedAlert}
-                  onSelectFarm={() => setShowFarmModal(true)}
-                  onMapClickSetLocation={handleMapClick}
-                  onSelectPreset={handleSelectPreset}
                   onOpenExport={() => setShowExportModal(true)}
                   isDarkMode={isDarkMode}
                   lang={lang}
@@ -412,21 +317,7 @@ export default function App() {
         lang={lang}
       />
 
-      {/* Farm Profile / Location Modal (opened from map or anywhere) */}
-      <EditFarmModal
-        isOpen={showFarmModal}
-        onClose={() => setShowFarmModal(false)}
-        currentLocation={farmProfile.location}
-        onSaveLocation={(newLocation) => {
-          setFarmProfile((prev) => ({
-            ...prev,
-            location: newLocation
-          }));
-        }}
-        lang={lang}
-      />
-
-      <FarmRegistryModal open={showRegistryModal} lang={lang} farms={farms} activeFarmId={activeFarmId} template={farmProfile} onClose={() => setShowRegistryModal(false)} onSelect={handleSelectFarm} onSave={handleSaveFarm} onDelete={handleDeleteFarm} />
+      <FarmProfileEditorModal open={showFarmEditor} lang={lang} template={farmProfile} onClose={() => setShowFarmEditor(false)} onSave={profile => handleSaveFarm(profile, activeFarmId ?? undefined)} />
 
       {/* About Modal */}
       <AboutModal

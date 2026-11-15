@@ -50,12 +50,7 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
       >
         {/* Header */}
         <div className="bg-[#0f3260] dark:bg-[#070e1b] text-white p-4 flex items-center justify-between border-b border-[#092040] dark:border-slate-800">
-          <div className="flex items-center gap-2.5">
-            <GoogleIcon name="description" size={20} className="text-white" />
-            <h2 className="text-sm font-bold tracking-tight">
-              {lang === 'es' ? 'Exportar informe del lote' : 'Export farm report'}
-            </h2>
-          </div>
+          
 
           <button
             id="export-modal-close-header-btn"

@@ -7,8 +7,7 @@ import { readingStatus } from '../services/satelliteApi';
 const LABELS: Record<ReadingStatus, [string, string]> = {
   loading: ['Consultando…', 'Loading…'], available: ['Dato vigente', 'Current data'],
   no_data: ['Sin dato en el punto', 'No data at this point'], stale: ['Dato antiguo', 'Historical data'],
-  undated: ['Fecha no informada', 'Date not provided'], error: ['No se pudo leer el dato', 'Could not read the data'],
-  offline: ['Sin dato guardado', 'No saved data']
+  undated: ['Fecha no informada', 'Date not provided'], error: ['No se pudo leer el dato', 'Could not read the data']
 };
 
 export function readingLabel(reading: SatelliteReading, lang: 'es' | 'en'): string {
@@ -52,11 +51,11 @@ export const ReadingDetails: React.FC<{ reading: SatelliteReading; lang: 'es' | 
   </div>;
 };
 
-export const SatelliteReadings: React.FC<{ readings: SatelliteReading[]; lang: 'es' | 'en'; onRefresh?: () => void; offline?: boolean; onLocateField?: () => void }> = ({ readings, lang, onRefresh, offline, onLocateField }) => (
+export const SatelliteReadings: React.FC<{ readings: SatelliteReading[]; lang: 'es' | 'en'; onRefresh?: () => void; onLocateField?: () => void }> = ({ readings, lang, onRefresh, onLocateField }) => (
   <section className="space-y-3" aria-label={lang === 'es' ? 'Lecturas satelitales del lote' : 'Farm satellite readings'}>
     <div className="flex items-center justify-between gap-2">
       <h2 className="flex items-center gap-2 font-bold text-sm text-slate-900 dark:text-white"><Satellite size={17} />{lang === 'es' ? 'Qué ve el satélite en tu lote' : 'What satellites see at your farm'}</h2>
-      {onRefresh && <button type="button" onClick={onRefresh} disabled={offline || readings.some(r => r.status === 'loading')} className="flex items-center gap-1 text-xs text-[#0f3260] dark:text-sky-300 disabled:opacity-50 cursor-pointer"><RefreshCw size={13} />{lang === 'es' ? 'Actualizar' : 'Refresh'}</button>}
+      {onRefresh && <button type="button" onClick={onRefresh} disabled={readings.some(r => r.status === 'loading')} className="flex items-center gap-1 text-xs text-[#0f3260] dark:text-sky-300 disabled:opacity-50 cursor-pointer"><RefreshCw size={13} />{lang === 'es' ? 'Actualizar' : 'Refresh'}</button>}
     </div>
     <p className="text-xs text-slate-600 dark:text-zinc-400">{lang === 'es' ? 'Lecturas del punto elegido, no un promedio de todo el campo. Humedad volumétrica y agua útil son medidas diferentes.' : 'Readings at the selected point, not averages over the whole farm. Volumetric moisture and plant-available water are different measures.'}</p>
     <div className="p-3 border border-slate-300 dark:border-zinc-700 text-xs text-slate-700 dark:text-zinc-300 space-y-1">

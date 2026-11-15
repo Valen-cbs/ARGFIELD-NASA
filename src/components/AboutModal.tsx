@@ -48,65 +48,65 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, lang })
             </div>
             <p className="text-slate-600 dark:text-slate-400">
               {lang === 'es'
-                ? 'Argfield es una plataforma institucional diseñada para traducir observaciones satelitales complejas de la NASA, CONAE e INTA en recomendaciones operativas concretas de rotación de cultivos y manejo hídrico para productores agrícolas.'
-                : 'Argfield is an institutional platform built to translate complex NASA, CONAE, and INTA Earth observation data into actionable crop rotation and moisture management decisions for farmers and technical advisors.'}
+                ? 'Argfield reúne observaciones satelitales, clima y datos del productor para consultar condiciones del lote y explorar alternativas de rotación. La disponibilidad de cada lectura depende de su cobertura, fecha y calidad.'
+                : 'Argfield brings together satellite observations, weather and producer-provided data to review field conditions and explore crop rotation options. Each reading depends on its coverage, date and quality.'}
             </p>
           </div>
 
-          {/* Pillars Grid */}
+          {/* Current app capabilities */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="border border-slate-300 dark:border-slate-800 p-3 bg-white dark:bg-[#111c2e] space-y-1">
               <div className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
                 <GoogleIcon name="map" size={15} className="text-[#0f3260] dark:text-sky-400" />
-                <span>{lang === 'es' ? 'Vigilancia de Cuenca (200 km)' : 'Basin Surveillance (200 km)'}</span>
+                <span>{lang === 'es' ? 'Mapa y lecturas' : 'Map and readings'}</span>
               </div>
               <p className="text-slate-600 dark:text-slate-400 text-[11px]">
                 {lang === 'es'
-                  ? 'No nos limitamos al perímetro del lote: monitoreamos las condiciones hídricas y de napas de toda la cuenca hidrográfica regional.'
-                  : 'We look beyond farm boundaries: analyzing moisture and groundwater dynamics across the entire 200 km hydrological basin.'}
+                  ? 'Consultá capas satelitales y lecturas disponibles para el punto de tu lote, con su fecha y estado de cobertura.'
+                  : 'View satellite layers and readings available at your field point, including their date and coverage status.'}
+              </p>
+            </div>
+
+            <div className="border border-slate-300 dark:border-slate-800 p-3 bg-white dark:bg-[#111c2e] space-y-1">
+              <div className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                <GoogleIcon name="edit" size={15} className="text-[#0f3260] dark:text-sky-400" />
+                <span>{lang === 'es' ? 'Perfil de una estancia' : 'Single farm profile'}</span>
+              </div>
+              <p className="text-slate-600 dark:text-slate-400 text-[11px]">
+                {lang === 'es'
+                  ? 'Editá en un solo formulario su nombre, ubicación, superficie, cultivos, suelo, riego y prioridades.'
+                  : 'Edit its name, location, area, crops, soil, irrigation and priorities in one form.'}
               </p>
             </div>
 
             <div className="border border-slate-300 dark:border-slate-800 p-3 bg-white dark:bg-[#111c2e] space-y-1">
               <div className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
                 <GoogleIcon name="eco" size={15} className="text-[#0f3260] dark:text-sky-400" />
-                <span>{lang === 'es' ? 'Rotación Predictiva' : 'Predictive Crop Rotation'}</span>
+                <span>{lang === 'es' ? 'Optimizador de rotaciones' : 'Rotation optimizer'}</span>
               </div>
               <p className="text-slate-600 dark:text-slate-400 text-[11px]">
                 {lang === 'es'
-                  ? 'Recomendaciones agronómicas para seleccionar cultivos principales y de cobertura según el perfil del suelo y el déficit proyectado.'
-                  : 'Agronomic strategies selecting cash and cover crops based on soil retention capacities and projected water deficits.'}
+                  ? 'Compará alternativas con el perfil del lote, la rotación declarada y datos climáticos y agronómicos disponibles.'
+                  : 'Compare options using the field profile, declared rotation and available climate and agronomic data.'}
               </p>
             </div>
 
             <div className="border border-slate-300 dark:border-slate-800 p-3 bg-white dark:bg-[#111c2e] space-y-1">
               <div className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
                 <GoogleIcon name="notifications" size={15} className="text-[#0f3260] dark:text-sky-400" />
-                <span>{lang === 'es' ? 'Alertas Tempranas' : 'Early Warning Alerts'}</span>
+                <span>{lang === 'es' ? 'Clima y avisos' : 'Weather and alerts'}</span>
               </div>
               <p className="text-slate-600 dark:text-slate-400 text-[11px]">
                 {lang === 'es'
-                  ? 'Ponderación de estrés hídrico, olas de calor y recarga subterránea combinando SMAP, GPM IMERG, MODIS y GRACE-FO.'
-                  : 'Weighted alerts for moisture deficits, heat waves, and aquifer depletion fusing SMAP, GPM, MODIS, and GRACE-FO data.'}
-              </p>
-            </div>
-
-            <div className="border border-slate-300 dark:border-slate-800 p-3 bg-white dark:bg-[#111c2e] space-y-1">
-              <div className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-                <GoogleIcon name="wifi_off" size={15} className="text-amber-700 dark:text-amber-400" />
-                <span>{lang === 'es' ? 'Resiliencia Rural Offline' : 'Rural Offline Resilience'}</span>
-              </div>
-              <p className="text-slate-600 dark:text-slate-400 text-[11px]">
-                {lang === 'es'
-                  ? 'Persistencia local para operar en zonas de campo profundo sin cobertura celular o con baja conectividad.'
-                  : 'Local data persistence designed to operate in deep rural fields without cellular network coverage.'}
+                  ? 'Revisá el pronóstico y los avisos generados por las fuentes vigentes para este lote.'
+                  : 'Review the forecast and notices generated from current sources for this field.'}
               </p>
             </div>
           </div>
 
           {/* Institutional note */}
           <div className="border-t border-slate-200 dark:border-slate-800 pt-3 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 font-mono">
-            <span>NASA Space Apps Challenge 2024-2026</span>
+            <span>NASA Space Apps Challenge 2026</span>
             <span>Versión 2.4.0 • Producción</span>
           </div>
         </div>

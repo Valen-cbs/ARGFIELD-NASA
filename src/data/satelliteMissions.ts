@@ -135,7 +135,7 @@ export const missionIntegrationLabel = (integration: MissionIntegration, lang: '
   dashboard_map_alerts: lang === 'es' ? 'Dashboard · mapa · regla de alerta' : 'Dashboard · map · alert rule',
   dashboard_map: lang === 'es' ? 'Dashboard · mapa' : 'Dashboard · map',
   map_only: lang === 'es' ? 'Solo capa del mapa' : 'Map layer only',
-  catalog_only: lang === 'es' ? 'Solo catálogo · sin conexión' : 'Catalogue only · not connected'
+  catalog_only: lang === 'es' ? 'Solo catálogo · no integrado' : 'Catalogue only · not integrated'
 }[integration]);
 
 export const missionOperationalLabel = (state: MissionOperationalState, lang: 'es' | 'en') => ({

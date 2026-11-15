@@ -8,6 +8,8 @@ export const MAGYP_CROPS = [
   'Sorgo', 'Té', 'Trigo candeal', 'Trigo total', 'Tung', 'Yerba mate'
 ] as const;
 
+export type MagypCrop = typeof MAGYP_CROPS[number];
+
 const aggregateGroups = [
   ['Cebada total', 'Cebada cervecera', 'Cebada forrajera'],
   ['Poroto total', 'Poroto alubia', 'Poroto negro', 'Poroto otros'],

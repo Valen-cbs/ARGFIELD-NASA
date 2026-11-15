@@ -1,32 +1,19 @@
 import { WeekOutlook } from './home/WeekOutlook';
 import type { FieldForecast } from '../services/fieldForecast';
 import type { RotationEngineState } from '../services/rotationEngineAdapter';
-import { DemoBadge } from './DemoBadge';
 import { SatelliteReadings } from './SatelliteReadings';
 import { SatelliteReading } from '../types/satellite';
-import React, { useState } from 'react';
-import { FarmProfile, MainCrop, SoilType, FarmerPriority, Alert } from '../types';
-import { CROPS_DATABASE, SOIL_DATABASE } from '../data/crops';
-import { EditFarmModal } from './EditFarmModal';
-import { RegisteredFarm } from './FarmRegistryView';
+import React from 'react';
+import { FarmProfile, FarmerPriority, Alert } from '../types';
 import { WeatherBrief } from '../services/weatherAlerts';
 import { 
   Droplets, 
   Sprout, 
   ShieldCheck, 
   TrendingUp, 
-  AlertTriangle, 
-  CheckCircle2, 
-  Layers, 
   Pencil, 
   ArrowRight, 
-  CloudRain, 
-  Activity, 
-  Compass,
-  Check,
-  CloudSun,
-  Wind,
-  Waves
+  Compass
 } from 'lucide-react';
 
 interface FarmProfileViewProps {
@@ -34,18 +21,12 @@ interface FarmProfileViewProps {
   alerts?: Alert[];
   readings: SatelliteReading[];
   onRefreshData: () => void;
-  isOffline: boolean;
-  onChangeProfile: (profile: FarmProfile) => void;
+  onOpenEditFarm: () => void;
   onOpenExport?: () => void;
   onNavigateToOptimizer?: () => void;
   onNavigateToAlerts?: () => void;
   onNavigateToWeather?: () => void;
-  onOpenEditLocation?: () => void;
   lang: 'es' | 'en';
-  farms: RegisteredFarm[];
-  activeFarmId: string | null;
-  onManageFarms: () => void;
-  onSelectFarm: (farm: RegisteredFarm) => void;
   weatherSummary: WeatherBrief | null;
   forecast: FieldForecast | null;
   rotationEngine: RotationEngineState;
@@ -56,34 +37,14 @@ export const FarmProfileView: React.FC<FarmProfileViewProps> = ({
   alerts,
   readings,
   onRefreshData,
-  isOffline,
-  onChangeProfile,
+  onOpenEditFarm,
   onOpenExport,
   onNavigateToOptimizer,
   onNavigateToAlerts,
   onNavigateToWeather,
-  onOpenEditLocation,
   lang,
-  farms,
-  activeFarmId,
-  onManageFarms,
-  onSelectFarm,
   weatherSummary, forecast, rotationEngine
 }) => {
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [justSaved, setJustSaved] = useState(false);
-
-  const notifyChange = () => {
-    setJustSaved(true);
-    setTimeout(() => setJustSaved(false), 1500);
-  };
-
-  const soilKeys = Object.keys(SOIL_DATABASE) as SoilType[];
-  const cropKeys = Object.keys(CROPS_DATABASE) as MainCrop[];
-
-  const currentSoil = SOIL_DATABASE[farmProfile.soilType];
-  const currentCrop = CROPS_DATABASE[farmProfile.currentCrop];
-
   const topAlert = alerts && alerts.length > 0 
     ? alerts.find(a => a.severity === 'critical') || alerts[0]
     : null;
@@ -131,49 +92,28 @@ export const FarmProfileView: React.FC<FarmProfileViewProps> = ({
               <Compass className="w-3.5 h-3.5" />
               {lang === 'es' ? 'Lote y Diagnóstico' : 'Field & Diagnostics'}
             </span>
-            <span className="text-xs text-slate-500 dark:text-zinc-400 font-mono">
-              {farmProfile.location.province}
-            </span>
-            {justSaved && (
-              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-                <Check className="w-3 h-3" />
-                {lang === 'es' ? 'Actualizado' : 'Updated'}
-              </span>
-            )}
           </div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mt-1">
             {farmProfile.location.name}
           </h1>
           <p className="text-xs text-slate-600 dark:text-zinc-400 mt-0.5 flex flex-wrap items-center gap-x-2">
-            <span>{farmProfile.location.basinName}</span>
+            <span>{farmProfile.location.province}</span>
             <span>•</span>
-            <span className="font-mono">{farmProfile.location.lat.toFixed(4)}°S, {farmProfile.location.lng.toFixed(4)}°W</span>
+            <span>{farmProfile.location.basinName}</span>   
             <span>•</span>
             <span>{farmProfile.fieldSizeHectares} ha</span>
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-        {onOpenExport && <button id="home-export-report-btn" type="button" onClick={onOpenExport} className="px-2 py-2 text-xs font-bold text-[#0f3260] dark:text-sky-300 border border-slate-300 dark:border-zinc-700 cursor-pointer">{lang === 'es' ? 'Exportar informe' : 'Export report'}</button>}
-        <button
-          id="home-edit-location-btn"
-          type="button"
-          onClick={() => onOpenEditLocation ? onOpenEditLocation() : setShowEditModal(true)}
-          className="p-2.5 text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-[#2a2a2e] border border-slate-300 dark:border-[#38383e] transition-colors flex items-center justify-center cursor-pointer shrink-0"
-          title={lang === 'es' ? 'Cambiar ubicación del lote' : 'Change field location'}
-          aria-label={lang === 'es' ? 'Editar lote' : 'Edit field'}
-        >
-          <Pencil className="w-4 h-4 text-[#0f3260] dark:text-sky-400" />
-        </button>
+        
         </div>
       </div>
 
-      {farms.length > 1 && <label className="flex items-center gap-2 border border-slate-300 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-[#1c1c1e]">{lang === 'es' ? 'Estancia activa' : 'Active farm'}<select value={activeFarmId ?? ''} onChange={event => { const farm = farms.find(item => item.id === event.target.value); if (farm) onSelectFarm(farm); }} className="border border-slate-300 bg-white px-2 py-1 dark:border-zinc-700 dark:bg-zinc-900">{farms.map(farm => <option key={farm.id} value={farm.id}>{farm.profile.location.name}</option>)}</select><button type="button" onClick={onManageFarms} className="ml-auto font-bold text-[#0f3260] dark:text-sky-300">{lang === 'es' ? 'Gestionar' : 'Manage'}</button></label>}
-      {farms.length === 1 && <button type="button" onClick={onManageFarms} className="border border-slate-300 bg-white px-3 py-2 text-left text-xs font-bold text-[#0f3260] dark:border-zinc-700 dark:bg-[#1c1c1e] dark:text-sky-300">{lang === 'es' ? 'Gestionar estancias' : 'Manage farms'}</button>}
-      <WeekOutlook forecast={forecast} lang={lang} isOffline={isOffline} />
+      <WeekOutlook forecast={forecast} lang={lang} />
       {farmProfile.cropAllocations && farmProfile.cropAllocations.length > 0 && <section className="border border-slate-300 bg-white p-4 dark:border-zinc-700 dark:bg-[#1c1c1e]"><h2 className="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-zinc-300">{lang === 'es' ? 'Cultivos registrados' : 'Registered crops'}</h2><div className="mt-2 flex flex-wrap gap-2">{farmProfile.cropAllocations.map(item => <span key={item.crop} className="border border-slate-200 px-2.5 py-1 text-xs dark:border-zinc-700">{item.crop} · {item.hectares.toLocaleString(lang === 'es' ? 'es-AR' : 'en-US')} ha</span>)}</div></section>}
 
-      <SatelliteReadings readings={readings} lang={lang} onRefresh={onRefreshData} offline={isOffline} onLocateField={() => onOpenEditLocation ? onOpenEditLocation() : setShowEditModal(true)} />
+      <SatelliteReadings readings={readings} lang={lang} onRefresh={onRefreshData} onLocateField={onOpenEditFarm} />
 
       <section className="grid gap-px border border-slate-300 bg-slate-200 dark:border-zinc-700 dark:bg-zinc-700 sm:grid-cols-3">
         <div className="bg-white p-4 dark:bg-[#1c1c1e]"><div className="text-[11px] font-bold uppercase text-slate-500 dark:text-zinc-400">{lang === 'es' ? 'Clima actual · Open-Meteo' : 'Current weather · Open-Meteo'}</div>{weatherSummary ? <><div className="mt-1 text-2xl font-bold">{weatherSummary.temperature.toLocaleString(lang === 'es' ? 'es-AR' : 'en-US', { maximumFractionDigits: 1 })} °C</div><div className="text-xs text-slate-600 dark:text-zinc-400">{lang === 'es' ? 'Humedad' : 'Humidity'}: {weatherSummary.humidity ?? '—'}%</div></> : <div className="mt-2 text-xs text-slate-500">{lang === 'es' ? 'Pronóstico no disponible para este punto.' : 'Forecast unavailable for this point.'}</div>}</div>
@@ -208,39 +148,9 @@ export const FarmProfileView: React.FC<FarmProfileViewProps> = ({
             </span>
           </div>
 
-          {/* Clean Priority Switcher Buttons */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-0.5">
-            {prioritiesList.map((item) => {
-              const isSelected = farmProfile.priority === item.id;
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  id={`priority-btn-${item.id}`}
-                  onClick={() => {
-                    onChangeProfile({ ...farmProfile, priority: item.id });
-                    notifyChange();
-                  }}
-                  className={`p-3 text-left border transition-all cursor-pointer flex items-center gap-2.5 ${
-                    isSelected 
-                      ? 'bg-[#0f3260] text-white border-[#0f3260] dark:bg-[#27272a] dark:border-sky-500 shadow-xs' 
-                      : 'bg-slate-50 dark:bg-[#232326] text-slate-800 dark:text-zinc-300 border-slate-200 dark:border-[#2e2e33] hover:bg-slate-100 dark:hover:bg-[#2c2c30]'
-                  }`}
-                >
-                  <div className={`p-1.5 ${isSelected ? 'bg-white/20 text-white' : 'bg-white dark:bg-[#1c1c1e] text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-[#38383e]'}`}>
-                    {item.icon}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="text-xs font-bold truncate">
-                      {item.label}
-                    </div>
-                    <div className={`text-[10px] ${isSelected ? 'text-blue-100 dark:text-zinc-300' : 'text-slate-500 dark:text-zinc-400'}`}>
-                      {isSelected ? (lang === 'es' ? 'Activo' : 'Active') : (lang === 'es' ? 'Seleccionar' : 'Select')}
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
+          <div className="flex items-center gap-2 border border-slate-200 bg-slate-50 p-3 text-xs dark:border-zinc-700 dark:bg-[#232326]">
+            {prioritiesList.find(item => item.id === farmProfile.priority)?.icon}
+            <span className="font-bold">{prioritiesList.find(item => item.id === farmProfile.priority)?.label}</span>
           </div>
         </div>
 
@@ -252,7 +162,6 @@ export const FarmProfileView: React.FC<FarmProfileViewProps> = ({
                 <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-[#0f3260] text-white dark:bg-[#252528] dark:text-sky-300">
 {lang === 'es' ? 'Orientación de manejo' : 'Management guidance'}
                 </span>
-                <DemoBadge lang={lang} />
               </div>
 
               <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">
@@ -291,17 +200,6 @@ export const FarmProfileView: React.FC<FarmProfileViewProps> = ({
         </div>
       </div>
 
-      {/* Edit Location Modal */}
-      <EditFarmModal
-        isOpen={showEditModal}
-        onClose={() => setShowEditModal(false)}
-        currentLocation={farmProfile.location}
-        onSaveLocation={(updatedLocation) => {
-          onChangeProfile({ ...farmProfile, location: updatedLocation });
-          notifyChange();
-        }}
-        lang={lang}
-      />
     </div>
   );
 };

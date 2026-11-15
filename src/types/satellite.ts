@@ -1,4 +1,4 @@
-export type ReadingStatus = 'loading' | 'available' | 'no_data' | 'stale' | 'undated' | 'error' | 'offline';
+export type ReadingStatus = 'loading' | 'available' | 'no_data' | 'stale' | 'undated' | 'error';
 export type DataErrorCode = 'network' | 'timeout' | 'http' | 'ogc' | 'format' | 'unsupported';
 
 export interface SatelliteReading {

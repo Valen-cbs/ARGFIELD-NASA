@@ -8,9 +8,7 @@ interface SidebarProps {
   activeTab: AppTab;
   onSelectTab: (tab: AppTab) => void;
   criticalAlertsCount: number;
-  isOffline: boolean;
-  onToggleOffline: () => void;
-  onOpenLanding: () => void;
+  onOpenFarmEditor: () => void;
   onOpenAbout: () => void;
   isDarkMode: boolean;
   onToggleDarkMode: () => void;
@@ -24,9 +22,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   activeTab,
   onSelectTab,
   criticalAlertsCount,
-  isOffline,
-  onToggleOffline,
-  onOpenLanding,
+  onOpenFarmEditor,
   onOpenAbout,
   isDarkMode,
   onToggleDarkMode,
@@ -102,9 +98,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div>
           <div className="bg-[#0f3260] dark:bg-[#121212] text-white p-4 border-b border-[#092040] dark:border-[#2e2e33] flex items-center justify-between">
             <div>
-              <div className="text-[10px] uppercase tracking-wider font-semibold text-slate-300 dark:text-zinc-400">
-                {lang === 'es' ? 'Portal Oficial' : 'Official Portal'}
-              </div>
+
               <div className="font-bold text-sm text-white tracking-tight mt-0.5">
                 ARGFIELD
               </div>
@@ -167,43 +161,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Bottom Controls: 4 icons side-by-side with no text */}
-        <div className="p-2 border-t border-slate-300 dark:border-[#2e2e33] bg-slate-50 dark:bg-[#121212] transition-colors">
-          <div className="grid grid-cols-4 gap-1.5">
+        <div className="p-1.5 border-t border-slate-300 dark:border-[#2e2e33] bg-slate-50 dark:bg-[#121212] transition-colors">
+          <div className="grid grid-cols-4 gap-1">
             {/* 1. Intro / About */}
             <button
               id="sidebar-intro-icon-btn"
               onClick={onOpenAbout}
               title={lang === 'es' ? 'Introducción / Acerca de Argfield' : 'Introduction / About Argfield'}
-              className="h-9 flex items-center justify-center bg-white dark:bg-[#1c1c1e] hover:bg-slate-100 dark:hover:bg-[#27272a] text-slate-700 dark:text-zinc-300 border border-slate-300 dark:border-[#2e2e33] transition-colors"
+              className="h-8 flex items-center justify-center bg-white dark:bg-[#1c1c1e] hover:bg-slate-100 dark:hover:bg-[#27272a] text-slate-700 dark:text-zinc-300 border border-slate-300 dark:border-[#2e2e33] transition-colors"
             >
-              <GoogleIcon name="info" className="text-[#0f3260] dark:text-zinc-200" size={18} />
+              <GoogleIcon name="info" className="text-[#0f3260] dark:text-zinc-200" size={16} />
             </button>
 
-            {/* 2. Offline / Online Toggle */}
+            {/* Edit the single registered farm */}
             <button
-              id="sidebar-offline-icon-btn"
-              onClick={onToggleOffline}
-              title={
-                isOffline
-                  ? (lang === 'es' ? 'Modo Rural Offline (Clic para activar En Línea)' : 'Rural Offline Mode (Click for Online)')
-                  : (lang === 'es' ? 'En Línea (Clic para activar Modo Rural)' : 'Online (Click for Rural Offline)')
-              }
-              className={`h-9 flex items-center justify-center border transition-colors relative ${
-                isOffline
-                  ? 'bg-amber-50 dark:bg-amber-950/50 border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-300'
-                  : 'bg-white dark:bg-[#1c1c1e] border-slate-300 dark:border-[#2e2e33] text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-[#27272a]'
-              }`}
+              id="sidebar-edit-farm-icon-btn"
+              onClick={onOpenFarmEditor}
+              title={lang === 'es' ? 'Editar estancia' : 'Edit farm'}
+              aria-label={lang === 'es' ? 'Editar estancia' : 'Edit farm'}
+              className="h-8 flex items-center justify-center bg-white dark:bg-[#1c1c1e] hover:bg-slate-100 dark:hover:bg-[#27272a] text-slate-700 dark:text-zinc-300 border border-slate-300 dark:border-[#2e2e33] transition-colors"
             >
-              <GoogleIcon
-                name={isOffline ? 'wifi_off' : 'wifi'}
-                className={isOffline ? 'text-amber-700 dark:text-amber-400' : 'text-emerald-700 dark:text-emerald-400'}
-                size={18}
-              />
-              <span
-                className={`absolute top-1 right-1 w-1.5 h-1.5 ${
-                  isOffline ? 'bg-amber-600' : 'bg-emerald-600'
-                }`}
-              />
+              <GoogleIcon name="edit" className="text-[#0f3260] dark:text-sky-300" size={16} />
             </button>
 
             {/* 3. Dark Mode Toggle */}
@@ -215,12 +193,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   ? (lang === 'es' ? 'Modo Claro (Desactivar modo oscuro)' : 'Light Mode')
                   : (lang === 'es' ? 'Modo Oscuro (Activar modo noche)' : 'Dark Mode')
               }
-              className="h-9 flex items-center justify-center bg-white dark:bg-[#1c1c1e] hover:bg-slate-100 dark:hover:bg-[#27272a] text-slate-700 dark:text-zinc-200 border border-slate-300 dark:border-[#2e2e33] transition-colors"
+              className="h-8 flex items-center justify-center bg-white dark:bg-[#1c1c1e] hover:bg-slate-100 dark:hover:bg-[#27272a] text-slate-700 dark:text-zinc-200 border border-slate-300 dark:border-[#2e2e33] transition-colors"
             >
               <GoogleIcon
                 name={isDarkMode ? 'light_mode' : 'dark_mode'}
                 className={isDarkMode ? 'text-amber-400' : 'text-[#0f3260] dark:text-zinc-300'}
-                size={18}
+                size={16}
               />
             </button>
 
@@ -229,7 +207,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               id="sidebar-lang-icon-btn"
               onClick={onToggleLang}
               title={lang === 'es' ? 'Idioma: Español (Cambiar a English)' : 'Language: English (Switch to Spanish)'}
-              className="h-9 flex items-center justify-center bg-white dark:bg-[#1c1c1e] hover:bg-slate-100 dark:hover:bg-[#27272a] border border-slate-300 dark:border-[#2e2e33] transition-colors"
+              className="h-8 flex items-center justify-center bg-white dark:bg-[#1c1c1e] hover:bg-slate-100 dark:hover:bg-[#27272a] border border-slate-300 dark:border-[#2e2e33] transition-colors"
             >
               <FlagIcon country={lang === 'es' ? 'AR' : 'US'} size="xs" />
             </button>

@@ -190,6 +190,10 @@ export function useRotationEngine(farm: FarmProfile, readings: SatelliteReading[
         const result = await evaluateRotations(input);
         if (controller.signal.aborted || currentRun !== runId.current) return;
         if (import.meta.env?.DEV) console.debug('[ArgField optimizador]', result.diagnostics);
+        if (result.diagnostics.outcome === 'management') {
+          setState({ status: 'ready', plans: [], engine: result, error: null, generatedAtIso: result.generatedAtIso });
+          return;
+        }
         if (result.diagnostics.outcome === 'unsupported_perennial') {
           setState({ status: 'perennial', plans: [], engine: result, error: result.warnings[0], generatedAtIso: result.generatedAtIso });
           return;

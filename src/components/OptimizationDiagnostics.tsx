@@ -2,6 +2,7 @@ import type { EngineResult } from '../engine/engineTypes';
 
 const outcomes = {
   viable: 'Rotaciones viables evaluadas',
+  management: 'Recomendaciones cualitativas de manejo',
   no_candidates: 'No se pudieron formar secuencias completas',
   incompatible_constraints: 'Las secuencias incumplen restricciones agronómicas',
   insufficient_data: 'Faltan datos o parámetros para evaluar las secuencias',

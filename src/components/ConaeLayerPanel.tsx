@@ -15,11 +15,11 @@ interface ConaeLayerPanelProps {
   day: number; onSelectDay: (day: number) => void;
   opacity: number; onChangeOpacity: (value: number) => void;
   status: ConaeLayerStatus; lastLoadedAt: Date | null;
-  reading: SatelliteReading | null; offline: boolean; onRefresh: () => void;
+  reading: SatelliteReading | null; onRefresh: () => void;
   onClose: () => void;
 }
 
-export const ConaeLayerPanel: React.FC<ConaeLayerPanelProps> = ({ lang, layerId, onSelectLayer, day, onSelectDay, opacity, onChangeOpacity, status, lastLoadedAt, reading, offline, onRefresh, onClose }) => {
+export const ConaeLayerPanel: React.FC<ConaeLayerPanelProps> = ({ lang, layerId, onSelectLayer, day, onSelectDay, opacity, onChangeOpacity, status, lastLoadedAt, reading, onRefresh, onClose }) => {
   const es = lang === 'es';
   const product = getSatelliteProduct(layerId);
   const [failedLegend, setFailedLegend] = useState('');
@@ -48,7 +48,7 @@ export const ConaeLayerPanel: React.FC<ConaeLayerPanelProps> = ({ lang, layerId,
         <div className="flex gap-1.5 items-start text-[11px]" aria-live="polite">
           {status === 'loading' ? <Loader2 size={13} className="animate-spin shrink-0" /> : status === 'error' || status === 'partial' ? <AlertTriangle size={13} className="shrink-0 text-amber-600" /> : <CheckCircle2 size={13} className="shrink-0 text-slate-500" />}
           <div>
-            {offline ? (es ? 'Mapa satelital sin conexión.' : 'Satellite map is offline.') : status === 'loading' ? (es ? 'Cargando imágenes…' : 'Loading images…') : status === 'loaded' ? (es ? 'Imágenes recibidas; cobertura sin confirmar por la imagen.' : 'Images received; the image does not confirm farm coverage.') : status === 'partial' ? (es ? 'Algunas imágenes fallaron.' : 'Some images failed.') : status === 'error' ? (es ? 'No se recibieron imágenes válidas.' : 'No valid images received.') : (es ? 'Esperando la capa.' : 'Waiting for the layer.')}
+            {status === 'loading' ? (es ? 'Cargando imágenes…' : 'Loading images…') : status === 'loaded' ? (es ? 'Imágenes recibidas; cobertura sin confirmar por la imagen.' : 'Images received; the image does not confirm farm coverage.') : status === 'partial' ? (es ? 'Algunas imágenes fallaron.' : 'Some images failed.') : status === 'error' ? (es ? 'No se recibieron imágenes válidas.' : 'No valid images received.') : (es ? 'Esperando la capa.' : 'Waiting for the layer.')}
             {lastLoadedAt && <span className="block text-[10px]">{es ? 'Carga del mapa:' : 'Map loaded:'} {lastLoadedAt.toLocaleTimeString()}</span>}
           </div>
         </div>
@@ -58,9 +58,9 @@ export const ConaeLayerPanel: React.FC<ConaeLayerPanelProps> = ({ lang, layerId,
           {reading?.value === null && !!reading.entries?.length && <div className="text-[10px] font-mono break-words">{reading.entries.map(([k, v]) => <div key={k}>{k}: {v}</div>)}</div>}
           {product.id === 'sentinel2_ndvi' && <p className="text-[10px] text-slate-500">{es ? 'Mapa: escena en color natural. NDVI y control de nubes corresponden al punto consultado.' : 'Map: natural-color scene. NDVI and cloud screening apply to the queried point.'}</p>}
           {product.kind === 'stac' && product.id !== 'sentinel2_ndvi' && <p className="text-[10px] text-slate-500">{es ? 'La capa es de contexto. El control de calidad corresponde a la lectura del punto.' : 'The layer provides context. Quality screening applies to the point reading.'}</p>}
-          <button type="button" onClick={onRefresh} disabled={offline || reading?.status === 'loading'} className="flex items-center gap-1 text-[#0f3260] dark:text-sky-300 disabled:opacity-50 cursor-pointer"><RefreshCw size={12} />{es ? 'Actualizar lectura' : 'Refresh reading'}</button>
+          <button type="button" onClick={onRefresh} disabled={reading?.status === 'loading'} className="flex items-center gap-1 text-[#0f3260] dark:text-sky-300 disabled:opacity-50 cursor-pointer"><RefreshCw size={12} />{es ? ' lectura' : 'Refresh reading'}</button>
         </div>
-        {legendUrl && failedLegend !== legendUrl && !offline && <div><h3 className="font-semibold mb-1">{es ? 'Referencias del proveedor' : 'Provider legend'}</h3><img src={legendUrl} alt={es ? 'Leyenda de la capa' : 'Layer legend'} className="max-w-full bg-white border border-slate-200 p-1" onError={() => setFailedLegend(legendUrl)} /></div>}
+        {legendUrl && failedLegend !== legendUrl && <div><h3 className="font-semibold mb-1">{es ? 'Referencias del proveedor' : 'Provider legend'}</h3><img src={legendUrl} alt={es ? 'Leyenda de la capa' : 'Layer legend'} className="max-w-full bg-white border border-slate-200 p-1" onError={() => setFailedLegend(legendUrl)} /></div>}
       </div>}
     </div>
   </div>;

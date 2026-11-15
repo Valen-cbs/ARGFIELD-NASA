@@ -46,7 +46,7 @@ export const AgenciesView: React.FC<AgenciesViewProps> = ({ lang }) => {
           <thead className="bg-[#0f3260] text-white"><tr>
             <th className="px-3 py-3 font-bold uppercase">{es ? 'Misión' : 'Mission'}</th>
             <th className="w-24 px-3 py-3 font-bold uppercase">{es ? 'País' : 'Country'}</th>
-            <th className="w-28 px-3 py-3 font-bold uppercase">{es ? 'Agencia/s' : 'Agency / agencies'}</th>
+            <th className="w-28 px-3 py-3 font-bold uppercase">{es ? 'Agencia' : 'Agency / agencies'}</th>
             <th className="px-3 py-3 font-bold uppercase">{es ? 'Sensor' : 'Sensor'}</th>
             <th className="px-3 py-3 font-bold uppercase">{es ? 'Resolución' : 'Resolution'}</th>
             <th className="px-3 py-3 font-bold uppercase">{es ? 'Órbita' : 'Orbit'}</th>

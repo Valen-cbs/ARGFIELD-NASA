@@ -17,13 +17,11 @@ import {
   Thermometer,
   Wind
 } from 'lucide-react';
-import { FarmLocation, FarmProfile } from '../types';
+import { FarmProfile } from '../types';
 
 interface WeatherViewProps {
   farmProfile: FarmProfile;
-  onChangeFarmLocation?: (preset: FarmLocation) => void;
   onOpenEditLocation?: () => void;
-  isOffline: boolean;
   lang: 'es' | 'en';
 }
 
@@ -222,7 +220,6 @@ const weatherCache = new Map<string, { forecast: WeatherForecast; fetchedAt: num
 export const WeatherView: React.FC<WeatherViewProps> = ({
   farmProfile,
   onOpenEditLocation,
-  isOffline,
   lang
 }) => {
   const [forecast, setForecast] = useState<WeatherForecast | null>(null);
@@ -240,18 +237,6 @@ export const WeatherView: React.FC<WeatherViewProps> = ({
     const cacheKey = `${lat.toFixed(4)},${lng.toFixed(4)}`;
     const cached = weatherCache.get(cacheKey);
     if (cached) setForecast(cached.forecast);
-
-    if (isOffline) {
-      setLoading(false);
-      if (cached) {
-        setError(null);
-        return () => controller.abort();
-      }
-      setError(es
-        ? 'El modo sin conexión está activo. Desactivalo para consultar Open-Meteo.'
-        : 'Offline mode is active. Turn it off to fetch Open-Meteo data.');
-      return () => controller.abort();
-    }
 
     const shouldRefresh = refreshKey > 0 || !cached || Date.now() - cached.fetchedAt >= WEATHER_CACHE_TTL;
     if (!shouldRefresh) {
@@ -296,13 +281,12 @@ export const WeatherView: React.FC<WeatherViewProps> = ({
 
     void loadForecast();
     return () => controller.abort();
-  }, [lat, lng, isOffline, refreshKey, es]);
+  }, [lat, lng, refreshKey, es]);
 
   useEffect(() => {
-    if (isOffline) return;
     const timer = window.setInterval(() => setRefreshKey(value => value + 1), WEATHER_CACHE_TTL);
     return () => window.clearInterval(timer);
-  }, [lat, lng, isOffline]);
+  }, [lat, lng]);
 
   const currentHourIndex = useMemo(() => {
     if (!forecast) return -1;
@@ -358,7 +342,7 @@ export const WeatherView: React.FC<WeatherViewProps> = ({
         <button
           type="button"
           onClick={() => setRefreshKey(value => value + 1)}
-          disabled={loading || isOffline}
+          disabled={loading}
           className="inline-flex items-center gap-2 border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-[#0f3260] disabled:opacity-50 dark:border-zinc-700 dark:bg-[#1c1c1e] dark:text-zinc-100"
         >
           <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
@@ -379,11 +363,9 @@ export const WeatherView: React.FC<WeatherViewProps> = ({
           <div className="flex-1">
             <p className="font-bold">{es ? 'Clima no disponible' : 'Weather unavailable'}</p>
             <p className="mt-1">{error}</p>
-            {!isOffline && (
-              <button type="button" onClick={() => setRefreshKey(value => value + 1)} className="mt-2 font-bold underline">
-                {es ? 'Reintentar' : 'Try again'}
-              </button>
-            )}
+            <button type="button" onClick={() => setRefreshKey(value => value + 1)} className="mt-2 font-bold underline">
+              {es ? 'Reintentar' : 'Try again'}
+            </button>
           </div>
         </div>
       )}

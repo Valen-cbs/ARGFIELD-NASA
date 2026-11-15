@@ -40,7 +40,7 @@ Cada lectura conserva fuente, fecha del producto, fecha de consulta, cobertura y
 
 El perfil es un punto: no representa el promedio de las hectáreas del establecimiento. La humedad volumétrica no equivale a agua útil. El NDVI aislado no demuestra una caída; el radar VV no mide directamente humedad o compactación; la temperatura MODIS no es temperatura del aire.
 
-Los avisos actuales son reglas de seguimiento para percentiles secos de SAOCOM y para incidencia modelada de fusariosis cuando el cultivo declarado es trigo. Solo usan productos vigentes, fechados y no recuperados de la caché offline. Las capas de fuego e inundación no generan avisos automáticos de proximidad.
+Los avisos actuales son reglas de seguimiento para percentiles secos de SAOCOM y para incidencia modelada de fusariosis cuando el cultivo declarado es trigo. Solo usan productos vigentes y fechados. Las capas de fuego e inundación no generan avisos automáticos de proximidad.
 
 El clima utiliza pronósticos Open-Meteo. Los puntajes de rotación son indicadores orientativos del motor; los beneficios físicos en agua, carbono y rendimiento no se estiman. El informe JSON y su vista imprimible incluyen esta distinción y la procedencia de las lecturas. Las misiones que aún requieren acceso o procesamiento aparecen en Fuentes como pendientes.
 
@@ -57,7 +57,7 @@ Diagnóstico opcional contra CONAE real: `npm run check:conae`. Usa exclusivamen
 
 Auditoría regional completa: `npm run audit:satellites`. Consulta diez productos en nueve centros urbanos públicos y guarda valores, fechas y motivos de ausencia en [docs/AUDITORIA_SATELITAL.md](docs/AUDITORIA_SATELITAL.md) y sus JSON. La búsqueda de escenas revisa hasta 90 días y conserva la antigüedad real; puede seguir sin haber un píxel válido. No se usan mediciones de un punto vecino ni los archivos de auditoría para completar el lote.
 
-Las pruebas de navegador usan Chrome instalado, respuestas controladas y bloquean las conexiones externas. Se puede elegir otro canal instalado con `PLAYWRIGHT_CHANNEL` (por ejemplo, `msedge`). Cubren fechas antiguas, NoData con imágenes transparentes, cambios de serie y lote, modo offline, móvil y exportación. El modo offline conserva solo lecturas de la sesión en memoria; al recargar sin conexión puede no haber datos guardados.
+Las pruebas de navegador usan Chrome instalado, respuestas controladas y bloquean las conexiones externas. Se puede elegir otro canal instalado con `PLAYWRIGHT_CHANNEL` (por ejemplo, `msedge`). Cubren fechas antiguas, NoData con imágenes transparentes, cambios de serie y lote, edición de estancia, móvil y exportación.
 
 ## Desplegar
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import { Satellite, Layers } from 'lucide-react';
-import { Alert, FarmLocation, LatLng } from '../types';
+import { Alert, FarmLocation } from '../types';
 import { WIKIMEDIA_FLAGS, AGENCY_TO_COUNTRY } from './FlagIcon';
 import { GoogleIcon } from './GoogleIcon';
 import { ConaeLayerPanel, ConaeLayerStatus } from './ConaeLayerPanel';
@@ -23,11 +23,7 @@ interface MapProps {
   farmLocation: FarmLocation;
   alerts: Alert[];
   readings: SatelliteReading[];
-  isOffline: boolean;
   onSelectAlert: (alert: Alert) => void;
-  onSelectFarm?: (farm: FarmLocation) => void;
-  onMapClickSetLocation?: (coords: LatLng) => void;
-  onSelectPreset?: (preset: FarmLocation) => void;
   onOpenExport?: () => void;
   isDarkMode: boolean;
   lang: 'es' | 'en';
@@ -169,11 +165,7 @@ export const MapComponent: React.FC<MapProps> = ({
   farmLocation,
   alerts,
   readings,
-  isOffline,
   onSelectAlert,
-  onSelectFarm,
-  onMapClickSetLocation,
-  onSelectPreset,
   onOpenExport,
   isDarkMode,
   lang
@@ -237,17 +229,16 @@ export const MapComponent: React.FC<MapProps> = ({
   };
 
   const [mapRefreshId, setMapRefreshId] = useState(0);
-  const pointKey = `${conaeLayerId}/${conaeDay}/${farmLocation.lat}/${farmLocation.lng}/${isOffline}/${mapRefreshId}`;
+  const pointKey = `${conaeLayerId}/${conaeDay}/${farmLocation.lat}/${farmLocation.lng}/${mapRefreshId}`;
   const [pointState, setPointState] = useState<{ key: string; reading: SatelliteReading } | null>(null);
   const selectedProduct = getSatelliteProduct(conaeLayerId);
   const dashboardReading = conaeDay === 1 && mapRefreshId === 0 ? readings.find(r => r.productId === conaeLayerId) : undefined;
-  const pointReading = pointState?.key === pointKey ? pointState.reading : selectedProduct ? emptyReading(selectedProduct, isOffline ? 'offline' : 'loading') : null;
+  const pointReading = pointState?.key === pointKey ? pointState.reading : selectedProduct ? emptyReading(selectedProduct) : null;
 
   useEffect(() => {
     const controller = new AbortController();
     if (!selectedProduct) { setPointState(null); return; }
     if (dashboardReading) { setPointState({ key: pointKey, reading: dashboardReading }); return; }
-    if (isOffline) { setPointState({ key: pointKey, reading: emptyReading(selectedProduct, 'offline') }); return; }
     setPointState({ key: pointKey, reading: emptyReading(selectedProduct) });
     loadSatelliteProduct(selectedProduct, farmLocation, conaeDay, controller.signal).then(reading => {
       if (!controller.signal.aborted) setPointState({ key: pointKey, reading });
@@ -256,12 +247,8 @@ export const MapComponent: React.FC<MapProps> = ({
   }, [pointKey, dashboardReading]);
 
   // Keep references to latest callbacks to avoid stale closures in Leaflet events
-  const onSelectFarmRef = useRef(onSelectFarm);
-  onSelectFarmRef.current = onSelectFarm;
   const onSelectAlertRef = useRef(onSelectAlert);
   onSelectAlertRef.current = onSelectAlert;
-  const onMapClickSetLocationRef = useRef(onMapClickSetLocation);
-  onMapClickSetLocationRef.current = onMapClickSetLocation;
   const farmLocationRef = useRef(farmLocation);
   farmLocationRef.current = farmLocation;
   const isDarkModeRef = useRef(isDarkMode);
@@ -433,7 +420,7 @@ export const MapComponent: React.FC<MapProps> = ({
     if (!map || !mapLoaded) return;
     setConaeLoadedAt(null);
     setConaeStatus('idle');
-    if (!selectedProduct || isOffline) return;
+    if (!selectedProduct) return;
     const options: L.TileLayerOptions = {
       opacity: conaeOpacity, zIndex: 5, errorTileUrl: CONAE_ERROR_TILE,
       attribution: `Capa: ${selectedProduct.source}`, maxZoom: 19
@@ -477,7 +464,7 @@ export const MapComponent: React.FC<MapProps> = ({
       map.removeLayer(tiles);
       if (conaeTileLayerRef.current === tiles) conaeTileLayerRef.current = null;
     };
-  }, [conaeLayerId, conaeDay, mapLoaded, isOffline, pointReading?.tileUrl]);
+  }, [conaeLayerId, conaeDay, mapLoaded, pointReading?.tileUrl]);
 
   useEffect(() => {
     conaeTileLayerRef.current?.setOpacity(conaeOpacity);
@@ -617,7 +604,7 @@ export const MapComponent: React.FC<MapProps> = ({
     });
 
     map.panTo([farmLocation.lat, farmLocation.lng], { animate: true });
-  }, [farmLocation, alerts, lang, onSelectFarm, onSelectAlert, isDarkMode]);
+  }, [farmLocation, alerts, lang, onSelectAlert, isDarkMode]);
 
   const handleRecenter = () => {
     if (mapInstanceRef.current) {
@@ -889,7 +876,6 @@ export const MapComponent: React.FC<MapProps> = ({
               title={lang === 'es' ? 'Capas satelitales' : 'Satellite layers'}
             >
               <Layers size={14} />
-              {lang === 'es' ? 'Capas CONAE' : 'CONAE layers'}
             </button>
           </div>
 
@@ -962,7 +948,6 @@ export const MapComponent: React.FC<MapProps> = ({
             status={conaeStatus}
             lastLoadedAt={conaeLoadedAt}
             reading={pointReading}
-            offline={isOffline}
             onRefresh={() => setMapRefreshId(id => id + 1)}
             onClose={() => setShowConaePanel(false)}
           />

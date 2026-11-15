@@ -103,19 +103,16 @@ test('switching series cancels an old response and preserves the selected produc
   await expect(panel.getByTestId('reading-saocom_humedad')).toContainText('32');
 });
 
-test('offline shows saved readings explicitly and stops provider requests', async ({ page }) => {
-  const mock = await mockProviders(page, { dry: true });
+test('sidebar edit action opens the complete farm profile modal', async ({ page }) => {
+  await mockProviders(page, { dry: true });
   await page.goto('/');
   await expect(page.getByTestId('reading-modis_lst')).toContainText('26,85');
   await expect(page.getByTestId('reading-saocom_percentil')).toContainText('Dato vigente');
-  await page.locator('#sidebar-offline-icon-btn').click();
-  await expect(page.getByTestId('reading-saocom_percentil')).toContainText('guardado');
-  const count = mock.requestCount();
-  await page.waitForTimeout(250);
-  expect(mock.requestCount()).toBe(count);
-  await page.locator('#nav-item-alertas').click();
-  await expect(page.getByText('No se registran alertas bajo este filtro')).toBeVisible();
-  await expect(page.getByText(/Los productos sin cobertura, antiguos o sin fecha/)).toBeVisible();
+  await page.locator('#sidebar-edit-farm-icon-btn').click();
+  await expect(page.getByRole('heading', { name: 'Editar estancia' })).toBeVisible();
+  await expect(page.getByLabel('Nombre de la estancia (opcional)')).toBeVisible();
+  await expect(page.getByLabel('Cultivos actuales')).toBeVisible();
+  await expect(page.getByLabel('Prioridad del productor')).toBeVisible();
 });
 
 test('sources show country flags, agency logos and retain Amazonia-1 without CBERS-4A', async ({ page }) => {
@@ -129,13 +126,12 @@ test('sources show country flags, agency logos and retain Amazonia-1 without CBE
   await expect(page.getByRole('columnheader', { name: 'Agencia' })).toBeVisible();
 });
 
-test('farm registration saves location and crop allocations across reloads', async ({ page }) => {
+test('editing the single farm saves location and crop allocations across reloads', async ({ page }) => {
   await page.addInitScript(() => {
     if (!sessionStorage.getItem('argfield-registry-test-started')) {
       localStorage.clear();
       localStorage.setItem('field_shift_landing_seen', 'true');
       localStorage.setItem('field_shift_active_tab', 'home');
-      localStorage.setItem('field_shift_is_offline', 'true');
       localStorage.setItem('field_shift_farm_profile', JSON.stringify({
         location: { name: 'Estancia anterior', lat: -35, lng: -60, province: 'Buenos Aires', region: 'centro', basinId: 'salado_bonaerense', basinName: 'Cuenca de prueba', mainRiver: 'Río de prueba' },
         fieldSizeHectares: 100, currentCrop: 'soybean', soilType: 'mollisol_deep', irrigation: 'dryland', priority: 'conserve_moisture'
@@ -150,8 +146,7 @@ test('farm registration saves location and crop allocations across reloads', asy
     return route.abort();
   });
   await page.goto('/');
-  await page.getByRole('button', { name: 'Gestionar estancias' }).click();
-  await page.getByRole('button', { name: /Nueva estancia/ }).click();
+  await page.locator('#sidebar-edit-farm-icon-btn').click();
   await page.getByLabel('Productor (opcional)').fill('Carlitos');
   await page.getByLabel('Nombre de la estancia').fill('La Esperanza');
   await page.getByLabel('Ubicación · OpenStreetMap').fill('Pergamino');
@@ -159,22 +154,24 @@ test('farm registration saves location and crop allocations across reloads', asy
   await page.getByLabel('Superficie total').fill('100');
   await page.locator('section').filter({ hasText: 'Cultivos actuales' }).getByRole('checkbox', { name: /Soja 1ra/ }).check();
   await page.getByLabel('Superficie Soja 1ra').fill('70');
-  await page.getByRole('button', { name: 'Guardar estancia' }).click();
+  await page.getByLabel('Prioridad del productor').selectOption('drought_resilience');
+  await page.getByRole('button', { name: 'Guardar cambios' }).click();
   await expect(page.getByRole('heading', { name: 'La Esperanza', exact: true })).toBeVisible();
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('argfield_registered_farms')!).length)).toBe(1);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('argfield_registered_farms')!)[0].profile.priority)).toBe('drought_resilience');
   await page.reload();
   await expect(page.getByRole('heading', { name: 'La Esperanza', exact: true })).toBeVisible();
   await expect(page.getByText('Soja 1ra · 70 ha')).toBeVisible();
 });
 
-test('offline retains completed readings while another provider is still pending', async ({ page }) => {
+test('a completed satellite reading stays visible while another provider is pending', async ({ page }) => {
   await mockProviders(page, { delayedStac: true });
   await page.goto('/');
   await expect(page.getByTestId('reading-saocom_humedad')).toContainText('24,5');
   await expect(page.getByTestId('reading-sentinel2_ndvi')).toContainText('Consultando');
-  await page.locator('#sidebar-offline-icon-btn').click();
-  await expect(page.getByTestId('reading-saocom_humedad')).toContainText('guardado');
+  await expect(page.getByTestId('reading-saocom_humedad')).toContainText('Dato vigente');
+  await expect(page.getByTestId('reading-sentinel2_ndvi')).toContainText('0,6', { timeout: 5000 });
   await expect(page.getByTestId('reading-saocom_humedad')).toContainText('24,5');
-  await expect(page.getByTestId('reading-sentinel2_ndvi')).toContainText('Sin dato guardado');
 });
 
 test('mobile exposes the new layers without overflowing the viewport', async ({ page }) => {
@@ -189,14 +186,15 @@ test('mobile exposes the new layers without overflowing the viewport', async ({ 
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
 
-test('changing farms cannot reuse the previous farm response', async ({ page }) => {
+test('changing the registered field cannot reuse the previous point response', async ({ page }) => {
   await mockProviders(page, { delayedFarm: true });
   await page.goto('/');
-  await page.locator('#home-edit-location-btn').click();
-  await page.getByRole('button', { name: 'Ingreso manual de coordenadas', exact: true }).click();
+  await page.locator('#home-edit-farm-btn').click();
+  await page.locator('summary').filter({ hasText: 'Ingreso manual de coordenadas' }).click();
   await page.getByPlaceholder('-34.6037', { exact: true }).fill('-36');
   await page.getByPlaceholder('-58.3816', { exact: true }).fill('-60');
-  await page.getByRole('button', { name: 'Guardar Cambios', exact: true }).click();
+  await page.getByRole('button', { name: 'Validar', exact: true }).click();
+  await page.getByRole('button', { name: 'Guardar cambios', exact: true }).click();
   await expect(page.getByTestId('reading-saocom_humedad')).toContainText('36');
   await page.waitForTimeout(1200);
   await expect(page.getByTestId('reading-saocom_humedad')).toContainText('36');
@@ -226,7 +224,7 @@ test('coverage and quality failures are explained and the field point can be edi
   await expect(page.getByTestId('reading-sentinel2_ndvi')).toContainText('Sin píxel válido por calidad');
   await expect(page.getByTestId('reading-sentinel2_ndvi')).toContainText('Escenas revisadas en este punto: 1');
   await page.getByRole('button', { name: 'Ubicar el punto de mi lote', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Guardar Cambios', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Guardar cambios', exact: true })).toBeVisible();
 });
 
 
@@ -240,24 +238,31 @@ test('declared rotation persists and compares with three alternatives using the 
     localStorage.setItem('field_shift_farm_profile', JSON.stringify(profile));
   });
   await page.goto('/');
-  await page.getByRole('button', { name: 'Gestionar estancias', exact: true }).click();
-  await page.getByTitle('Editar', { exact: true }).click();
+  await page.locator('#sidebar-edit-farm-icon-btn').click();
   await page.getByLabel('Horizonte de optimización', { exact: true }).selectOption('2');
   await page.getByLabel('Rotación campaña 1', { exact: true }).selectOption('soja1');
   await page.getByLabel('Rotación campaña 2', { exact: true }).selectOption('soja1');
   await page.getByLabel('Tipo de suelo', { exact: true }).selectOption('sandy_loam');
   await page.getByLabel('Riego disponible', { exact: true }).check();
   await page.getByLabel('Tope de riego mm/mes', { exact: true }).fill('40');
-  await page.getByRole('button', { name: 'Guardar estancia', exact: true }).click();
+  await page.getByRole('button', { name: 'Guardar cambios', exact: true }).click();
   await page.getByRole('button', { name: 'Optimizador', exact: true }).click();
-  await expect(page.getByText('Alternativas prospectivas y comparación', { exact: true })).toBeVisible();
-  await expect(page.getByRole('columnheader', { name: /^Actual declarada:/ })).toBeVisible();
-  await expect(page.getByRole('columnheader', { name: /^Alternativa:/ })).toHaveCount(3);
-  await expect(page.getByRole('cell', { name: 'Excluida / sin puntaje', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Información que falta', exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: /Avisos del motor/ }).click();
+  await expect(page.getByRole('dialog')).toContainText('Avisos del motor');
+  await page.getByRole('button', { name: 'Cerrar ventana', exact: true }).click();
+  const alternatives = page.getByRole('region', { name: 'Comparación de alternativas' }).getByRole('button');
+  await expect(alternatives).toHaveCount(3);
+  await page.getByRole('button', { name: 'Detalles del motor', exact: true }).click();
+  await expect(page.getByRole('dialog')).toContainText('Desglose del puntaje');
+  await expect(page.getByRole('dialog')).toContainText('Diagnóstico del optimizador');
+  await expect(page.getByRole('dialog')).toContainText('Respuesta completa del motor · JSON');
+  await expect(page.getByRole('dialog')).not.toContainText('Evidencia, datos faltantes y fuentes regionales');
   const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('argfield_registered_farms')!)[0].profile);
   expect(saved.currentRotation).toEqual([{ primary: 'soja1' }, { primary: 'soja1' }]);
   expect(saved.maxMonthlyIrrigationMm).toBe(40);
   expect(saved.soilType).toBe('sandy_loam');
+  await page.getByRole('button', { name: 'Cerrar ventana', exact: true }).click();
   await page.screenshot({ path: 'test-results/rotation-comparison.png', fullPage: true });
 });
 
@@ -282,18 +287,17 @@ test('optimizer without history uses real Chaco POWER fixture, keeps three plans
   });
   await page.goto('/');
   await page.getByRole('button', { name: 'Optimizador', exact: true }).click();
-  await expect(page.locator('[id^="plan-select-"]')).toHaveCount(3);
-  await expect(page.locator('#plan-select-0')).toContainText('Recomendada');
-  await expect(page.getByText('Comparación histórica opcional:', { exact: false })).toBeVisible();
-  await expect(page.getByRole('columnheader', { name: /^Alternativa:/ })).toHaveCount(3);
-  await page.getByTestId('optimization-diagnostics').locator('summary').first().click();
-  await expect(page.getByTestId('optimization-diagnostics')).toContainText(/Generadas: [1-9]/);
-  await expect(page.getByTestId('optimization-diagnostics')).toContainText('MAGyP');
-  await page.getByText('Evidencia, datos faltantes y fuentes regionales', { exact: true }).click();
-  await expect(page.getByRole('link', { name: 'Consulta NASA POWER utilizada' })).toBeVisible();
-  const firstPlan = await page.locator('#plan-select-0').innerText();
+  const alternatives = page.getByRole('region', { name: 'Comparación de alternativas' }).getByRole('button');
+  await expect(alternatives).toHaveCount(3);
+  await page.getByRole('button', { name: 'Detalles del motor', exact: true }).click();
+  await expect(page.getByRole('dialog')).toContainText('Desglose del puntaje');
+  await expect(page.getByRole('dialog')).toContainText('Compatibilidad hídrica');
+  await expect(page.getByRole('dialog')).toContainText('Diagnóstico del optimizador');
+  await expect(page.getByRole('dialog')).toContainText('Respuesta completa del motor · JSON');
+  await expect(page.getByRole('dialog')).not.toContainText('Evidencia, datos faltantes y fuentes regionales');
+  const firstPlan = (await alternatives.first().innerText()).replace(/\s+/g, ' ').trim();
   await page.reload();
-  await expect(page.locator('#plan-select-0')).toHaveText(firstPlan);
+  await expect.poll(() => page.getByRole('region', { name: 'Comparación de alternativas' }).getByRole('button').first().evaluate(element => (element as HTMLElement).innerText.replace(/\s+/g, ' ').trim())).toBe(firstPlan);
   expect(errors).toEqual([]);
   // Other providers are intentionally blocked by the existing fixture harness.
   expect(failed.filter(url => url.includes('/proxy/power/') || url.includes('/data/magyp-'))).toEqual([]);

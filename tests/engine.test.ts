@@ -382,7 +382,8 @@ test('agronómica: perennes no reciben rotaciones anuales', async () => {
     irrigationAvailable: false, soil: { type: 'mollisol_deep' }, priorities: { priority: 'conserve_moisture' }, nowIso: CHACO_NOW
   }, realDeps);
   assert.equal(result.alternatives.length, 0);
-  assert.ok(result.warnings.some(w => w.toLowerCase().includes('perennes')));
+  assert.equal(result.diagnostics.outcome, 'management');
+  assert.equal(result.managementRecommendations?.[0].crop, 'Yerba mate');
 });
 
 /* ------------------------- datos: satélites y fechas ------------------------- */

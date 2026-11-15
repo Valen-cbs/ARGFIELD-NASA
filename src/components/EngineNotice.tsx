@@ -1,35 +1,12 @@
 import React from 'react';
 
-interface DemoBadgeProps {
-  lang: 'es' | 'en';
-  className?: string;
-}
-
-/**
- * Marca únicamente contenido cualitativo del fallback como ilustrativo.
- */
-export const DemoBadge: React.FC<DemoBadgeProps> = ({ lang, className = '' }) => {
-  const title =
-    lang === 'es'
-      ? 'Estimación ilustrativa de la demo; no es una medición ni un pronóstico verificado.'
-      : 'Illustrative demo estimate; not a verified measurement or forecast.';
-  return (
-    <span
-      title={title}
-      className={`inline-flex items-center px-1.5 py-0.5 text-[9.5px] font-bold uppercase tracking-wide bg-amber-100 text-amber-900 border border-amber-300 dark:bg-amber-950/60 dark:text-amber-200 dark:border-amber-800 ${className}`}
-    >
-      {lang === 'es' ? 'Demo' : 'Demo'}
-    </span>
-  );
-};
-
-interface DemoBannerProps {
+interface EngineNoticeProps {
   lang: 'es' | 'en';
   onGoToMap: () => void;
   onDismiss: () => void;
 }
 
-export const DemoBanner: React.FC<DemoBannerProps> = ({ lang, onGoToMap, onDismiss }) => {
+/* export const EngineNotice: React.FC<EngineNoticeProps> = ({ lang, onGoToMap, onDismiss }) => {
   const es = lang === 'es';
   return (
     <div
@@ -52,10 +29,10 @@ export const DemoBanner: React.FC<DemoBannerProps> = ({ lang, onGoToMap, onDismi
         type="button"
         onClick={onDismiss}
         className="text-amber-800 dark:text-amber-300 cursor-pointer"
-        aria-label={es ? 'Ocultar aviso de demo' : 'Hide demo notice'}
+        aria-label={es ? 'Ocultar aviso del motor' : 'Hide engine notice'}
       >
         {es ? 'Ocultar' : 'Hide'}
       </button>
     </div>
   );
-};
+}; */

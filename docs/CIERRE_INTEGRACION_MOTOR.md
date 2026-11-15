@@ -11,7 +11,7 @@ Fecha de verificación: 15 de noviembre de 2026. Se conserva el motor v1.1.0, su
 | NASA GPM IMERG / CONAE | Percentil API como diagnóstico de precipitación antecedente; desvío de lluvia diaria reciente | Variabilidad solo con al menos cinco días consecutivos distintos de la ventana de siete días. Diagnósticos separados de S(r): jamás se suman a POWER ni se duplican acumulados diarios/mensuales |
 | ESA Sentinel-2 | Cambio entre extremos de NDVI observado | Al menos cuatro fechas distintas en un intervalo de treinta días, máximo noventa días, mismo punto, escenas con corrección radiométrica y control de calidad. No predice las rotaciones futuras |
 
-La admisión vuelve a comprobar fecha, vigencia, valor finito, rango y unidad en la entrada del motor. Las lecturas de caché offline no inicializan condiciones actuales. Los cambios de ubicación descartan respuestas anteriores y el adaptador filtra lecturas pertenecientes a otro punto.
+La admisión vuelve a comprobar fecha, vigencia, valor finito, rango y unidad en la entrada del motor. Las lecturas guardadas no inicializan condiciones actuales. Los cambios de ubicación descartan respuestas anteriores y el adaptador filtra lecturas pertenecientes a otro punto.
 
 Cada evidencia conserva producto, fuente, URL, fecha de observación, resolución, validez y función efectiva. La proveniencia distingue uso en balance, diagnóstico observado, contexto y exclusión. Las series conservan las fechas y URLs de las muestras efectivamente usadas, sin inferir fechas a partir del número de capa. Una muestra histórica válida puede pertenecer a la serie de siete días aunque supere los tres días de vigencia de una lectura de lluvia actual; nunca se reutiliza como condición actual.
 

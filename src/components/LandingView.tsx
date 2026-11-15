@@ -8,7 +8,6 @@ import { GoogleIcon } from './GoogleIcon';
 
 interface LandingViewProps {
   onConfirmLocation: (location: FarmLocation, agriculturalData: Pick<FarmProfile, 'producerName' | 'fieldSizeHectares' | 'currentCrop' | 'cropAllocations' | 'previousCrop' | 'previousCrops' | 'irrigationAvailable'>) => void;
-  onManageFarms?: () => void;
   currentLocation: FarmLocation;
   currentProfile?: FarmProfile;
   lang: 'es' | 'en';
@@ -77,7 +76,6 @@ const LOCAL_SUGGESTIONS: LocationSuggestion[] = [
 
 export const LandingView: React.FC<LandingViewProps> = ({
   onConfirmLocation,
-  onManageFarms,
   currentLocation,
   currentProfile,
   lang
@@ -216,7 +214,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
           }
         }
       } catch {
-        // Silently fall back to local suggestions if offline or aborted
+        // Keep local suggestions if the network lookup fails or is aborted.
       } finally {
         setIsLoadingSuggestions(false);
       }
@@ -408,7 +406,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
       <header className="bg-[#0f3260] dark:bg-[#161618] text-white px-6 py-4 border-b border-[#092040] dark:border-[#2e2e33] shadow-xs">
         <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="font-black tracking-tight text-lg">FIELD SHIFT</span>
+            <span className="font-black tracking-tight text-lg">ARGFIELD</span>
             <span className="text-xs text-slate-300 dark:text-zinc-400 border-l border-slate-500 pl-3">
               NASA Space Apps Challenge
             </span>
@@ -771,12 +769,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
 
         {registrationError && <div role="alert" className="mt-4 border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-800 dark:border-red-800 dark:bg-red-950/40 dark:text-red-200">{registrationError}</div>}
 
-        <div className={`mt-5 border-t border-slate-200 pt-5 dark:border-[#2e2e33] flex items-center gap-3 ${onManageFarms ? 'justify-between' : 'justify-end'}`}>
-          {onManageFarms && (
-            <button type="button" onClick={onManageFarms} className="text-[11px] text-slate-500 dark:text-zinc-400 underline underline-offset-2">
-              {lang === 'es' ? 'Administrar estancias' : 'Manage farms'}
-            </button>
-          )}
+        <div className="mt-5 border-t border-slate-200 pt-5 dark:border-[#2e2e33] flex items-center justify-end gap-3">
           <button
             id="landing-confirm-enter-btn"
             type="button"
