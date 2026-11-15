@@ -1,54 +1,31 @@
-# Cambios para la entrega
+# Cambios: capas reales de CONAE en el mapa
 
-## 1. Modo simple (nuevo, es la pantalla de inicio)
+## Qué se agregó
 
-Pensado para el productor: letra grande, botones grandes, semáforos con palabra y una sola sugerencia por semana. Usa **solo datos reales**:
+- **Panel "Capas CONAE" en el Mapa.** Muestra capas WMS reales de CONAE sobre el mapa base:
+  - Agua: estatus hídrico (percentil API), humedad SAOCOM 0–50 cm, humedad vs. lo normal (percentil SAOCOM), humedad superficial SMAP, lluvia diaria GPM IMERG.
+  - Riesgos: áreas inundadas (diario), focos de calor VIIRS y GOES (24 h).
+- Para las capas que CONAE publica como serie de 7 días se puede elegir el día (1 a 7). Además hay control de transparencia, referencias (leyenda que sirve CONAE), estado de carga y la fuente de cada capa.
+- **Botón "Probar valor en mi lote".** Hace una consulta GetFeatureInfo sobre el punto del lote. Si el servidor de CONAE no permite consultas desde el navegador (CORS), lo avisa: en ese caso hace falta un servidor intermedio para mostrar el número.
+- **Aviso de modo demo y etiquetas "Demo"** en Inicio, Clima, Alertas y Optimizador, porque esos números siguen siendo simulados (`src/services/dataLoader.ts`).
 
-| Dato | Fuente | Cómo se muestra |
-| --- | --- | --- |
-| Humedad del suelo (zona de raíces ~1 m y superficie) | NASA POWER, parámetros `GWETROOT` y `GWETTOP` (comunidad AG) | % y comparación con el mismo mes de los años desde 2005 (seco / normal / húmedo) |
-| Lluvia de los últimos 7 y 30 días y lo normal | NASA POWER, `PRECTOTCORR` diario y mensual | mm y comparación con lo normal |
-| Pronóstico 7 días, helada, viento para pulverizar | Open-Meteo | semáforos y lista de días |
-| Capas satelitales | CONAE (WMS) | pestaña Mapa |
+## Archivos
 
-Pantallas: **Inicio** (sugerencia de la semana + 4 semáforos + avisos), **Agua** (humedad, lluvia, pronóstico), **Qué sembrar** (3 rotaciones ordenadas según la prioridad elegida y el agua del suelo) y **Mapa** (capas de CONAE).
+- `src/data/conaeLayers.ts` — lista de capas, endpoints y armado de URLs (leyenda y GetFeatureInfo).
+- `src/components/ConaeLayerPanel.tsx` — panel de capas.
+- `src/components/DemoBadge.tsx` — etiqueta y aviso de demo.
+- `src/components/Map.tsx` — carga la capa WMS sobre Leaflet.
+- Pequeños cambios en `App.tsx`, `FarmProfileView.tsx`, `WeatherView.tsx`, `AlertsView.tsx` y `RotationStrategies.tsx` para mostrar las etiquetas.
 
-Arriba a la derecha está el botón **Modo técnico**, que abre la vista completa anterior. Desde ahí, el botón **Modo simple** vuelve.
+## Para verificar el domingo
 
-Las reglas están en `src/services/simpleAdvisor.ts`. Los umbrales son orientativos: hay que validarlos con un agrónomo.
-
-## 2. Capas reales de CONAE en el Mapa
-
-Panel "Capas CONAE": estatus hídrico, humedad SAOCOM 0–50 cm, humedad vs. lo normal, SMAP, lluvia diaria, áreas inundadas y focos de calor (VIIRS y GOES). Tiene selector de día (1 a 7), transparencia, referencias y el botón **Probar valor en mi lote**.
+1. Abrir el Mapa y probar cada capa. Si una queda en "CONAE no devolvió esta capa", probar otros días.
+2. Confirmar qué día (1 o 7) es el más reciente: CONAE no lo aclara en su página. Hoy se usa 1 por defecto.
+3. Las capas SAOCOM solo tienen datos en la Región Pampeana.
+4. Tocar "Probar valor en mi lote" para saber si se puede leer el número directo desde el navegador.
 
 Nombres de capas tomados de https://catalogos.conae.gov.ar/catalogo/catalogoGeoServiciosOGC.html
 
-## 3. Servidor intermedio (proxy)
+## Nota de instalación
 
-NASA POWER y CONAE pueden no permitir pedidos directos desde el navegador (CORS). La app intenta directo y, si falla, usa rutas `/proxy/...` del mismo sitio. Ya están configuradas para:
-
-- **En la compu:** `npm run dev` (en `vite.config.ts`).
-- **Vercel:** `vercel.json`.
-- **Netlify:** `netlify.toml`.
-
-En otro hosting sin proxy, el pronóstico (Open-Meteo) y el mapa funcionan igual; la humedad de NASA puede no cargar y la app lo avisa.
-
-## 4. Modo técnico
-
-Los números de las tarjetas, alertas, clima y optimizador del modo técnico **siguen siendo simulados** (`src/services/dataLoader.ts`). Por eso llevan la etiqueta "Demo" y un aviso arriba.
-
-## Cómo correrlo
-
-```
-npm install
-npm run dev
-```
-
-Se arregló el conflicto de dependencias: ya no hace falta `--legacy-peer-deps`.
-
-## Para verificar con internet
-
-1. Inicio en modo simple: que aparezcan los semáforos con datos (la primera carga puede tardar unos segundos).
-2. Si dice "Sin dato" en Agua, abrir la consola del navegador (F12) y buscar el aviso `[ARGFIELD] Datos reales con errores`.
-3. Mapa: probar cada capa y qué día (1 o 7) es el más reciente.
-4. Probar "Probar valor en mi lote".
+`npm install` falla por un conflicto previo de dependencias (esbuild) que ya venía en el proyecto. Se resuelve con `npm install --legacy-peer-deps` o usando `bun install`.
