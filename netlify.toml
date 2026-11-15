@@ -1,0 +1,28 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Proxy hacia servicios que no permiten pedidos directos desde el navegador (CORS).
+[[redirects]]
+  from = "/proxy/power/*"
+  to = "https://power.larc.nasa.gov/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/proxy/conae1/*"
+  to = "https://geoservicios.conae.gov.ar/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/proxy/conae2/*"
+  to = "https://geoservicios2.conae.gov.ar/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/proxy/conae3/*"
+  to = "https://geoservicios3.conae.gov.ar/:splat"
+  status = 200
+  force = true
