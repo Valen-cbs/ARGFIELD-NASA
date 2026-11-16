@@ -11,6 +11,8 @@ interface LandingViewProps {
   currentLocation: FarmLocation;
   currentProfile?: FarmProfile;
   lang: 'es' | 'en';
+  presentation?: 'page' | 'modal';
+  submitLabel?: string;
 }
 
 interface LocationSuggestion {
@@ -78,8 +80,11 @@ export const LandingView: React.FC<LandingViewProps> = ({
   onConfirmLocation,
   currentLocation,
   currentProfile,
-  lang
+  lang,
+  presentation = 'page',
+  submitLabel
 }) => {
+  const isModal = presentation === 'modal';
   const [farmName, setFarmName] = useState(currentProfile?.location.name ?? '');
   const [producerName, setProducerName] = useState(currentProfile?.producerName ?? '');
   const [farmArea, setFarmArea] = useState(currentProfile ? String(currentProfile.fieldSizeHectares) : '');
@@ -91,11 +96,12 @@ export const LandingView: React.FC<LandingViewProps> = ({
   const [previousCropQuery, setPreviousCropQuery] = useState('');
   const [irrigationAvailable, setIrrigationAvailable] = useState(currentProfile?.irrigationAvailable ?? false);
   const [registrationError, setRegistrationError] = useState('');
-  const [addressQuery, setAddressQuery] = useState('');
-  const [customLat, setCustomLat] = useState('');
-  const [customLng, setCustomLng] = useState('');
-  const [detectedProvince, setDetectedProvince] = useState('');
+  const [addressQuery, setAddressQuery] = useState(currentProfile?.location.name ?? '');
+  const [customLat, setCustomLat] = useState(currentProfile ? String(currentProfile.location.lat) : '');
+  const [customLng, setCustomLng] = useState(currentProfile ? String(currentProfile.location.lng) : '');
+  const [detectedProvince, setDetectedProvince] = useState(currentProfile?.location.province ?? '');
   const [showCoordsToggle, setShowCoordsToggle] = useState(false);
+  const [step, setStep] = useState(0);
 
   // Suggestions state
   const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
@@ -143,6 +149,9 @@ export const LandingView: React.FC<LandingViewProps> = ({
   // Autocomplete live suggestion handler
   const handleAddressInputChange = (value: string) => {
     setAddressQuery(value);
+    setCustomLat('');
+    setCustomLng('');
+    setDetectedProvince('');
     setErrorMessage(null);
 
     const clean = value.trim().toLowerCase();
@@ -223,6 +232,12 @@ export const LandingView: React.FC<LandingViewProps> = ({
 
   // User selects a suggestion
   const handleSelectSuggestion = (item: LocationSuggestion) => {
+    if (!isWithinArgentina(item.lat, item.lng)) {
+      setSuggestions([]);
+      setShowDropdown(false);
+      setErrorMessage(lang === 'es' ? 'Solo se permiten ubicaciones dentro del territorio argentino.' : 'Only locations within Argentine territory are allowed.');
+      return;
+    }
     setAddressQuery(item.shortName);
     setCustomLat(item.lat.toString());
     setCustomLng(item.lng.toString());
@@ -308,6 +323,12 @@ export const LandingView: React.FC<LandingViewProps> = ({
       (pos) => {
         const lat = Number(pos.coords.latitude.toFixed(4));
         const lng = Number(pos.coords.longitude.toFixed(4));
+        if (!isWithinArgentina(lat, lng)) {
+          setIsLocating(false);
+          setErrorMessage(lang === 'es' ? 'La ubicación detectada está fuera de Argentina. Seleccioná una localidad argentina o ingresá coordenadas válidas.' : 'The detected location is outside Argentina. Select an Argentine locality or enter valid coordinates.');
+          return;
+        }
+
         const region = determineRegion(lat, lng);
         const province =
           region === 'norte' ? 'Norte Argentino' : region === 'sur' ? 'Patagonia' : 'Región Pampeana';
@@ -361,6 +382,19 @@ export const LandingView: React.FC<LandingViewProps> = ({
     setAreaUnit(nextUnit);
   };
 
+  const handleContinue = () => {
+    setRegistrationError('');
+    if (step === 0 && !isLocationValid) {
+      setRegistrationError(lang === 'es' ? 'Buscá una localidad o ingresá coordenadas válidas dentro de Argentina.' : 'Search for a locality or enter valid coordinates within Argentina.');
+      return;
+    }
+    if (step === 1 && (!Number.isFinite(totalHectares) || totalHectares <= 0)) {
+      setRegistrationError(lang === 'es' ? 'Ingresá una superficie total mayor que cero.' : 'Enter a total area greater than zero.');
+      return;
+    }
+    setStep(current => Math.min(current + 1, 2));
+  };
+
   // Submit and Enter System
   const handleStart = () => {
     setRegistrationError('');
@@ -401,39 +435,71 @@ export const LandingView: React.FC<LandingViewProps> = ({
   };
 
   return (
-    <div className="landing-page min-h-screen bg-[#f4f6f8] dark:bg-[#121212] text-slate-900 dark:text-zinc-100 flex flex-col justify-between font-sans transition-colors">
+    <div className={`${isModal ? 'bg-[#f4f6f8] dark:bg-[#121212]' : 'landing-page min-h-screen bg-[#f4f6f8] dark:bg-[#121212]'} text-slate-900 dark:text-zinc-100 flex flex-col justify-between font-sans transition-colors`}>
       {/* Official Header Banner */}
-      <header className="bg-[#0f3260] dark:bg-[#161618] text-white px-6 py-4 border-b border-[#092040] dark:border-[#2e2e33] shadow-xs">
-        <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="font-black tracking-tight text-lg">ARGFIELD</span>
-            <span className="text-xs text-slate-300 dark:text-zinc-400 border-l border-slate-500 pl-3">
-              NASA Space Apps Challenge
-            </span>
+      {!isModal && (
+        <header className="bg-[#0f3260] dark:bg-[#161618] text-white px-6 py-4 border-b border-[#092040] dark:border-[#2e2e33] shadow-xs">
+          <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="font-black tracking-tight text-lg">ARGFIELD</span>
+              <span className="text-slate-400 dark:text-zinc-500"> NASA Space Apps</span>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
+      )}
 
-      <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 w-full my-auto">
-        <div className={`grid items-start gap-6 ${isLocationValid ? 'xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]' : 'grid-cols-1'}`}>
-        <section className="landing-card min-w-0 bg-white dark:bg-[#1c1c1e] border border-slate-200 dark:border-[#2e2e33] p-6 sm:p-7 lg:p-8 space-y-6 transition-colors">
+      <main className={`${isModal ? 'max-w-4xl mx-auto px-4 py-5 sm:px-6 w-full' : 'max-w-4xl mx-auto px-4 py-7 sm:px-6 lg:px-8 w-full my-auto'}`}>
+        <nav aria-label={lang === 'es' ? 'Progreso de configuración' : 'Setup progress'} className="mb-7">
+          <ol className="flex items-center">
+            {[
+              lang === 'es' ? 'Ubicación' : 'Location',
+              lang === 'es' ? 'Establecimiento' : 'Farm',
+              lang === 'es' ? 'Cultivos' : 'Crops'
+            ].map((label, index) => (
+              <li key={label} className={`flex min-w-0 items-center ${index < 2 ? 'flex-1' : ''}`}>
+                <button
+                  type="button"
+                  onClick={() => index < step && setStep(index)}
+                  disabled={index >= step}
+                  aria-current={step === index ? 'step' : undefined}
+                  aria-label={`${index + 1}. ${label}`}
+                  className={`flex min-h-11 shrink-0 items-center gap-2 text-left text-xs font-semibold sm:text-sm ${index <= step ? 'text-[#0f3260] dark:text-zinc-100' : 'text-slate-400 dark:text-zinc-500'} ${index < step ? 'cursor-pointer hover:text-[#17437e] dark:hover:text-white' : 'cursor-default'}`}
+                >
+                  <span className={`flex h-8 w-8 shrink-0 items-center justify-center border text-xs ${index < step ? 'border-[#0f3260] bg-[#0f3260] text-white dark:border-zinc-200 dark:bg-zinc-200 dark:text-zinc-900' : index === step ? 'border-[#0f3260] bg-white text-[#0f3260] dark:border-zinc-200 dark:bg-[#1c1c1e] dark:text-zinc-100' : 'border-slate-300 bg-white text-slate-400 dark:border-zinc-700 dark:bg-[#1c1c1e] dark:text-zinc-500'}`}>
+                    {index < step ? <GoogleIcon name="check" size={15} /> : index + 1}
+                  </span>
+                  <span className="hidden sm:inline">{label}</span>
+                </button>
+                {index < 2 && <span aria-hidden="true" className={`mx-3 h-px min-w-3 flex-1 ${index < step ? 'bg-[#0f3260] dark:bg-zinc-300' : 'bg-slate-200 dark:bg-zinc-700'}`} />}
+              </li>
+            ))}
+          </ol>
+        </nav>
+
+        <section className={`landing-card min-w-0 bg-white dark:bg-[#1c1c1e] border border-slate-200 dark:border-[#2e2e33] p-5 sm:p-8 space-y-6 transition-colors ${step === 0 ? '' : 'hidden'}`}>
           {/* Header section inside the single block */}
           <div className="border-b border-slate-200 dark:border-[#2e2e33] pb-5 space-y-2.5">
             <div className="flex items-center gap-2">
               <GoogleIcon name="map" className="text-[#0f3260] dark:text-zinc-200" size={22} />
               <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-zinc-100 tracking-tight">
-                {lang === 'es' ? 'Localización del Lote' : 'Farm Location Setup'}
+                {step === 0
+                  ? (lang === 'es' ? '¿Dónde está tu campo?' : 'Where is your farm?')
+                  : step === 1
+                    ? (lang === 'es' ? 'Contanos sobre el establecimiento' : 'Tell us about your farm')
+                    : (lang === 'es' ? '¿Qué estás cultivando?' : 'What are you growing?')}
               </h1>
             </div>
             <p className="text-sm text-slate-600 dark:text-zinc-400 leading-relaxed max-w-4xl">
-              {lang === 'es'
-                ? 'El sistema utiliza observaciones satelitales de humedad (NASA SMAP / CONAE SAOCOM) y precipitaciones para calcular estrategias de rotación adaptadas a tu cuenca.'
-                : 'The system uses satellite moisture and precipitation data to calculate crop rotation strategies adapted to your local basin.'}
+              {step === 0
+                ? (lang === 'es' ? 'Ubicamos el lote para adaptar las recomendaciones al clima y a las cuencas de la zona.' : 'We use your farm location to adapt recommendations to local climate and water basins.')
+                : step === 1
+                  ? (lang === 'es' ? 'Con estos datos calculamos superficies y ajustamos las recomendaciones. El nombre del productor es opcional.' : 'We use these details to calculate areas and tailor recommendations. Producer name is optional.')
+                  : (lang === 'es' ? 'Elegí los cultivos actuales y asignales superficie. Los cultivos anteriores son opcionales.' : 'Choose current crops and assign their area. Previous crops are optional.')}
             </p>
           </div>
 
           {/* Form Fields inside the block */}
-          <div className="space-y-6">
+          <div className={`space-y-6 ${step === 0 ? '' : 'hidden'}`}>
             {/* Field: Farm Name (Optional) */}
             <div>
               <label
@@ -461,14 +527,17 @@ export const LandingView: React.FC<LandingViewProps> = ({
             </div>
 
             {/* Address / Locality Search with Live Suggestions */}
-            <div className="pt-2 border-t border-slate-100 dark:border-[#2e2e33] space-y-1.5 relative" ref={dropdownRef}>
+            <div className="relative border-t border-slate-100 pt-4 dark:border-[#2e2e33]" ref={dropdownRef}>
               <label
                 htmlFor="landing-address-input"
-                className="text-xs font-bold text-slate-800 dark:text-zinc-200 block uppercase tracking-wider"
+                className="block text-sm font-semibold text-slate-800 dark:text-zinc-200"
               >
                 {lang === 'es' ? 'Dirección o Localidad' : 'Address or Locality'}
               </label>
-              <form onSubmit={handleSearchSubmit} className="flex items-center gap-1.5 relative">
+              <p className="mt-1 text-xs text-slate-500 dark:text-zinc-400">
+                {lang === 'es' ? 'Solo se aceptan ubicaciones dentro de Argentina.' : 'Only locations within Argentina are accepted.'}
+              </p>
+              <form onSubmit={handleSearchSubmit} className="relative mt-3 flex items-center gap-2">
                 <div className="relative flex-1">
                   <input
                     id="landing-address-input"
@@ -484,7 +553,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
                         : 'Type a town, city or address...'
                     }
                     autoComplete="off"
-                    className="w-full bg-slate-50 dark:bg-[#232326] border border-slate-300 dark:border-[#333336] px-4 py-3 text-sm text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-[#0f3260] dark:focus:border-zinc-400 focus:bg-white dark:focus:bg-[#232326] transition-colors"
+                    className="h-12 w-full border border-slate-300 bg-slate-50 px-4 text-sm text-slate-900 transition-colors placeholder:text-slate-400 focus:border-[#0f3260] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0f3260]/15 dark:border-[#333336] dark:bg-[#232326] dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:border-zinc-400 dark:focus:bg-[#232326]"
                   />
                   {isLoadingSuggestions && (
                     <span className="absolute right-3 top-2.5 text-[10px] text-slate-400 dark:text-zinc-500 font-mono">
@@ -501,7 +570,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
                   disabled={isLocating}
                   title={lang === 'es' ? 'Detectar por GPS' : 'Detect with GPS'}
                   aria-label={lang === 'es' ? 'Detectar por GPS' : 'Detect with GPS'}
-                  className="h-11 w-11 bg-slate-100 dark:bg-[#232326] hover:bg-[#0f3260] hover:text-white dark:hover:bg-[#3f3f46] text-[#0f3260] dark:text-zinc-200 border border-slate-300 dark:border-[#333336] flex items-center justify-center transition-colors shrink-0 cursor-pointer disabled:opacity-50"
+                  className="flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center border border-slate-300 bg-white text-[#0f3260] transition-colors hover:border-[#0f3260] hover:bg-[#0f3260] hover:text-white focus:outline-none focus:ring-2 focus:ring-[#0f3260]/25 disabled:cursor-wait disabled:opacity-50 dark:border-[#333336] dark:bg-[#232326] dark:text-zinc-200 dark:hover:bg-[#3f3f46]"
                 >
                   <GoogleIcon name={isLocating ? 'sync' : 'my_location'} size={18} className={isLocating ? 'animate-spin' : ''} />
                 </button>
@@ -513,25 +582,13 @@ export const LandingView: React.FC<LandingViewProps> = ({
                   onClick={() => setShowCoordsToggle(!showCoordsToggle)}
                   title={lang === 'es' ? 'Ingreso manual de coordenadas' : 'Manual coordinate entry'}
                   aria-label={lang === 'es' ? 'Ingreso manual de coordenadas' : 'Manual coordinate entry'}
-                  className={`h-11 w-11 flex items-center justify-center transition-colors shrink-0 cursor-pointer border ${
+                  className={`flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center border transition-colors focus:outline-none focus:ring-2 focus:ring-[#0f3260]/25 ${
                     showCoordsToggle
                       ? 'bg-[#0f3260] text-white border-[#0f3260] dark:bg-[#3f3f46] dark:border-[#52525b]'
-                      : 'bg-slate-100 dark:bg-[#232326] hover:bg-[#0f3260] hover:text-white dark:hover:bg-[#3f3f46] text-[#0f3260] dark:text-zinc-200 border-slate-300 dark:border-[#333336]'
+                      : 'border-slate-300 bg-white text-[#0f3260] hover:border-[#0f3260] hover:bg-[#0f3260] hover:text-white dark:border-[#333336] dark:bg-[#232326] dark:text-zinc-200 dark:hover:bg-[#3f3f46]'
                   }`}
                 >
                   <GoogleIcon name="pin_drop" size={18} />
-                </button>
-
-                {/* Search button - ONLY icon (lupa) */}
-                <button
-                  id="landing-search-address-btn"
-                  type="submit"
-                  disabled={!addressQuery.trim()}
-                  title={lang === 'es' ? 'Buscar localidad' : 'Search locality'}
-                  aria-label={lang === 'es' ? 'Buscar localidad' : 'Search locality'}
-                  className="h-11 w-11 bg-[#0f3260] dark:bg-[#27272a] hover:bg-[#17437e] dark:hover:bg-[#3f3f46] text-white border border-[#0f3260] dark:border-[#3f3f46] flex items-center justify-center transition-colors shrink-0 cursor-pointer disabled:opacity-40 disabled:hover:bg-[#0f3260]"
-                >
-                  <GoogleIcon name="search" size={18} />
                 </button>
               </form>
 
@@ -668,25 +725,25 @@ export const LandingView: React.FC<LandingViewProps> = ({
             )}
 
             {!hasPlace && (
-              <div className="p-3 border text-xs flex items-start gap-2.5 bg-slate-50 dark:bg-[#1e1e22] border-slate-200 dark:border-[#2e2e33] text-slate-700 dark:text-zinc-300">
-                <GoogleIcon name="info" size={18} className="text-[#0f3260] dark:text-zinc-400 shrink-0 mt-0.5" />
+              <div className="flex items-start gap-2 text-sm text-slate-500 dark:text-zinc-400">
+                <GoogleIcon name="info" size={16} className="text-[#0f3260] dark:text-zinc-400 shrink-0 mt-0.5" />
                 <div className="space-y-0.5">
-                  <span className="font-bold block text-slate-800 dark:text-zinc-200">
+                  <span className="font-semibold block text-slate-700 dark:text-zinc-300">
                     {lang === 'es' ? 'Ubicación requerida' : 'Location required'}
                   </span>
-                  <span className="text-[11px] leading-relaxed block text-slate-600 dark:text-zinc-400">
+                  <span className="text-xs leading-relaxed block">
                     {lang === 'es'
-                      ? 'Para habilitar el ingreso al sistema, buscá una localidad o ciudad argentina, activá la detección por GPS o ingresá las coordenadas geodésicas de tu establecimiento.'
-                      : 'To access the system, search for an Argentine locality, detect with GPS, or enter your farm geodetic coordinates.'}
+                      ? 'Buscá una localidad argentina, usá el GPS o ingresá las coordenadas del lote.'
+                      : 'Search for an Argentine locality, use GPS, or enter the farm coordinates.'}
                   </span>
                 </div>
               </div>
             )}
 
             {isLocationValid && (
-              <div className="p-2.5 border text-xs flex items-center gap-2 bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200">
-                <GoogleIcon name="check" size={16} className="text-emerald-700 dark:text-emerald-400 shrink-0" />
-                <span className="font-medium">
+              <div className="inline-flex items-center gap-2 border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300">
+                <GoogleIcon name="check" size={16} className="shrink-0 text-emerald-700 dark:text-emerald-300" />
+                <span className="font-semibold">
                   {lang === 'es'
                     ? 'Ubicación validada dentro del territorio argentino'
                     : 'Location validated within Argentine territory'}
@@ -704,93 +761,194 @@ export const LandingView: React.FC<LandingViewProps> = ({
           </div>
         </section>
         <AnimatePresence>
-          {isLocationValid && (
+          {step > 0 && (
             <motion.section
               key="farm-details"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 12 }}
               transition={{ duration: 0.28, ease: 'easeOut' }}
-              className="landing-card min-w-0 bg-white dark:bg-[#1c1c1e] border border-slate-200 dark:border-[#2e2e33] p-6 sm:p-7 lg:p-8 space-y-5 transition-colors"
+              className="landing-card min-w-0 bg-white dark:bg-[#1c1c1e] border border-slate-200 shadow-sm dark:border-[#2e2e33] p-5 sm:p-8 space-y-6 transition-colors"
             >
-              <h2 className="text-sm font-bold uppercase tracking-wider text-[#0f3260] dark:text-zinc-200">
-                {lang === 'es' ? 'Datos del establecimiento' : 'Farm details'}
-              </h2>
-
-              <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_150px]">
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-800 dark:text-zinc-200">
-                  {lang === 'es' ? 'Productor (opcional)' : 'Producer (optional)'}
-                  <input value={producerName} onChange={e => setProducerName(e.target.value)} className="mt-1.5 h-11 w-full border border-slate-300 bg-slate-50 px-3.5 text-sm font-normal normal-case text-slate-900 outline-none focus:border-[#0f3260] dark:border-[#333336] dark:bg-[#232326] dark:text-zinc-100" />
-                </label>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-800 dark:text-zinc-200">
-                  {lang === 'es' ? 'Tamaño de la estancia' : 'Farm area'}
-                  <input type="number" min="0.01" step="any" value={farmArea} onChange={e => setFarmArea(e.target.value)} className="mt-1.5 h-11 w-full border border-slate-300 bg-slate-50 px-3.5 text-sm font-normal normal-case text-slate-900 outline-none focus:border-[#0f3260] dark:border-[#333336] dark:bg-[#232326] dark:text-zinc-100" />
-                </label>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-800 dark:text-zinc-200">
-                  {lang === 'es' ? 'Unidad' : 'Unit'}
-                  <select value={areaUnit} onChange={e => changeAreaUnit(e.target.value as 'ha' | 'm2')} className="mt-1.5 h-11 w-full border border-slate-300 bg-slate-50 px-3 text-sm font-normal normal-case text-slate-900 dark:border-[#333336] dark:bg-[#232326] dark:text-zinc-100">
-                    <option value="ha">hectáreas</option><option value="m2">m²</option>
-                  </select>
-                </label>
+              <div>
+                <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-zinc-100">
+                  {step === 1
+                    ? (lang === 'es' ? 'Contanos sobre el establecimiento' : 'Tell us about your farm')
+                    : (lang === 'es' ? '¿Qué estás cultivando?' : 'What are you growing?')}
+                </h2>
+                <p className="mt-1 text-sm text-slate-600 dark:text-zinc-400">
+                  {step === 1
+                    ? (lang === 'es' ? 'Completá la superficie y las características del lote.' : 'Enter the farm area and its characteristics.')
+                    : (lang === 'es' ? 'Seleccioná los cultivos actuales y asigná superficie a cada uno.' : 'Select current crops and assign area to each one.')}
+                </p>
               </div>
-
-              <div className="grid gap-4 sm:grid-cols-2">
-                <section className="space-y-1.5">
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-800 dark:text-zinc-200">
-                    {lang === 'es' ? 'Cultivos anteriores (opcional)' : 'Previous crops (optional)'}
-                    <input value={previousCropQuery} onChange={e => setPreviousCropQuery(e.target.value)} placeholder={lang === 'es' ? 'Buscar cultivo' : 'Search crops'} className="mt-1.5 w-full border border-slate-300 bg-slate-50 px-3 py-2 text-xs font-normal normal-case text-slate-900 outline-none focus:border-[#0f3260] dark:border-[#333336] dark:bg-[#232326] dark:text-zinc-100" />
-                  </label>
-                  <div className="max-h-52 overflow-y-auto border border-slate-200 p-3 dark:border-[#333336]">
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-2">{visiblePreviousCrops.map(crop => <label key={crop} className="flex items-center gap-2 text-xs text-slate-700 dark:text-zinc-300"><input type="checkbox" checked={previousCrops.includes(crop)} onChange={() => togglePreviousCrop(crop)} />{crop}</label>)}</div>
+              {step === 1 && (
+                <div className="space-y-7">
+                  <div className="grid gap-5 sm:items-end sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_160px]">
+                    <label className="block text-sm font-semibold text-slate-800 dark:text-zinc-200">
+                      {lang === 'es' ? 'Superficie total' : 'Total area'}
+                      <span className="mt-1.5 flex h-12 border border-slate-300 bg-slate-50 focus-within:border-[#0f3260] dark:border-[#333336] dark:bg-[#232326]">
+                        <input type="number" min="0.01" step="any" value={farmArea} onChange={e => setFarmArea(e.target.value)} aria-label={lang === 'es' ? 'Superficie total' : 'Total area'} className="min-w-0 flex-1 bg-transparent px-3.5 text-base font-normal text-slate-900 outline-none dark:text-zinc-100" />
+                        <span className="flex items-center px-3 text-xs text-slate-500 dark:text-zinc-400">{areaUnit === 'ha' ? 'ha' : 'm²'}</span>
+                      </span>
+                    </label>
+                    <label className="block text-sm font-semibold text-slate-800 dark:text-zinc-200">
+                      {lang === 'es' ? 'Unidad' : 'Unit'}
+                      <select value={areaUnit} onChange={e => changeAreaUnit(e.target.value as 'ha' | 'm2')} className="mt-1.5 h-12 w-full border border-slate-300 bg-slate-50 px-3 text-sm font-normal text-slate-900 outline-none focus:border-[#0f3260] focus:ring-2 focus:ring-[#0f3260]/15 dark:border-[#333336] dark:bg-[#232326] dark:text-zinc-100 dark:focus:border-zinc-300">
+                        <option value="ha">{lang === 'es' ? 'Hectáreas' : 'Hectares'}</option>
+                        <option value="m2">m²</option>
+                      </select>
+                    </label>
+                    <div className="flex items-end">
+                      <label className="flex h-12 w-full cursor-pointer items-center gap-3 border border-slate-300 bg-slate-50 px-3.5 text-sm text-slate-700 transition-colors hover:border-[#0f3260] dark:border-[#333336] dark:bg-[#232326] dark:text-zinc-300">
+                        <input type="checkbox" checked={irrigationAvailable} onChange={e => setIrrigationAvailable(e.target.checked)} className="h-4 w-4 accent-[#0f3260]" />
+                        <span>{lang === 'es' ? 'Tiene riego' : 'Irrigated'}</span>
+                      </label>
+                    </div>
                   </div>
-                  <p className="text-[10px] text-slate-500 dark:text-zinc-400">{lang === 'es' ? 'Opcional. Podés seleccionar más de uno.' : 'Optional. Select more than one.'}</p>
-                </section>
-
-                <section className="space-y-1.5">
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-800 dark:text-zinc-200">
-                    {lang === 'es' ? 'Cultivos actuales' : 'Current crops'}
-                    <input value={currentCropQuery} onChange={e => setCurrentCropQuery(e.target.value)} placeholder={lang === 'es' ? 'Buscar cultivo' : 'Search crops'} className="mt-1.5 w-full border border-slate-300 bg-slate-50 px-3 py-2 text-xs font-normal normal-case text-slate-900 outline-none focus:border-[#0f3260] dark:border-[#333336] dark:bg-[#232326] dark:text-zinc-100" />
+                  <label className="block max-w-xl text-xs font-medium text-slate-700 dark:text-zinc-300">
+                    {lang === 'es' ? 'Nombre del productor (opcional)' : 'Producer name (optional)'}
+                    <input value={producerName} onChange={e => setProducerName(e.target.value)} className="mt-1.5 h-11 w-full border border-slate-300 bg-white px-3.5 text-sm font-normal text-slate-900 outline-none focus:border-[#0f3260] dark:border-[#333336] dark:bg-[#232326] dark:text-zinc-100" />
                   </label>
-                  <div className="max-h-52 overflow-y-auto border border-slate-200 p-3 dark:border-[#333336]">
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-2">{visibleCurrentCrops.map(crop => <div key={crop} className="flex min-w-0 items-center gap-2 text-xs text-slate-700 dark:text-zinc-300"><label className="flex min-w-0 flex-1 items-center gap-2"><input type="checkbox" checked={selectedCrops.includes(crop)} onChange={() => toggleCurrentCrop(crop)} /><span className="truncate">{crop}</span></label>{selectedCrops.includes(crop) && <input aria-label={`${lang === 'es' ? 'Superficie' : 'Area'} ${crop}`} type="number" min="0.01" step="any" value={cropAllocations[crop] ?? ''} onChange={e => setCropAllocations({ ...cropAllocations, [crop]: e.target.value })} className="w-20 border border-slate-300 bg-white px-2 py-1 text-xs text-slate-900 dark:border-[#333336] dark:bg-[#1c1c1e] dark:text-zinc-100" />}</div>)}</div>
-                  </div>
-                  <p className="text-[10px] text-slate-500 dark:text-zinc-400">{lang === 'es' ? 'Los cultivos “total” agrupan sus variantes.' : '“Total” crops include their variants.'}</p>
-                </section>
-              </div>
+                </div>
+              )}
 
-              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3 dark:border-[#2e2e33]">
-                <label className="flex items-center gap-2 text-xs text-slate-700 dark:text-zinc-300"><input type="checkbox" checked={irrigationAvailable} onChange={e => setIrrigationAvailable(e.target.checked)} />{lang === 'es' ? 'Cuenta con riego' : 'Has irrigation'}</label>
-                <span className={`text-xs ${allocatedHectares > totalHectares ? 'text-rose-600' : 'text-slate-500 dark:text-zinc-400'}`}>{lang === 'es' ? 'Asignado' : 'Allocated'}: {allocatedHectares.toFixed(2)} / {Number.isFinite(totalHectares) ? totalHectares.toFixed(2) : '0'} ha</span>
-              </div>
+              {step === 2 && (
+                <div className="grid gap-x-8 gap-y-10 lg:grid-cols-2">
+                  <div className="contents">
+                    <section aria-labelledby="current-crops-title" className="space-y-3">
+                      <div>
+                        <label htmlFor="current-crop-search" id="current-crops-title" className="block text-sm font-semibold text-slate-800 dark:text-zinc-200">
+                          {lang === 'es' ? 'Cultivos actuales' : 'Current crops'}
+                        </label>
+                        <input id="current-crop-search" value={currentCropQuery} onChange={e => setCurrentCropQuery(e.target.value)} placeholder={lang === 'es' ? 'Buscar un cultivo…' : 'Search crops…'} className="mt-2 h-11 w-full border border-slate-300 bg-slate-50 px-3.5 text-sm text-slate-900 outline-none focus:border-[#0f3260] dark:border-[#333336] dark:bg-[#232326] dark:text-zinc-100" />
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {visibleCurrentCrops.map(crop => {
+                          const selected = selectedCrops.includes(crop);
+                          const blocked = !selected && !canAddMagypCrop(selectedCrops, crop);
+                          return (
+                            <button key={crop} type="button" aria-pressed={selected} disabled={blocked} title={blocked ? (lang === 'es' ? 'Elegí una variante o el cultivo total, no ambos.' : 'Choose either a variant or its total, not both.') : undefined} onClick={() => toggleCurrentCrop(crop)} className={`min-h-9 border px-3 py-1.5 text-xs leading-5 transition-colors focus:outline-none focus:ring-2 focus:ring-[#0f3260]/25 ${selected ? 'border-[#0f3260] bg-[#0f3260] text-white dark:border-zinc-300 dark:bg-zinc-200 dark:text-zinc-900' : blocked ? 'cursor-not-allowed border-slate-100 bg-slate-50 text-slate-300 dark:border-zinc-800 dark:bg-[#202023] dark:text-zinc-600' : 'border-slate-300 bg-white text-slate-700 hover:border-[#0f3260] hover:text-[#0f3260] dark:border-[#3f3f46] dark:bg-[#232326] dark:text-zinc-300 dark:hover:border-zinc-300'}`}>
+                              {crop}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <p className="text-xs text-slate-500 dark:text-zinc-400">{lang === 'es' ? 'Los cultivos “total” agrupan sus variantes; seleccioná uno u otro.' : '“Total” crops include their variants; select either the total or its variants.'}</p>
+                    </section>
+
+                    <section aria-labelledby="selected-crops-title" className="border-t border-slate-200 pt-5 dark:border-[#333336] lg:border-t-0 lg:border-l lg:pl-6 lg:pt-0">
+                      <div className="mb-3 flex items-baseline justify-between gap-3">
+                        <h3 id="selected-crops-title" className="text-sm font-semibold text-slate-800 dark:text-zinc-200">{lang === 'es' ? 'Cultivos seleccionados' : 'Selected crops'}</h3>
+                        <span className="text-xs text-slate-500 dark:text-zinc-400">{lang === 'es' ? 'Superficie por cultivo' : 'Area per crop'} ({areaUnit === 'ha' ? 'ha' : 'm²'})</span>
+                      </div>
+                      {selectedCrops.length ? (
+                        <ul className="divide-y divide-slate-200 dark:divide-[#333336]">
+                          {selectedCrops.map(crop => (
+                            <li key={crop} className="flex flex-wrap items-center gap-3 py-3">
+                              <span className="min-w-0 flex-1 text-sm font-medium text-slate-800 dark:text-zinc-200">{crop}</span>
+                              <label className="flex items-center gap-2 text-xs text-slate-500 dark:text-zinc-400">
+                                <span>{lang === 'es' ? 'Superficie' : 'Area'}</span>
+                                <input aria-label={`${lang === 'es' ? 'Superficie' : 'Area'} ${crop}`} type="number" min="0.01" step="any" value={cropAllocations[crop] ?? ''} onChange={e => setCropAllocations({ ...cropAllocations, [crop]: e.target.value })} className="h-10 w-28 border border-slate-300 bg-white px-2.5 text-sm text-slate-900 outline-none focus:border-[#0f3260] dark:border-[#333336] dark:bg-[#232326] dark:text-zinc-100" />
+                              </label>
+                              <button type="button" onClick={() => toggleCurrentCrop(crop)} aria-label={`${lang === 'es' ? 'Quitar' : 'Remove'} ${crop}`} className="px-2 py-2 text-xs text-slate-500 hover:text-rose-700 dark:text-zinc-400 dark:hover:text-rose-300">
+                                {lang === 'es' ? 'Quitar' : 'Remove'}
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="py-4 text-sm text-slate-500 dark:text-zinc-400">{lang === 'es' ? 'Todavía no seleccionaste cultivos.' : 'No crops selected yet.'}</p>
+                      )}
+                      <div className="mt-5 border-t border-slate-200 pt-4 dark:border-[#333336]">
+                        <div className="flex justify-between gap-3 text-xs">
+                          <span className="text-slate-500 dark:text-zinc-400">{lang === 'es' ? 'Asignado' : 'Allocated'}</span>
+                          <span className={`font-semibold ${allocatedHectares > totalHectares ? 'text-rose-600 dark:text-rose-300' : 'text-slate-800 dark:text-zinc-200'}`}>{allocatedHectares.toFixed(2)} ha</span>
+                        </div>
+                        <div className="mt-2 flex justify-between gap-3 text-xs">
+                          <span className="text-slate-500 dark:text-zinc-400">{lang === 'es' ? 'Disponible' : 'Remaining'}</span>
+                          <span className={`font-semibold ${allocatedHectares > totalHectares ? 'text-rose-600 dark:text-rose-300' : 'text-slate-800 dark:text-zinc-200'}`}>{Math.max(totalHectares - allocatedHectares, 0).toFixed(2)} ha</span>
+                        </div>
+                        {allocatedHectares > totalHectares && <p className="mt-2 text-xs text-rose-700 dark:text-rose-300">{lang === 'es' ? 'La superficie asignada supera el total.' : 'Allocated area exceeds the total.'}</p>}
+                      </div>
+                    </section>
+
+                    <section aria-labelledby="previous-crops-title" className="border-t border-slate-200 pt-6 dark:border-[#2e2e33]">
+                      <label htmlFor="previous-crop-search" id="previous-crops-title" className="block text-sm font-semibold text-slate-800 dark:text-zinc-200">
+                        {lang === 'es' ? 'Cultivos anteriores (opcional)' : 'Previous crops (optional)'}
+                      </label>
+                      <input id="previous-crop-search" value={previousCropQuery} onChange={e => setPreviousCropQuery(e.target.value)} placeholder={lang === 'es' ? 'Buscar un cultivo…' : 'Search crops…'} className="mt-2 h-11 w-full border border-slate-300 bg-slate-50 px-3.5 text-sm text-slate-900 outline-none focus:border-[#0f3260] dark:border-[#333336] dark:bg-[#232326] dark:text-zinc-100" />
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {visiblePreviousCrops.map(crop => {
+                          const selected = previousCrops.includes(crop);
+                          const blocked = !selected && !canAddMagypCrop(previousCrops, crop);
+                          return (
+                            <button key={crop} type="button" aria-pressed={selected} disabled={blocked} title={blocked ? (lang === 'es' ? 'Elegí una variante o el cultivo total, no ambos.' : 'Choose either a variant or its total, not both.') : undefined} onClick={() => togglePreviousCrop(crop)} className={`min-h-9 border px-3 py-1.5 text-xs leading-5 transition-colors focus:outline-none focus:ring-2 focus:ring-[#0f3260]/25 ${selected ? 'border-[#0f3260] bg-[#0f3260] text-white dark:border-zinc-300 dark:bg-zinc-200 dark:text-zinc-900' : blocked ? 'cursor-not-allowed border-slate-100 bg-slate-50 text-slate-300 dark:border-zinc-800 dark:bg-[#202023] dark:text-zinc-600' : 'border-slate-300 bg-white text-slate-700 hover:border-[#0f3260] hover:text-[#0f3260] dark:border-[#3f3f46] dark:bg-[#232326] dark:text-zinc-300 dark:hover:border-zinc-300'}`}>
+                              {crop}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {previousCrops.length > 0 && <p className="mt-3 text-xs text-slate-500 dark:text-zinc-400">{lang === 'es' ? 'Seleccionados: ' : 'Selected: '}{previousCrops.join(', ')}</p>}
+                    </section>
+                  </div>
+
+                  <aside className="border-t border-slate-200 pt-6 dark:border-[#333336] lg:border-l lg:pl-6">
+                    <h3 className="text-sm font-semibold text-slate-800 dark:text-zinc-200">{lang === 'es' ? 'Cultivos anteriores seleccionados' : 'Selected previous crops'}</h3>
+                    <p className="mt-1 text-xs text-slate-500 dark:text-zinc-400">{lang === 'es' ? 'Podés quitar los cultivos que no correspondan al historial del lote.' : 'Remove crops that do not belong to the field history.'}</p>
+                    {previousCrops.length ? (
+                      <ul className="mt-4 divide-y divide-slate-200 dark:divide-[#333336]">
+                        {previousCrops.map(crop => (
+                          <li key={crop} className="flex items-center justify-between gap-3 py-3">
+                            <span className="text-sm font-medium text-slate-800 dark:text-zinc-200">{crop}</span>
+                            <button type="button" onClick={() => togglePreviousCrop(crop)} aria-label={`${lang === 'es' ? 'Quitar' : 'Remove'} ${crop}`} className="px-2 py-2 text-xs text-slate-500 hover:text-rose-700 dark:text-zinc-400 dark:hover:text-rose-300">{lang === 'es' ? 'Quitar' : 'Remove'}</button>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="py-5 text-sm text-slate-500 dark:text-zinc-400">{lang === 'es' ? 'Todavía no seleccionaste cultivos anteriores.' : 'No previous crops selected yet.'}</p>
+                    )}
+                  </aside>
+                </div>
+              )}
             </motion.section>
           )}
         </AnimatePresence>
-        </div>
 
-        {registrationError && <div role="alert" className="mt-4 border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-800 dark:border-red-800 dark:bg-red-950/40 dark:text-red-200">{registrationError}</div>}
+        {registrationError && <div role="alert" aria-live="polite" className="mt-4 border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800 dark:border-red-800 dark:bg-red-950/40 dark:text-red-200">{registrationError}</div>}
 
-        <div className="mt-5 border-t border-slate-200 pt-5 dark:border-[#2e2e33] flex items-center justify-end gap-3">
-          <button
-            id="landing-confirm-enter-btn"
-            type="button"
-            onClick={handleStart}
-            disabled={!isLocationValid}
-            className={`px-7 py-3 text-sm font-bold border flex items-center gap-2 transition-all ${
-              isLocationValid
-                ? 'bg-[#0f3260] dark:bg-[#27272a] hover:bg-[#17437e] dark:hover:bg-[#3f3f46] text-white border-[#0f3260] dark:border-[#3f3f46] cursor-pointer shadow-xs'
-                : 'bg-slate-200 dark:bg-[#202023] text-slate-400 dark:text-zinc-600 border-slate-300 dark:border-[#2e2e33] cursor-not-allowed opacity-50'
-            }`}
-          >
-            <span>{lang === 'es' ? 'Ingresar al Sistema' : 'Enter System'}</span>
-            <GoogleIcon name="arrow_forward" className={isLocationValid ? 'text-white' : 'text-slate-400 dark:text-zinc-600'} size={16} />
-          </button>
+        <div className="mt-5 flex items-center justify-between gap-3 border-t border-slate-200 pt-5 dark:border-[#2e2e33]">
+          {step > 0 ? (
+            <button type="button" onClick={() => { setRegistrationError(''); setStep(current => current - 1); }} className="flex min-h-11 items-center gap-2 px-2 text-sm font-semibold text-slate-600 hover:text-[#0f3260] dark:text-zinc-300 dark:hover:text-white">
+              <GoogleIcon name="arrow_back" size={16} />
+              {lang === 'es' ? 'Anterior' : 'Back'}
+            </button>
+          ) : <span />}
+          {step < 2 ? (
+            <button id="landing-continue-btn" type="button" onClick={handleContinue} className="flex min-h-11 items-center gap-2 bg-[#0f3260] px-6 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-[#17437e] dark:bg-zinc-200 dark:text-zinc-900 dark:hover:bg-white">
+              {lang === 'es' ? 'Continuar' : 'Continue'}
+              <GoogleIcon name="arrow_forward" size={16} />
+            </button>
+          ) : (
+            <button
+              id="landing-confirm-enter-btn"
+              type="button"
+              onClick={handleStart}
+              className="flex min-h-11 items-center gap-2 bg-[#0f3260] px-6 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-[#17437e] dark:bg-zinc-200 dark:text-zinc-900 dark:hover:bg-white"
+            >
+              <span>{submitLabel ?? (lang === 'es' ? 'Ingresar al sistema' : 'Enter system')}</span>
+              <GoogleIcon name="arrow_forward" size={16} />
+            </button>
+          )}
         </div>
       </main>
 
       {/* Official Footer */}
-      <footer className="border-t border-slate-200 dark:border-[#2e2e33] bg-white/80 dark:bg-[#161618] py-4 px-6 text-center text-xs text-slate-500 dark:text-zinc-400 font-mono">
-        NASA Space Apps • Argfield
-      </footer>
+      {!isModal && (
+        <footer className="border-t border-slate-200 dark:border-[#2e2e33] bg-white/80 dark:bg-[#161618] py-4 px-6 text-center text-xs text-slate-500 dark:text-zinc-400 font-mono">
+          NASA Space Apps • Argfield
+        </footer>
+      )}
     </div>
   );
 };

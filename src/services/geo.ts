@@ -24,21 +24,51 @@ export const ARGENTINA_BOUNDS = {
  * encompassing the continental mainland, Islas Malvinas & South Atlantic archipelagos, and Argentine Antarctica.
  */
 export function isWithinArgentina(lat: number, lng: number): boolean {
-  if (isNaN(lat) || isNaN(lng)) return false;
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
+
+  // Strict mainland outline. Broad latitude/longitude bands can accidentally
+  // include areas of Brazil, Uruguay and Paraguay near the borders.
+  const mainlandOutline: [number, number][] = [
+    [-65.2, -21.8], [-62.2, -22.0], [-60.0, -23.0], [-58.2, -24.0],
+    [-57.7, -25.2], [-57.5, -25.5], [-54.9, -25.5], [-54.7, -26.0],
+    [-54.8, -27.0], [-53.7, -28.2], [-55.8, -29.2],
+    [-57.3, -30.5], [-58.1, -32.1], [-58.4, -33.5], [-58.2, -34.6],
+    [-57.8, -35.5], [-57.0, -36.7], [-57.4, -38.0], [-58.5, -39.0],
+    [-62.0, -40.8], [-63.5, -42.0], [-65.5, -43.5], [-65.5, -46.0],
+    [-65.5, -48.0], [-66.0, -50.0], [-66.0, -52.0], [-67.0, -54.0],
+    [-66.5, -55.1], [-68.7, -55.1], [-69.0, -53.0], [-71.0, -51.0],
+    [-72.5, -48.0], [-72.5, -45.0], [-71.5, -42.0], [-71.5, -39.0],
+    [-70.0, -36.0], [-70.0, -33.0], [-69.5, -30.0], [-68.5, -27.0],
+    [-68.0, -24.0], [-67.0, -22.0]
+  ];
+  const isInsideOutline = (x: number, y: number) => {
+    let inside = false;
+    for (let i = 0, j = mainlandOutline.length - 1; i < mainlandOutline.length; j = i++) {
+      const [xi, yi] = mainlandOutline[i];
+      const [xj, yj] = mainlandOutline[j];
+      if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+    }
+    return inside;
+  };
 
   // 1. Argentine Antarctica: South of 60°S between 25°W and 74°W down to South Pole (-90°)
   if (lat <= -60.0 && lat >= -90.0) {
-    return lng >= -74.0 && lng <= -25.0;
+    return false;
   }
 
   // 2. Islas Malvinas (Falklands) and South Atlantic Islands
   // Malvinas: Lat ~ -51° to -53°, Lng ~ -61.5° to -57.5°
   // Georgias & Sandwich: Lat ~ -53° to -60°, Lng ~ -39° to -26°
   if (lat < -50.0 && lat > -60.0) {
-    if (lng >= -62.5 && lng <= -25.0) return true;
+    return false;
   }
 
   // 3. Continental Mainland Argentina (from Jujuy ~ -21.78° to Ushuaia/Tierra del Fuego ~ -55.2°)
+  // Conservative guard for the Paraguay river border around Asunción.
+  if (lat > -25.7 && lat < -24.7 && lng > -58.0 && lng < -57.3) return false;
+
+  if (lat >= -55.2 && lat <= -21.5) return isInsideOutline(lng, lat);
+
   if (lat >= -55.2 && lat <= -21.5) {
     // Longitudinal boundary check
     if (lng < -73.8 || lng > -53.5) return false;

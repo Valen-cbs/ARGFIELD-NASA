@@ -75,7 +75,7 @@ export default function App() {
   });
   const [activeTab, setActiveTab] = useState<AppTab>(() => {
     const saved = localStorage.getItem(STORAGE_TAB_KEY) as AppTab;
-    if (saved && ['home', 'clima', 'alertas', 'mapa', 'fuentes', 'optimizador'].includes(saved)) {
+    if (saved && ['home', 'optimizador', 'clima', 'mapa', 'fuentes'].includes(saved)) {
       return saved;
     }
     return 'home';
@@ -243,6 +243,8 @@ export default function App() {
               onNavigateToOptimizer={() => setActiveTab('optimizador')}
               onNavigateToAlerts={() => setActiveTab('alertas')}
               onNavigateToWeather={() => setActiveTab('clima')}
+              onNavigateToMap={() => setActiveTab('mapa')}
+              onNavigateToSources={() => setActiveTab('fuentes')}
               lang={lang}
             />
           )}

@@ -54,10 +54,25 @@
 
 .landing-page .landing-card {
   box-shadow: 0 24px 70px -38px rgba(15, 35, 65, 0.34), 0 2px 8px rgba(15, 35, 65, 0.04);
+  border-radius: 16px !important;
 }
 
 .dark .landing-page .landing-card {
   box-shadow: 0 24px 70px -38px rgba(0, 0, 0, 0.8), 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.landing-page input:not([type="checkbox"]),
+.landing-page select,
+.landing-page button {
+  border-radius: 8px !important;
+}
+
+.landing-page .landing-card button[aria-pressed] {
+  border-radius: 999px !important;
+}
+
+.landing-page nav button > span:first-child {
+  border-radius: 999px !important;
 }
 
 .landing-page input:not([type="checkbox"]):focus,

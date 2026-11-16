@@ -37,6 +37,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     labelEs: string;
     labelEn: string;
     badge?: number;
+    disabled?: boolean;
   }[] = [
     {
       id: 'home',
@@ -45,17 +46,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
       labelEn: 'Home'
     },
     {
+      id: 'optimizador',
+      icon: 'eco',
+      labelEs: 'Optimizador',
+      labelEn: 'Optimizer'
+    },
+    {
       id: 'clima',
       icon: 'cloud',
       labelEs: 'Clima',
       labelEn: 'Weather'
-    },
-    {
-      id: 'alertas',
-      icon: 'notifications',
-      labelEs: 'Alertas',
-      labelEn: 'Alerts',
-      badge: criticalAlertsCount
     },
     {
       id: 'mapa',
@@ -70,10 +70,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
       labelEn: 'Sources'
     },
     {
-      id: 'optimizador',
-      icon: 'eco',
-      labelEs: 'Optimizador',
-      labelEn: 'Optimizer'
+      id: 'alertas',
+      icon: 'notifications',
+      labelEs: 'Alertas',
+      labelEn: 'Alerts',
+      disabled: true
     }
   ];
 
@@ -123,17 +124,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Clear Navigation List with Google SVG Icons + Short Titles */}
           <nav className="p-2 space-y-1">
             {navItems.map((item) => {
-              const isActive = activeTab === item.id;
+              const isActive = !item.disabled && activeTab === item.id;
               return (
                 <button
                   key={item.id}
                   id={`nav-item-${item.id}`}
+                  type="button"
+                  disabled={item.disabled}
                   onClick={() => {
                     onSelectTab(item.id);
                     if (onCloseMobile) onCloseMobile();
                   }}
                   className={`w-full flex items-center justify-between px-3 py-2.5 text-xs font-semibold transition-colors border ${
-                    isActive
+                    item.disabled
+                      ? 'bg-slate-50 dark:bg-[#202023] text-slate-400 dark:text-zinc-500 border-transparent cursor-not-allowed'
+                      : isActive
                       ? 'bg-[#0f3260] dark:bg-[#27272a] text-white border-[#0f3260] dark:border-[#3f3f46] shadow-xs'
                       : 'bg-white dark:bg-[#18181b] text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-[#27272a] border-transparent hover:border-slate-200 dark:hover:border-[#333336]'
                   }`}
@@ -141,13 +146,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <div className="flex items-center gap-3">
                     <GoogleIcon 
                       name={item.icon} 
-                      className={isActive ? 'text-white' : 'text-slate-600 dark:text-zinc-400'} 
+                      className={item.disabled ? 'text-slate-400 dark:text-zinc-600' : isActive ? 'text-white' : 'text-slate-600 dark:text-zinc-400'}
                       size={18} 
                     />
                     <span>{lang === 'es' ? item.labelEs : item.labelEn}</span>
                   </div>
 
-                  {item.badge !== undefined && item.badge > 0 && (
+                  {item.disabled ? (
+                    <span className="text-[9px] font-medium uppercase tracking-wide text-slate-400 dark:text-zinc-500">
+                      {lang === 'es' ? 'Próximamente' : 'Coming soon'}
+                    </span>
+                  ) : item.badge !== undefined && item.badge > 0 && (
                     <span className={`px-1.5 py-0.2 text-[10px] font-bold font-mono ${
                       isActive ? 'bg-red-600 text-white' : 'bg-red-100 text-red-800 dark:bg-red-950/80 dark:text-red-300 border border-red-200 dark:border-red-900'
                     }`}>

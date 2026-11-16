@@ -198,10 +198,8 @@ export const MapComponent: React.FC<MapProps> = ({
 
   // Capas reales de CONAE (WMS) superpuestas al mapa base
   const conaeTileLayerRef = useRef<L.TileLayer | null>(null);
-  // Abierto en escritorio; cerrado en celular para no tapar el mapa
-  const [showConaePanel, setShowConaePanel] = useState(
-    () => typeof window === 'undefined' || window.innerWidth >= 640
-  );
+  // Closed by default: satellite coverage is opt-in and never obstructs the map.
+  const [showConaePanel, setShowConaePanel] = useState(false);
   const [conaeLayerId, setConaeLayerId] = useState<string | null>(() => {
     try {
       const saved = localStorage.getItem(CONAE_LAYER_STORAGE_KEY);
